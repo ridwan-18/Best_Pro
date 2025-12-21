@@ -16,6 +16,7 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY}}
           port: 22
           script: |
+            git config --global --add safe.directory /opt/lampp/htdocs/BestPro
             cd /opt/lampp/htdocs/BestPro
             pwd
             git pull origin development
