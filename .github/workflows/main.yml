@@ -28,4 +28,4 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY}}
           port: 22
           script: |
-            sudo systemcl restart xampp.service
+            sudo systemctl restart xampp.service
