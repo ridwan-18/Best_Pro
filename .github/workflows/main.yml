@@ -17,7 +17,7 @@ jobs:
           port: 22
           script: |
             sudo git config --global --add safe.directory /opt/lampp/htdocs/BestPro
-            sudo cd /opt/lampp/htdocs/BestPro
+            cd /opt/lampp/htdocs/BestPro
             pwd
             sudo git pull origin development
             sudo git status
