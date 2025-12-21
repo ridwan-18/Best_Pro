@@ -3,7 +3,7 @@ name: Deployment to production
 on:
   push:
     branches:
-      - prod
+      - main
 jobs:
   deployment:
     runs-on: ubuntu-latest
@@ -18,7 +18,7 @@ jobs:
           script: |
             cd /opt/lampp/htdocs/BestPro-prod
             pwd
-            git pull origin prod
+            git pull origin main
             git status
       - name : restart lampp service
         uses: appleboy/ssh-action@master
