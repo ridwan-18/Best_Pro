@@ -5,7 +5,7 @@ on:
     branches:
       - development
 jobs:
-  ci:
+  deployment:
     runs-on: ubuntu-latest
     steps:
       - name: Pull Repo
