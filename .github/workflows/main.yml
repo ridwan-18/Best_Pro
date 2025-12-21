@@ -1,0 +1,31 @@
+name: cd
+
+on:
+  push:
+    branches:
+      - prod
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Pull Repo
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SSH_HOST}}
+          username: ${{ secrets.SSH_USERNAME}}
+          key: ${{ secrets.SSH_PRIVATE_KEY}}
+          port: 22
+          script: |
+            cd /opt/lampp/htdocs/BestPro-prod
+            pwd
+            git pull origin prod
+            git status
+      - name : restart lampp service
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SSH_HOST}}
+          username: ${{ secrets.SSH_USERNAME}}
+          key: ${{ secrets.SSH_PRIVATE_KEY}}
+          port: 22
+          script: |
+            sudo systemcl restart xampp.service
