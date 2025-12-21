@@ -18,9 +18,8 @@ jobs:
           script: |
             sudo git config --global --add safe.directory /opt/lampp/htdocs/BestPro
             cd /opt/lampp/htdocs/BestPro
-            pwd
             sudo git pull origin development
-            sudo git status
+            sudo /usr/bin/chown -R daemon:daemon .
       - name : restart lampp service
         uses: appleboy/ssh-action@master
         with:
