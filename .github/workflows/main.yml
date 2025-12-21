@@ -16,11 +16,11 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY}}
           port: 22
           script: |
-            git config --global --add safe.directory /opt/lampp/htdocs/BestPro
-            cd /opt/lampp/htdocs/BestPro
+            sudo git config --global --add safe.directory /opt/lampp/htdocs/BestPro
+            sudo cd /opt/lampp/htdocs/BestPro
             pwd
-            git pull origin development
-            git status
+            sudo git pull origin development
+            sudo git status
       - name : restart lampp service
         uses: appleboy/ssh-action@master
         with:
@@ -29,4 +29,4 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY}}
           port: 22
           script: |
-            sudo systemcl restart xampp.service
+            sudo systemctl restart xampp.service
