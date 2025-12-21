@@ -16,10 +16,10 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY}}
           port: 22
           script: |
+            sudo git config --global --add safe.directory /opt/lampp/htdocs/BestPro-prod
             cd /opt/lampp/htdocs/BestPro-prod
-            pwd
-            git pull origin main
-            git status
+            sudo git pull origin main
+            sudo /usr/bin/chown -R daemon:daemon .
       - name : restart lampp service
         uses: appleboy/ssh-action@master
         with:
