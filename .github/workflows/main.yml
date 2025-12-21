@@ -16,10 +16,10 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY}}
           port: 22
           script: |
-            cd /opt/lampp/htdocs/bestpro
+            cd /opt/lampp/htdocs/BestPro
             pwd
-            #git pull origin develop
-            #git status
+            git pull origin develop
+            git status
       - name : restart lampp service
         uses: appleboy/ssh-action@master
         with:
