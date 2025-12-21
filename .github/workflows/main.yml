@@ -18,7 +18,7 @@ jobs:
           script: |
             cd /opt/lampp/htdocs/BestPro
             pwd
-            git pull origin develop
+            git pull origin development
             git status
       - name : restart lampp service
         uses: appleboy/ssh-action@master
