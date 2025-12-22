@@ -30,7 +30,9 @@ use yii\data\Pagination;
 use yii\web\UploadedFile;
 use Da\QrCode\QrCode;
 use yii\helpers\Url;
-
+use app\models\Dokumen_Medis;
+use app\models\map_member_dokumen_medis;
+use FPDF;
 /**
  * MemberController implements the CRUD actions for Member model.
  */
@@ -692,6 +694,8 @@ class MemberController extends Controller
 					->andWhere(['<=', 'min_si', $sumInsured])
 					->andWhere(['>=', 'max_si', $sumInsured])
 					->one();
+					
+					// var_dump($quotationUwLimit);
 
 				$stncDate = Member::getStnc($startDate, $quotationTc->retroactive);
 				$totalPremium = $sumInsured * $quotationRate->rate / 1000;
@@ -740,9 +744,9 @@ class MemberController extends Controller
 				if ($quotationUwLimit->medical_code == '') {
 					$statusReason .= "Medical does not meet the requirements\n";
 				}
-				if ($accStatus != '' || $statusReason != '') {
-					$status = Member::MEMBER_STATUS_PENDING;
-				}
+				// if ($accStatus != '' || $statusReason != '') {
+					// $status = Member::MEMBER_STATUS_PENDING;
+				// }
 
 				$members[] = [
 					'member_no' => $sheetData[$baseRow]['E'],
@@ -811,7 +815,17 @@ class MemberController extends Controller
 			Yii::$app->session->setFlash('error', "Error while saving Batch");
 			return $this->redirect(['create']);
 		}
-
+		
+		// Call API post data Peserta		
+		$response = $model->callAPIPostMember();
+		if ($response['Status'] == '01') {
+            Yii::$app->session->setFlash('error', "Error while Calling API, " . $response['id_loan']);
+			return $this->redirect([
+				'view',
+				'id' => Yii::$app->request->post('batch_id'),
+			]);
+        }
+		
 		$attributes = [
 			'member_no',
 			'policy_no',
@@ -865,288 +879,46 @@ class MemberController extends Controller
 		) {
 			return $this->goHome();
 		}
+		$batchId = Yii::$app->request->post('id');
+		$batchNo = Yii::$app->request->post('batch_no');
+		$policyNo = Yii::$app->request->post('policy_no');
+		
+		$model = Member::findOne(['id' => Yii::$app->request->post('id')]);
+		// $$batchId = Yii::$app->request->post('id'); = Member::findOne(['batch_no' => $batchNo, 'policy_no' => $policyNo]);
+		
+		
+		// $batchNo = batch::findOne(['batch_no' => $model->batch_no, 'policy_no' => $model->policy_no]);
+		
+		// var_dump($batchNo);
+		// $batchId = batch::findOne(['id' => $batchNo->id]);
+		
+		
+		
+        $model->file_upload = UploadedFile::getInstanceByName('files_medis');
+     
 
-		$batchId = Yii::$app->request->post('batch_id');
-		$file = UploadedFile::getInstanceByName('file');
+        if ($model->file_upload != null) {
+            if (!$model->uploadspk(false)) {
+                Yii::$app->session->setFlash('error', "Error while uploading member");
+                return $this->render('update', [
+                    'model' => $model,
+                ]);
+            }
+        }
 
-		$currentDate = new \DateTime();
-		$createdAt = $currentDate->format('Y-m-d H:i:s');
-		$createdBy = Yii::$app->user->identity->id;
-
-		$batch = Batch::findOne(['id' => $batchId]);
-		if ($batch == null) {
-			Yii::$app->session->setFlash('error', "Not found");
-			return $this->redirect(['index']);
-		}
-
-		$policy = Policy::findOne(['policy_no' => $batch->policy_no]);
-		if ($policy == null) {
-			Yii::$app->session->setFlash('error', "Policy not found");
+        if (!$model->save(false)) {
+            Yii::$app->session->setFlash('error', "Error while saving");
+            // return $this->redirect(['view', 'id' => Yii::$app->request->post('id')]);
 			return $this->redirect(['create']);
-		}
-
-		$quotation = Quotation::findOne(['id' => $policy->quotation_id]);
-		if ($quotation == null) {
-			Yii::$app->session->setFlash('error', "Quotation not found");
-			return $this->redirect(['create']);
-		}
-
-		$quotationProduct = QuotationProduct::findOne(['quotation_id' => $policy->quotation_id]);
-		if ($quotationProduct == null) {
-			Yii::$app->session->setFlash('error', "Quotation Product not found");
-			return $this->redirect(['create']);
-		}
-
-		$quotationCommission = QuotationCommission::findOne(['quotation_id' => $policy->quotation_id]);
-		if ($quotationCommission == null) {
-			Yii::$app->session->setFlash('error', "Quotation Commission not found");
-			return $this->redirect(['create']);
-		}
-
-		$inputFileType = \PHPExcel_IOFactory::identify($file->tempName);
-		$objReader = \PHPExcel_IOFactory::createReader($inputFileType);
-		$objPHPExcel = $objReader->load($file->tempName);
-		$sheetData = $objPHPExcel->getActiveSheet()->toArray(null, true, true, true);
-
-		$baseRow = 2;
-		$members = [];
-		$totalMember = 0;
-		$totalUp = 0;
-		$totalGrossPremium = 0;
-		$totalDiscountPremium = 0;
-		$totalExtraPremium = 0;
-		$totalSavingPremium = 0;
-		$totalNettPremium = 0;
-		while (!empty($sheetData[$baseRow]['D'])) {
-			$birthDate = Utils::trueBirthDate($sheetData[$baseRow]['F']);
-			$sumInsured = Utils::removeComma($sheetData[$baseRow]['L']);
-			$personal = new Personal();
-			$personal->name = $sheetData[$baseRow]['D'];
-			$personal->birth_date = $birthDate;
-			$personal->personal_no = Personal::generatePersonalNo($personal->name, $personal->birth_date);
-			$personal->gender = $sheetData[$baseRow]['H'];
-			$personal->id_card_no = $sheetData[$baseRow]['Q'];
-			$personal->phone = $sheetData[$baseRow]['S'];
-			$personal->email = $sheetData[$baseRow]['R'];
-			$personal->address = $sheetData[$baseRow]['T'];
-			$personal->province = $sheetData[$baseRow]['V'];
-			$personal->city = $sheetData[$baseRow]['U'];
-			if ($personal->save(false)) {
-				$startDate = Utils::convertDateToYmd($sheetData[$baseRow]['J']);
-				$endDate = Utils::convertDateToYmd($sheetData[$baseRow]['K']);
-
-				$age = Member::getAge($quotation->age_calculate, $birthDate, $startDate);
-				$term = Member::getTerm($quotation->rate_type, $startDate, $endDate);
-
-				if ($quotation->rate_type == RateType::RATE_ROUND_UP) {
-					$termYear = ceil($term / 12);
-				} else {
-					$termYear = floor($term / 12);
-				}
-
-				if ($quotationProduct->rate_type == ProductRateType::AGE_TERM) {
-					if ($quotationProduct->period_type == PeriodType::ANNUALLY) {
-						$quotationRate = QuotationRate::findOne([
-							'quotation_id' => $policy->quotation_id,
-							'age' => $age,
-							'term' => $termYear
-						]);
-					} else {
-						$quotationRate = QuotationRate::findOne([
-							'quotation_id' => $policy->quotation_id,
-							'age' => $age,
-							'term' => $term
-						]);
-					}
-				} else {
-					$quotationRate = QuotationRate::findOne([
-						'quotation_id' => $policy->quotation_id,
-						'term' => $termYear
-					]);
-				}
-
-				$quotationTc = QuotationTc::findOne([
-					'quotation_id' => $policy->quotation_id,
-				]);
-
-				$quotationUwLimit = QuotationUwLimit::find()
-					->where(['quotation_id' => $policy->quotation_id])
-					->andWhere(['<=', 'min_age', $age])
-					->andWhere(['>=', 'max_age', $age])
-					->andWhere(['<=', 'min_si', $sumInsured])
-					->andWhere(['>=', 'max_si', $sumInsured])
-					->one();
-
-				$stncDate = Member::getStnc($startDate, $quotationTc->retroactive);
-				$totalPremium = $sumInsured * $quotationRate->rate / 1000;
-				$grossPremium = $totalPremium;
-				$basicPremium = $totalPremium;
-				$discount = $totalPremium * $quotationCommission->discount / 100;
-				$nettPremium = $totalPremium - $discount;
-
-				$status = Member::MEMBER_STATUS_PENDING;
-				if ($quotationUwLimit->medical_code == 'GOA' || $quotationUwLimit->medical_code == 'FC') {
-					$status = Member::MEMBER_STATUS_INFORCE;
-				}
-
-				$statusReason = '';
-				$accStatus = '';
-
-				$otherMember = Personal::find()
-					->asArray()
-					->select([
-						Personal::tableName() . '.id'
-					])
-					->innerJoin(Member::tableName(), Member::tableName() . '.personal_no = ' . Personal::tableName() . '.personal_no')
-					->where([
-						Member::tableName() . '.policy_no' => $batch->policy_no,
-						Personal::tableName() . '.name' => $personal->name,
-						Personal::tableName() . '.birth_date' => $personal->birth_date
-					])
-					->andWhere(['not', [Member::tableName() . '.member_no' => null]])
-					->one();
-				if ($otherMember != null) {
-					$accStatus .= "Accumulated";
-				}
-
-				if ($age < $quotationTc->min_age || $age > $quotationTc->max_age) {
-					$statusReason .= "Age does not meet the requirements\n";
-				}
-				if ($termYear > $quotationTc->max_term) {
-					$statusReason .= "Term does not meet the requirements\n";
-				}
-				if ($sumInsured > $quotationTc->max_si) {
-					$statusReason .= "SI does not meet the requirements\n";
-				}
-				if ($totalPremium < $quotationTc->min_premi) {
-					$statusReason .= "Premi does not meet the requirements\n";
-				}
-				if ($quotationUwLimit->medical_code == '') {
-					$statusReason .= "Medical does not meet the requirements\n";
-				}
-				if ($accStatus != '' || $statusReason != '') {
-					$status = Member::MEMBER_STATUS_PENDING;
-				}
-
-				$members[] = [
-					'member_no' => $sheetData[$baseRow]['E'],
-					'policy_no' => $batch->policy_no,
-					'batch_no' => $batch->batch_no,
-					'personal_no' => $personal->personal_no,
-					'branch' => $sheetData[$baseRow]['B'],
-					'age' => $age,
-					'branch_code' => $sheetData[$baseRow]['P'],
-					'account_no' => $sheetData[$baseRow]['N'],
-					'bank_branch' => $sheetData[$baseRow]['O'],
-					'term' => $term,
-					'start_date' => Utils::convertDateToYmd($sheetData[$baseRow]['J']),
-					'end_date' => Utils::convertDateToYmd($sheetData[$baseRow]['K']),
-					'sum_insured' => $sumInsured,
-					'total_si' => $sumInsured,
-					'rate_premi' => $quotationRate->rate,
-					'total_premium' => $totalPremium,
-					'gross_premium' => $grossPremium,
-					'basic_premium' => $basicPremium,
-					'nett_premium' => $nettPremium,
-					'percentage_discount' => $quotationCommission->discount,
-					'discount_premium' => $discount,
-					'medical_code' => $quotationUwLimit->medical_code,
-					'member_status' => $status,
-					'status_reason' => $statusReason,
-					'stnc_date' => $stncDate,
-					'acc_status' => $accStatus,
-					'created_at' => $createdAt,
-					'created_by' => $createdBy,
-				];
-
-				$totalUp += $sumInsured;
-				$totalGrossPremium += $grossPremium;
-				$totalDiscountPremium += $discount;
-				$totalExtraPremium += 0;
-				$totalSavingPremium += 0;
-				$totalNettPremium += $nettPremium;
-				$totalMember++;
-			}
-
-			$baseRow++;
-		}
-
-		if (count($members) == 0) {
-			Yii::$app->session->setFlash('error', "Member was empty");
-			return $this->redirect(['create']);
-		}
-
-		$batch->batch_no = $batch->batch_no;
-		$batch->policy_no = $batch->policy_no;
-		$batch->total_member = $totalMember;
-		$batch->total_member_accepted = 0;
-		$batch->total_member_pending = $totalMember;
-		$batch->total_up = $totalUp;
-		$batch->total_gross_premium = $totalGrossPremium;
-		$batch->total_discount_premium = $totalDiscountPremium;
-		$batch->total_extra_premium = $totalExtraPremium;
-		$batch->total_saving_premium = $totalSavingPremium;
-		$batch->total_nett_premium = $totalNettPremium;
-		$batch->status = Batch::STATUS_OPEN;
-		$batch->created_at = $createdAt;
-		$batch->created_by = $createdBy;
-		if (!$batch->save(false)) {
-			Yii::$app->session->setFlash('error', "Error while saving Batch");
-			return $this->redirect(['create']);
-		}
-
-		$attributes = [
-			'member_no',
-			'policy_no',
-			'batch_no',
-			'personal_no',
-			'branch',
-			'age',
-			'branch_code',
-			'account_no',
-			'bank_branch',
-			'term',
-			'start_date',
-			'end_date',
-			'sum_insured',
-			'total_si',
-			'rate_premi',
-			'total_premium',
-			'gross_premium',
-			'basic_premium',
-			'nett_premium',
-			'percentage_discount',
-			'discount_premium',
-			'medical_code',
-			'member_status',
-			'status_reason',
-			'stnc_date',
-			'acc_status',
-			'created_at',
-			'created_by'
-		];
-		$modelSave = Yii::$app->db->createCommand()
-			->batchInsert(Member::tableName(), $attributes, $members)
-			->execute();
-		if (!$modelSave) {
-			Yii::$app->session->setFlash('error', "Error while saving Member");
-			return $this->redirect(['create']);
-		}
-
+        }
+		
 		Yii::$app->session->setFlash('success', "Successfully uploaded");
 		return $this->redirect([
 			'view',
-			'id' => $batchId,
+			'id' => Yii::$app->request->post('batch_id'),
 		]);
 	}
 
-	/**
-	 * Updates an existing Member model.
-	 * If update is successful, the browser will be redirected to the 'view' page.
-	 * @param int $id ID
-	 * @return string|\yii\web\Response
-	 * @throws NotFoundHttpException if the model cannot be found
-	 */
 	public function actionUpdate()
 	{
 		if (
@@ -1463,6 +1235,8 @@ class MemberController extends Controller
 				'member_status' => Member::MEMBER_STATUS_INFORCE
 			])
 			->all();
+			
+			
 		$existingMemberTotal = Member::find()
 			->where([
 				'and',
@@ -1556,7 +1330,8 @@ class MemberController extends Controller
 
 		$billing = new Billing();
 		
-		$billing->created_by = Yii::$app->user->identity->id;
+		// $billing->created_by = Yii::$app->user->identity->id;
+		$billing->created_by = $batch->created_by;
 		$billing->policy_no = $batch->policy_no;
 		$billing->batch_no = $batch->batch_no;
 		$billing->reg_no = Billing::generateRegNo($regNoParams);
