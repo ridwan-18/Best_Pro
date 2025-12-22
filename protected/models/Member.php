@@ -222,6 +222,7 @@ class Member extends \yii\db\ActiveRecord
                 self::tableName() . '.uw_notes',
 				self::tableName() . '.status_em',
 				self::tableName() . '.id_loan',
+				self::tableName() . '.file_medis',
                 '(SELECT ' . Personal::tableName() . '.name' .  ' FROM ' . Personal::tableName() . ' WHERE ' . Personal::tableName() . '.personal_no = ' . self::tableName() . '.personal_no GROUP BY ' . self::tableName() . '.personal_no) AS name',
                 '(SELECT ' . Personal::tableName() . '.birth_date' .  ' FROM ' . Personal::tableName() . ' WHERE ' . Personal::tableName() . '.personal_no = ' . self::tableName() . '.personal_no GROUP BY ' . self::tableName() . '.personal_no) AS birth_date',
                 '(SELECT ' . Personal::tableName() . '.gender' .  ' FROM ' . Personal::tableName() . ' WHERE ' . Personal::tableName() . '.personal_no = ' . self::tableName() . '.personal_no GROUP BY ' . self::tableName() . '.personal_no) AS gender',
@@ -658,6 +659,22 @@ class Member extends \yii\db\ActiveRecord
 		
     }
 	
+	public function uploadspk()
+    {
+        $filename = $this->id;
+		$filenamepersonal = $this->personal_no;
+        $extension = $this->file_upload->extension;
+
+        $path = \Yii::getAlias('@webroot') . self::PICTURE_PATH . $filename . "-" . $filenamepersonal . "." . $extension;
+        $this->file_upload->saveAs($path);
+
+
+        $this->file_upload = null;
+        $this->file_medis = $filename . "-" . $filenamepersonal . "." . $extension;
+        return true;
+		
+    }
+	
 	 public static function memberCBC($selected = null)
     {
         $data = [
@@ -773,6 +790,46 @@ class Member extends \yii\db\ActiveRecord
         return true;
 		
 		
+    }
+	
+	
+	public function callAPIPostMember()
+    {
+        // $url = 'http://45.64.1.151/api/akseptasi/bankjatim/post-status-pertanggungan-cbc';
+		$url = 'https://ws2u.winserver.aapialang.co.id/prod/akseptasi/bankjatim/post-status-pertanggungan-cbc';
+		// https://ws2u.winserver.aapialang.co.id/prod/akseptasi/bankjatim/post-status-pertanggungan-cbc
+		// $url = 'https://ws2u.winserver.aapialang.co.id/dev/pembatalan/bankjatim/post-pembayaran';
+        $headers = [
+            'Content-Type: application/json',
+            'Authorization: Basic ' . base64_encode('bjtm:bjtm!@##@!')
+        ];
+		
+		$fileName = $this->id_loan . '.pdf';
+		
+		$data = json_encode([
+            'ID_Loan' => $this->id_loan,
+            'Extra_Premi' => $this->em_premium,
+            'Status' => $this->uw_notes,
+			'Link_E_Polis' => 'https://h2h-ajri.reli.id/images/e_policy/' .$fileName,
+			'Nomor_Polis' => $this->policy_no,
+			'Keterangan' => $this->em_notes,
+			'Asuransi' => '1',
+			
+        ]);
+		
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($ch, CURLOPT_HEADER, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+        $response = curl_exec($ch);
+        $body = substr($response, curl_getinfo($ch, CURLINFO_HEADER_SIZE));
+
+        curl_close($ch);
+
+        return json_decode($body, true);
     }
 
 }

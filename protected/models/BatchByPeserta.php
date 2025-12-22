@@ -263,10 +263,13 @@ class BatchByPeserta extends \yii\db\ActiveRecord
 				self::tableName() . '.start_date',
 				self::tableName() . '.end_date',
 				self::tableName() . '.sum_insured',
+				USER::tableName() . '.username',
+				self::tableName() . '.gross_premium',
 				
             ])
           
 			 ->innerJoin(Personal::tableName(), Personal::tableName() . '.personal_no = ' . self::tableName() . '.personal_no')
+			 ->innerJoin(USER::tableName(), USER::tableName() . '.id = ' . self::tableName() . '.created_by')
 			   ->asArray();
 		
 			if (!Yii::$app->user->isGuest) {
@@ -275,8 +278,8 @@ class BatchByPeserta extends \yii\db\ActiveRecord
 			}
 		}
 		
-       if (isset($paramsGetAllProduksi['policy_no']) && $paramsGetAllProduksi['policy_no'] != null) {
-            $query->andFilterWhere(['=', self::tableName() . '.policy_no', $paramsGetAllProduksi['policy_no']]);
+       if (isset($paramsGetAllProduksi['status']) && $paramsGetAllProduksi['status'] != null) {
+            $query->andFilterWhere(['=', self::tableName() . '.status', $paramsGetAllProduksi['status']]);
         }
 		
         if (isset($paramsGetAllProduksi['batch_no']) && $paramsGetAllProduksi['batch_no'] != null) {
@@ -285,6 +288,11 @@ class BatchByPeserta extends \yii\db\ActiveRecord
 		if (isset($paramsGetAllProduksi['id_loan']) && $paramsGetAllProduksi['id_loan'] != null) {
             $query->andFilterWhere(['=', self::tableName() . '.id_loan', $paramsGetAllProduksi['id_loan']]);
         }
+		
+		if (isset($paramsGetAllProduksi['username']) && $paramsGetAllProduksi['username'] != null) {
+            $query->andFilterWhere(['=', USER::tableName() . '.username', $paramsGetAllProduksi['username']]);
+        }
+		
 		if (
             isset($paramsGetAllProduksi['start_date'])
             && $paramsGetAllProduksi['start_date'] != null

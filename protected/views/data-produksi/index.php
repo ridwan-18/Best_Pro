@@ -24,10 +24,10 @@ $this->title = 'Data Produksi - ' . Yii::$app->name;
                     <div class="row">
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label for="policy_no">Policy No</label>
-                                <?= Html::input('text', 'policy_no', Yii::$app->request->get('policy_no'), [
+                                <label for="status">Status Kepesertaan</label>
+                                <?= Html::input('text', 'status', Yii::$app->request->get('status'), [
                                     'class' => 'form-control',
-                                    'id' => 'policy_no',
+                                    'id' => 'status',
                                 ]) ?>
                             </div>
                         </div>
@@ -71,6 +71,17 @@ $this->title = 'Data Produksi - ' . Yii::$app->name;
                                 ]) ?>
                             </div>
                         </div>
+						
+					 <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="username">Cabang</label>
+                                <?= Html::input('text', 'username', Yii::$app->request->get('username'), [
+                                    'class' => 'form-control',
+                                    'id' => 'username',
+                                ]) ?>
+                            </div>
+                        </div>	
+						
 					
                     </div>
                     <div class="row mt-4">
@@ -111,8 +122,10 @@ $this->title = 'Data Produksi - ' . Yii::$app->name;
                                 <th>Nomor Peserta</th>
                                 <th>Start Date</th>
                                 <th>End Date</th>
+								<th>Premi</th>
 								<th>Uang Pertanggungan</th>
 								<th>Status</th>
+								<th>User</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -130,8 +143,10 @@ $this->title = 'Data Produksi - ' . Yii::$app->name;
 										 <td><?= $model['member_no']; ?></td>
 										 <td><?= Utils::convertDateTodMy($model['start_date']); ?></td>
 										 <td><?= Utils::convertDateTodMy($model['end_date']); ?></td>
+										 <td><?= number_format($model['gross_premium']); ?></td>
 										 <td><?= number_format($model['sum_insured']); ?></td>
 										<td><?= $model['status']; ?></td>
+										<td><?= $model['username']; ?></td>
                                     </tr>
                             <?php
                                     $i++;

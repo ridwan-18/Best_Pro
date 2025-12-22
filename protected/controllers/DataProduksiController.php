@@ -70,11 +70,12 @@ class DataProduksiController  extends Controller
 		}
 
 		$paramsGetAllProduksi = [
-			'policy_no' => Yii::$app->request->get('policy_no'),
+			'status' => Yii::$app->request->get('status'),
 			'batch_no' => Yii::$app->request->get('batch_no'),
 			'start_date' => Yii::$app->request->get('start_date'),
 			'end_date' => Yii::$app->request->get('end_date'),
 			'id_loan' => Yii::$app->request->get('id_loan'),
+			'username' => Yii::$app->request->get('username'),
 			
 		];
 
