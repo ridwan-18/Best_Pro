@@ -817,14 +817,14 @@ class MemberController extends Controller
 		}
 		
 		// Call API post data Peserta		
-		$response = $model->callAPIPostMember();
-		if ($response['Status'] == '01') {
-            Yii::$app->session->setFlash('error', "Error while Calling API, " . $response['id_loan']);
-			return $this->redirect([
-				'view',
-				'id' => Yii::$app->request->post('batch_id'),
-			]);
-        }
+		// $response = $model->callAPIPostMember();
+		// if ($response['Status'] == '01') {
+            // Yii::$app->session->setFlash('error', "Error while Calling API, " . $response['id_loan']);
+			// return $this->redirect([
+				// 'view',
+				// 'id' => Yii::$app->request->post('batch_id'),
+			// ]);
+        // }
 		
 		$attributes = [
 			'member_no',
