@@ -2024,7 +2024,6 @@ class MemberController extends Controller
             'total_nett_premium' => $batch['batch']->total_nett_premium,
             'rate' =>  $batch['member']['rate'],
             'status_uw' => $batch['member']['medicalCode'],
-            'print_url' => 'https://reli.id/dev/h2h-bank-jatim/member/print-sertifikat?id_loan=' . $batch['member']['idLoan'],
 			'policy_no' =>  $batch['member']['policy_no'],
 			'dokument' => $batch['member']['dokument'],
         ];
@@ -2087,6 +2086,7 @@ class MemberController extends Controller
             $startDate = Utils::sanitize($member['start_date']);
             $endDate = Utils::sanitize($member['end_date']);
             $produk =  Utils::sanitize($member['produk']);
+			$estimasi_premi =  Utils::sanitize($member['premi']);
 			$personalNodoubel = Personal::generatePersonalNo($name, $birthDate);
 
             $policybyproduk = Policy::findOne([
