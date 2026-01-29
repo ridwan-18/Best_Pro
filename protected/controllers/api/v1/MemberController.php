@@ -1980,4 +1980,331 @@ class MemberController extends Controller
 		return array('status' => true );
     }
 	
+	
+	public function actionCreateMemberSubmit()
+    {
+        Yii::$app->response->format = Response::FORMAT_JSON;
+
+        $members = Yii::$app->request->post('members');
+        if (empty($members)) {
+            Yii::$app->response->statusCode = 202;
+            return [
+                'is_success' => 0,
+                'message' => 'Data cannot be empty'
+            ];
+        }
+		
+		$produk =  Utils::sanitize($members[0]['produk']);
+		
+        $policy = Policy::findOne(['produk' => $produk]);
+        if ($policy == null) {
+            Yii::$app->response->statusCode = 404;
+            return [
+                'is_success' => 0,
+                'message' => 'Policy not found'
+            ];
+        }
+
+        $batch = $this->_createBatchSubmit($policy, $members);
+		
+		if ($batch['member']['isRedundant'] == 1) {
+            Yii::$app->response->statusCode = 406;
+            return [
+                'is_success' => 0,
+                'message' => 'Data Peserta Tidak Dalam Kategori Case By Case'
+            ];
+		}
+
+        Yii::$app->response->statusCode = 200;
+        return [
+            'is_success' => 1,
+            'message' => 'Succesfully uploaded',
+            'total_member' => $batch['batch']->total_member,
+            'total_up' => $batch['batch']->total_up,
+            'total_nett_premium' => $batch['batch']->total_nett_premium,
+            'rate' =>  $batch['member']['rate'],
+            'status_uw' => $batch['member']['medicalCode'],
+            'print_url' => 'https://reli.id/dev/h2h-bank-jatim/member/print-sertifikat?id_loan=' . $batch['member']['idLoan'],
+			'policy_no' =>  $batch['member']['policy_no'],
+			'dokument' => $batch['member']['dokument'],
+        ];
+    }
+
+    protected function _createBatchSubmit($policy, $members)
+    {
+        $batchNo = Batch::generateBatchNo($policy->policy_no);
+        $member = $this->_createMemberSumbit($policy->policy_no, $batchNo, $members);
+		
+		$batch = null;
+		if($member['isRedundant']== 0)
+		{
+        $batch = new Batch();
+        $batch->policy_no = $member['policy_no'];
+        $batch->batch_no = $batchNo;
+        $batch->total_member = $member['totalMember'];
+        $batch->total_member_accepted = $member['totalMember'];
+        $batch->total_member_pending = 0;
+        $batch->total_up = $member['totalUp'];
+        $batch->total_gross_premium = $member['totalNettPremium'];
+        $batch->total_discount_premium = 0;
+        $batch->total_extra_premium = 0;
+        $batch->total_saving_premium = 0;
+        $batch->total_nett_premium = $member['totalNettPremium'];
+        $batch->status = 'PENDING';
+        $batch->created_at = date('Y-m-d H:i:s');
+        $batch->created_by = $this->createdBy;
+        $batch->save(false);
+		}
+        return [
+            'batch' => $batch,
+            'member' => $member
+        ];
+    }
+
+    protected function _createMemberSumbit($policyNo, $batchNo, $members)
+    {
+        $dokument = null;
+		
+        $personalCols = ['personal_no', 'name', 'birth_date', 'id_card_no'];
+        $memberCols = [
+            'policy_no', 'batch_no', 'member_no', 'personal_no', 'age', 'term', 'start_date', 'end_date',
+            'sum_insured', 'total_si', 'total_premium', 'rate_premi', 'gross_premium', 'basic_premium', 'nett_premium',
+            'medical_code', 'status', 'member_status', 'created_at', 'created_by', 'contract_date', 'produk', 'branch_office_code',
+			'id_loan', 'status_uw', 'no_ktp','pekerjaan','jenis_transaksi',
+        ];
+        $personalRows = [];
+        $memberRows = [];
+
+        $totalMember = 0;
+        $totalUp = 0;
+        $totalNettPremium = 0;
+        $rate = '';
+        $medicalCode = '';
+        $idLoan = '';
+		$isRedundant = 0;
+        foreach ($members as $member) {
+            $sumInsured = Utils::sanitize($member['sum_insured']);
+            $startDate = Utils::sanitize($member['start_date']);
+            $endDate = Utils::sanitize($member['end_date']);
+            $produk =  Utils::sanitize($member['produk']);
+			$personalNodoubel = Personal::generatePersonalNo($name, $birthDate);
+
+            $policybyproduk = Policy::findOne([
+                'produk' => $produk,
+            ]);
+
+            $quotation = Quotation::findOne([
+                'id' => $policybyproduk->quotation_id,
+            ]);
+
+            // $quotation = Quotation::findOne(1);
+            $age =  Utils::sanitize($member['age']);
+            $term = member::getTerm($quotation->rate_type, $startDate, $endDate);
+			
+			
+            $ratepremi = QuotationRate::findOne([
+                'term' => $term,
+                'quotation_id' => $policybyproduk->quotation_id
+            ]);
+			
+			$otherMember = Personal::find()
+					->asArray()
+					->select([
+						Personal::tableName() . '.id',
+						'SUM(member.sum_insured) AS sum_insured',
+					])
+					->innerJoin(Member::tableName(), Member::tableName() . '.personal_no = ' . Personal::tableName() . '.personal_no')
+					->where([
+						Member::tableName() . '.policy_no' => $policyNo,
+						Personal::tableName() . '.name' => $personal->name,
+						Personal::tableName() . '.birth_date' => $personal->birth_date
+					])
+					->andWhere(['not', [Member::tableName() . '.member_no' => null]])
+					->one();					
+			$accStatus = '';
+			if ($otherMember != null) {
+				$accStatus = "Accumulated";
+				$sumInsured += $otherMember->sum_insured;
+			}
+				
+            $quotationUwLimit = QuotationUwLimit::find()
+                ->where(['quotation_id' => $policybyproduk->quotation_id])
+                ->andWhere(['<=', 'min_age', $age])
+                ->andWhere(['>=', 'max_age', $age])
+                ->andWhere(['<=', 'min_si', $sumInsured])
+                ->andWhere(['>=', 'max_si', $sumInsured])
+                ->one();
+			
+
+			 $medicalCode = $quotationUwLimit->medical_code;	
+			 if($medicalCode == 'CAC'){
+				 $isRedundant = 1;
+			 }
+
+            $totalPremium = $sumInsured * $ratepremi->rate / 1000;
+			
+			$tgl = Utils::sanitize($member['birth_date']);
+			 $dob = str_replace('T00:00:00', '', $tgl);
+            // $birthDate = Utils::sanitize($member['birth_date']);
+			$birthDate = $dob;
+
+            $name = Utils::sanitize($member['name']);
+            $birthDate = Utils::sanitize($member['birth_date']);
+            $age = Utils::sanitize($member['age']);
+            $idCardNo = Utils::sanitize($member['no_ktp']);
+            $sumInsured = Utils::sanitize($member['sum_insured']);
+            $startDate = Utils::sanitize($member['start_date']);;
+            $endDate = Utils::sanitize($member['end_date']);
+            $term = Utils::sanitize($member['term']);
+            $rate = $ratepremi->rate;
+            $nettPremium = $totalPremium;
+            $personalNo = Personal::generatePersonalNo($name, $birthDate);
+            $memberNo = '';
+            $contract_date = Utils::sanitize($member['contract_date']);
+            $produk = Utils::sanitize($member['produk']);
+            $branch_office_code = Utils::sanitize($member['branch_office_code']);
+            $id_loan = Utils::sanitize($member['id_loan']);
+            $status_uw = $quotationUwLimit->medical_code;
+            $no_ktp = Utils::sanitize($member['no_ktp']);
+			$pekerjaan = Utils::sanitize($member['pekerjaan']);
+			$jenis_transaksi = Utils::sanitize($member['jenis_transaksi']);
+
+            $personalRows[] = [$personalNo, $name, $birthDate, $idCardNo];
+
+            $memberRows[] = [
+                $policybyproduk->policy_no, $batchNo, $memberNo, $personalNo, $age, $term, $startDate, $endDate,
+                $sumInsured, $sumInsured, $nettPremium, $rate, $nettPremium, $nettPremium, $nettPremium,
+                $quotationUwLimit->medical_code, Member::MEMBER_STATUS_PENDING, Member::MEMBER_STATUS_PENDING, date("Y-m-d H:i:s"), $this->createdBy,
+                $contract_date, $produk, $branch_office_code, $id_loan, $status_uw, $no_ktp,$pekerjaan,$jenis_transaksi,
+            ];
+
+            $totalMember++;
+            $totalUp += $sumInsured;
+            $totalNettPremium += $nettPremium;
+            $rate = $rate;
+            $medicalCode = $quotationUwLimit->medical_code;
+            $idLoan = $member['id_loan'];
+			$policy_no = $policybyproduk->policy_no;
+        }
+		
+		$dokument = Dokumen_Medis::getAll(['medis' => $medicalCode]);
+			
+		if($isRedundant==0)
+		{
+        Yii::$app->db->createCommand()->batchInsert(Personal::tableName(), $personalCols, $personalRows)->execute();
+        Yii::$app->db->createCommand()->batchInsert(Member::tableName(), $memberCols, $memberRows)->execute();
+		}
+		
+        return [
+            'totalUp' => $totalUp,
+            'rate' => $rate,
+            'totalNettPremium' => $totalNettPremium,
+            'medicalCode' => $medicalCode,
+            'totalMember' => $totalMember,
+            'idLoan' => $idLoan,
+			'policy_no' => $policy_no,
+			'dokument' => $dokument,
+			'isRedundant' => $isRedundant,
+        ];
+		
+    }
+
+    protected function _createBillingSubmit($policy, $batch)
+    {
+        $tc = QuotationTc::findOne(['quotation_id' => $policy->quotation_id]);
+        if ($tc == null) {
+            return [
+                'status_code' => 404,
+                'is_success' => 0,
+                'message' => 'TC not found'
+            ];
+        }
+
+        $commission = QuotationCommission::findOne(['quotation_id' => $policy->quotation_id]);
+        if ($commission == null) {
+            return [
+                'status_code' => 404,
+                'is_success' => 0,
+                'message' => 'Commission not found'
+            ];
+        }
+
+        $latestBilling = Billing::find()->orderBy(['id' => SORT_DESC])->one();
+        $newId = ($latestBilling != null) ? $latestBilling->id + 1 : 1;
+
+        $newIndex = Billing::find()->where([
+            'policy_no' => $batch->policy_no,
+            'YEAR(invoice_date)' => date("Y")
+        ])->count() + 1;
+
+        $billing = Billing::find()->where([
+            'policy_no' => $batch->policy_no
+        ])->one();
+
+        $billing = new Billing();
+        $billing->batch_no = $batch->batch_no;
+        $billing->policy_no = $batch->policy_no;
+        $billing->reg_no = Billing::generateRegNo(['id' => $newId, 'policy_no' => $batch->policy_no, 'month' => date('n')]);
+        $billing->invoice_no = Billing::generateInvoiceNo(['id' => $newIndex, 'policy_no' => $batch->policy_no, 'month' => date('n')]);
+        $billing->invoice_date = date('Y-m-d');
+        $billing->due_date = Billing::getDueDate($tc->grace_period);
+        $billing->accept_date = date('Y-m-d');
+        $billing->total_member = $batch->total_member;
+        $billing->gross_premium = $batch->total_nett_premium;
+        $billing->nett_premium = $batch->total_nett_premium;
+        $billing->status = Billing::STATUS_UNVERIFIED;
+        $billing->created_at = date('Y-m-d');
+        $billing->created_by = $this->createdBy;
+        $billing->discount = $batch->total_gross_premium * $commission->discount / 100;
+        $billing->handling_fee = $batch->total_gross_premium * $commission->handling_fee / 100;
+        $billing->pph = ($billing->discount * $commission->pph / 100) + ($billing->handling_fee * $commission->pph / 100);
+        $billing->ppn = ($billing->discount * $commission->ppn / 100) + ($billing->handling_fee * $commission->ppn / 100);
+        $billing->admin_cost = ($billing != null) ? 0 : $tc->admin_cost;
+        $billing->policy_cost = ($billing != null) ? 0 : $tc->policy_cost;
+        $billing->member_card_cost = ($billing != null) ? 0 : $tc->member_card_cost;
+        $billing->certificate_cost = ($billing != null) ? 0 : $tc->certificate_cost;
+        $billing->stamp_cost = ($billing != null) ? 0 : $tc->stamp_cost;
+        $billing->total_billing = $billing->gross_premium - $billing->discount - $billing->handling_fee +
+            $billing->pph - $billing->ppn + $billing->admin_cost + $billing->policy_cost +
+            $billing->member_card_cost + $billing->certificate_cost + $billing->stamp_cost;
+        if (!$billing->save()) {
+            return [
+                'status_code' => 500,
+                'is_success' => 0,
+                'message' => 'Unknown Internal Server Failure, Please retry the process again - ' . $billing->getErrors()
+            ];
+        }
+        return [
+            'status_code' => 200,
+            'is_success' => 1,
+            'message' => 'success'
+        ];;
+    }
+	
+	public function actionUploadFileCbc_()
+	{
+		Yii::$app->response->format = Response::FORMAT_JSON;
+		
+		$claimDetail = new map_member_medis();
+		
+        if (Yii::$app->request->ispost) {
+            $ktp = UploadedFile::getInstanceByName('files');
+            $basePath = \Yii::getAlias('@webroot') . '/images/post_medis/';
+			
+			$id_loan = Yii::$app->request->post('id_loan');
+			$kode_dokumen = Yii::$app->request->post('kode_dokumen');
+			
+			$ktp->saveAs($basePath  . $id_loan .'-'. $kode_dokumen .'-'.$ktp->baseName . '.' . $ktp->extension);
+			
+			// $claimDetail = new claim_bank_jatim_detail();
+			
+			$claimDetail->id_loan = $id_loan;
+			$claimDetail->files = $id_loan . '-' .$kode_dokumen .'-'. $ktp->baseName . '.' . $ktp->extension;
+			$claimDetail->kode_dokumen = $kode_dokumen;
+			$claimDetail->save(false);
+			
+		}
+		return array('status' => true );
+    }
+	
 }
