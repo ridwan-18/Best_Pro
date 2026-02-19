@@ -2011,21 +2011,19 @@ class MemberController extends Controller
             Yii::$app->response->statusCode = 406;
             return [
                 'is_success' => 0,
-                'message' => 'Data Peserta Tidak Dalam Kategori Case By Case'
+                'message' => 'Premi tidak sesuai dengan perhitungan asuransi'
             ];
 		}
 
         Yii::$app->response->statusCode = 200;
         return [
             'is_success' => 1,
-            'message' => 'Succesfully uploaded',
-            'total_member' => $batch['batch']->total_member,
+            'message' => 'Succesfully',
+			// 'dokument' => $batch['member']['dokument'],
+			'Base_Response' => $batch['member']['Base_Response'],
+			'total_member' => $batch['batch']->total_member,
             'total_up' => $batch['batch']->total_up,
             'total_nett_premium' => $batch['batch']->total_nett_premium,
-            'rate' =>  $batch['member']['rate'],
-            'status_uw' => $batch['member']['medicalCode'],
-			'policy_no' =>  $batch['member']['policy_no'],
-			'dokument' => $batch['member']['dokument'],
         ];
     }
 
@@ -2081,7 +2079,15 @@ class MemberController extends Controller
         $medicalCode = '';
         $idLoan = '';
 		$isRedundant = 0;
-        foreach ($members as $member) {
+		
+		$Base_Response = [
+        'data' => []
+		];
+		
+		// $premi_validaton[];
+		
+        foreach ($members as $member) 
+		{
             $sumInsured = Utils::sanitize($member['sum_insured']);
             $startDate = Utils::sanitize($member['start_date']);
             $endDate = Utils::sanitize($member['end_date']);
@@ -2135,14 +2141,7 @@ class MemberController extends Controller
                 ->andWhere(['>=', 'max_si', $sumInsured])
                 ->one();
 			
-
-			 $medicalCode = $quotationUwLimit->medical_code;	
-			 if($medicalCode == 'CAC'){
-				 $isRedundant = 1;
-			 }
-
-            $totalPremium = $sumInsured * $ratepremi->rate / 1000;
-			
+			$totalPremium = $sumInsured * $ratepremi->rate / 1000;
 			$tgl = Utils::sanitize($member['birth_date']);
 			 $dob = str_replace('T00:00:00', '', $tgl);
             // $birthDate = Utils::sanitize($member['birth_date']);
@@ -2168,7 +2167,32 @@ class MemberController extends Controller
             $no_ktp = Utils::sanitize($member['no_ktp']);
 			$pekerjaan = Utils::sanitize($member['pekerjaan']);
 			$jenis_transaksi = Utils::sanitize($member['jenis_transaksi']);
-
+			$premi_dekai = Utils::sanitize($member['premi']);
+			
+			 if($totalPremium != $premi_dekai){
+				 $premi_validaton = " Premi Tidak Sesuai Dengan Asuransi ";
+			 }
+			 
+			 else {
+				 $premi_validaton = " Premi Sudah Sesuai Dengan Asuransi ";
+			 }
+				
+			// $premi_validaton
+			
+			
+			$dokument = Dokumen_Medis::getAll(['medis' => $status_uw]);
+			
+			$Base_Response['data'][] = [
+			 'id_loan' => $id_loan,
+			 'name' => $name,
+			 'uang_pertanggungan' => $sumInsured,
+			 'rate' => $rate,
+			 'premi' => $nettPremium,
+			 'premi_validaton' => $premi_validaton,
+			 'medical_code' => $status_uw,
+			 'dokument' => $dokument,
+			];
+			
             $personalRows[] = [$personalNo, $name, $birthDate, $idCardNo];
 
             $memberRows[] = [
@@ -2177,7 +2201,7 @@ class MemberController extends Controller
                 $quotationUwLimit->medical_code, Member::MEMBER_STATUS_PENDING, Member::MEMBER_STATUS_PENDING, date("Y-m-d H:i:s"), $this->createdBy,
                 $contract_date, $produk, $branch_office_code, $id_loan, $status_uw, $no_ktp,$pekerjaan,$jenis_transaksi,
             ];
-
+			
             $totalMember++;
             $totalUp += $sumInsured;
             $totalNettPremium += $nettPremium;
@@ -2186,14 +2210,9 @@ class MemberController extends Controller
             $idLoan = $member['id_loan'];
 			$policy_no = $policybyproduk->policy_no;
         }
-		
-		$dokument = Dokumen_Medis::getAll(['medis' => $medicalCode]);
-			
-		if($isRedundant==0)
-		{
+	
         Yii::$app->db->createCommand()->batchInsert(Personal::tableName(), $personalCols, $personalRows)->execute();
         Yii::$app->db->createCommand()->batchInsert(Member::tableName(), $memberCols, $memberRows)->execute();
-		}
 		
         return [
             'totalUp' => $totalUp,
@@ -2205,6 +2224,8 @@ class MemberController extends Controller
 			'policy_no' => $policy_no,
 			'dokument' => $dokument,
 			'isRedundant' => $isRedundant,
+			// 'memberRows' => $memberRows,
+			'Base_Response'  => $Base_Response,
         ];
 		
     }
@@ -2281,30 +2302,68 @@ class MemberController extends Controller
         ];;
     }
 	
-	public function actionUploadFileCbc_()
+	
+	public function actionUploadDocCbc()
 	{
 		Yii::$app->response->format = Response::FORMAT_JSON;
 		
-		$claimDetail = new map_member_medis();
+		$Docmedis = new map_member_medis();
 		
         if (Yii::$app->request->ispost) {
-            $ktp = UploadedFile::getInstanceByName('files');
+            $Doc = UploadedFile::getInstanceByName('files');
             $basePath = \Yii::getAlias('@webroot') . '/images/post_medis/';
 			
 			$id_loan = Yii::$app->request->post('id_loan');
-			$kode_dokumen = Yii::$app->request->post('kode_dokumen');
+			$kode_dokumen = Yii::$app->request->post('code_dokumen');
+			$files = Yii::$app->request->post('content_file_base64');
+			// $Doc->saveAs($basePath  . $nomor_transaksi .'-'. $kode_dokumen .'-'.$Doc->baseName . '.' . $Doc->extension);
 			
-			$ktp->saveAs($basePath  . $id_loan .'-'. $kode_dokumen .'-'.$ktp->baseName . '.' . $ktp->extension);
-			
-			// $claimDetail = new claim_bank_jatim_detail();
-			
-			$claimDetail->id_loan = $id_loan;
-			$claimDetail->files = $id_loan . '-' .$kode_dokumen .'-'. $ktp->baseName . '.' . $ktp->extension;
-			$claimDetail->kode_dokumen = $kode_dokumen;
-			$claimDetail->save(false);
+			$Docmedis->id_loan = $id_loan;
+			$Docmedis->files = $files;
+			$Docmedis->kode_dokumen = $kode_dokumen;
+			$Docmedis->save(false);
 			
 		}
-		return array('status' => true );
+		return array('status' => "Berhasil upload dokumen underwriting." );
     }
 	
+	public function actionGetMember()
+    {
+         Yii::$app->response->format = Response::FORMAT_JSON;
+		$members = Yii::$app->request->post('');
+		
+		$id_loan = Yii::$app->request->post('id_loan');
+		$status = Yii::$app->request->post('status');
+		
+		// var_dump($id_loan);
+		// $member = Member::findOne(['id_loan' => $id_loan]);
+		
+		$member = Member::find()
+			->where(['id_loan' => $id_loan])
+			->orWhere(['status' => $status])
+			->all();
+		
+		// var_dump($member);
+
+        $personal = personal::findOne([
+                'personal_no' => $member->personal_no,
+        ]);
+		
+		Yii::$app->response->statusCode = 200;
+        return [
+            'is_success' => 1,
+            'Id_Loan' => $id_loan,
+			'Nama_Peserta' => $personal-> name,
+			'Tanggal_Lahir' => $personal-> birth_date,
+			'Nomor_Peserta' =>$member-> member_no,
+			'Jenis_Produk' => $member->produk,
+			'Periode_Asuransi' => $member->start_date .' sd ' . $member ->end_date,
+			'Masa' => $member->term .' '. 'bulan',
+			'Uang_Pertanggungan' => $member->sum_insured,
+			'Premi' => $member->gross_premium,
+			'Extra_Premi' => $member->em_premium,
+			'Total_Premi' => $member->nett_premium,
+			'Status_Kepesertaan' => $member->status,
+        ];
+	}
 }
