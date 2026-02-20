@@ -2335,16 +2335,21 @@ class MemberController extends Controller
 		$id_loan = Yii::$app->request->post('id_loan');
 		$status = Yii::$app->request->post('status');
 		
-		// var_dump($id_loan);
-		// $member = Member::findOne(['id_loan' => $id_loan]);
 		
-		$member = Member::find()
-			->where(['id_loan' => $id_loan])
-			->orWhere(['status' => $status])
-			->all();
+		 $member = member::findOne([
+                'id_loan' => $id_loan,
+            ]);
+					
 		
-		// var_dump($member);
-
+		 if (empty($member)) {
+            Yii::$app->response->statusCode = 202;
+            return [
+                'is_success' => 0,
+                'message' => 'Data be empty'
+            ];
+        }
+		
+		
         $personal = personal::findOne([
                 'personal_no' => $member->personal_no,
         ]);
