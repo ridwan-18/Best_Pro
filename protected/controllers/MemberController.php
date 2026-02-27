@@ -91,13 +91,8 @@ class MemberController extends Controller
 		]);
 
 		 $models = Batch::getAll($params);
-		// $user = $app->user->identity->id;
-		// $models = Batch::getAll($params, [
-			// 'created_by' => $user,
-			
-		// ]);
 		
-		// var_dump($models);
+		 // var_dump($models);
 		
 		$members = Member::getAll([
 			'policy_no' => $models->policy_no,
@@ -181,9 +176,15 @@ class MemberController extends Controller
 		}
 
 		$this->layout = '/print';
-
-		$memberStatus = Yii::$app->request->get('member_status');
-
+		$idLoan = Yii::$app->request->get('id');
+		// $memberStatus = Yii::$app->request->get('member_status');
+		
+		$member = Member::findOne(['id' => $id]);
+		$personal_no= $member->personal_no;
+		
+		$personal = personal::findOne(['personal_no' => $personal_no]);
+		// var_dump($personal);
+		
 		$batch = Batch::findOne(['id' => $id]);
 		$policy = Policy::findOne(['policy_no' => $batch->policy_no]);
 		$quotation = Quotation::findOne(['id' => $policy->quotation_id]);
@@ -194,7 +195,7 @@ class MemberController extends Controller
 		$members = Member::getAll([
 			'policy_no' => $batch->policy_no,
 			'batch_no' => $batch->batch_no,
-			'member_status' => $memberStatus,
+			// 'member_status' => $memberStatus,
 		]);
 
 		$totalMember = Member::countAll([
@@ -212,7 +213,8 @@ class MemberController extends Controller
 		$qrCode->writeFile(\Yii::getAlias('@webroot') . '/uploads/signature/' . $qrCodeFilename);
 		$qrCodeUrl = Url::base() . Signature::PICTURE_PATH . $qrCodeFilename;
 
-		$page = 'print-pending';
+		// $page = 'print-pending';
+		$page = 'print';
 		if (Yii::$app->request->get('member_status') == Member::MEMBER_STATUS_INFORCE) {
 			$page = 'print-inforce';
 		} else if (Yii::$app->request->get('member_status') == Member::MEMBER_STATUS_DECLINED) {
@@ -229,6 +231,8 @@ class MemberController extends Controller
 			'memberStatus' => $memberStatus,
 			'signature' => $signature,
 			'qrCodeUrl' => $qrCodeUrl,
+			'member' => $member,
+			'personal' => $personal,
 		]);
 	}
 
@@ -1252,12 +1256,19 @@ class MemberController extends Controller
 			$runningNo = $existingMemberTotal + 1;
 		}
 		foreach ($members as $member) {
+			$id= $member->id;
+	
+			// $url = "http://localhost/BestPro/member/print?id=$id";
+			$url = "https://devweb.bestpro-id.com/member/print?id=$id";
+			var_dump($url);
+			
 			$stncDate = Member::getStnc($member->start_date, $tc->retroactive);
 
 			$member->member_no = Member::generateMemberNo($runningNo, $batch->policy_no);
 			$member->status = Member::STATUS_INFORCE;
 			$member->stnc_date = $stncDate;
 			$member->member_status = Member::MEMBER_STATUS_INFORCE;
+			$member->e_certifikat=$url;
 			$member->save(false);
 			$totalAccepted++;
 			$totalUp += $member->sum_insured;

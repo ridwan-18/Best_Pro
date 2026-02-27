@@ -2067,7 +2067,7 @@ class MemberController extends Controller
             'policy_no', 'batch_no', 'member_no', 'personal_no', 'age', 'term', 'start_date', 'end_date',
             'sum_insured', 'total_si', 'total_premium', 'rate_premi', 'gross_premium', 'basic_premium', 'nett_premium',
             'medical_code', 'status', 'member_status', 'created_at', 'created_by', 'contract_date', 'produk', 'branch_office_code',
-			'id_loan', 'status_uw', 'no_ktp','pekerjaan','jenis_transaksi',
+			'id_loan', 'status_uw', 'no_ktp','pekerjaan','jenis_transaksi','premi_validaton',
         ];
         $personalRows = [];
         $memberRows = [];
@@ -2141,9 +2141,28 @@ class MemberController extends Controller
                 ->andWhere(['>=', 'max_si', $sumInsured])
                 ->one();
 			
+			$premi_dekai = Utils::sanitize($member['premi']);
 			$totalPremium = $sumInsured * $ratepremi->rate / 1000;
 			$tgl = Utils::sanitize($member['birth_date']);
 			 $dob = str_replace('T00:00:00', '', $tgl);
+			 
+			 
+			 if($totalPremium != $premi_dekai){
+				 $premi_validaton =0;
+			 }
+			 
+			 else {
+				 $premi_validaton = 1;
+			 }
+			
+			
+			if($totalPremium != $premi_dekai){
+				 $premi_respons ="Premi Tidak Sesuai Dengan Asuransi ";
+			 }
+			 
+			 else {
+				 $premi_respons = "Premi Sudah Sesuai Dengan Asuransi ";
+			 }
             // $birthDate = Utils::sanitize($member['birth_date']);
 			$birthDate = $dob;
 
@@ -2154,7 +2173,7 @@ class MemberController extends Controller
             $sumInsured = Utils::sanitize($member['sum_insured']);
             $startDate = Utils::sanitize($member['start_date']);;
             $endDate = Utils::sanitize($member['end_date']);
-            $term = Utils::sanitize($member['term']);
+            // $term = Utils::sanitize($member['term']);
             $rate = $ratepremi->rate;
             $nettPremium = $totalPremium;
             $personalNo = Personal::generatePersonalNo($name, $birthDate);
@@ -2168,16 +2187,8 @@ class MemberController extends Controller
 			$pekerjaan = Utils::sanitize($member['pekerjaan']);
 			$jenis_transaksi = Utils::sanitize($member['jenis_transaksi']);
 			$premi_dekai = Utils::sanitize($member['premi']);
+			$premi_validaton = $premi_validaton;
 			
-			 if($totalPremium != $premi_dekai){
-				 $premi_validaton = " Premi Tidak Sesuai Dengan Asuransi ";
-			 }
-			 
-			 else {
-				 $premi_validaton = " Premi Sudah Sesuai Dengan Asuransi ";
-			 }
-				
-			// $premi_validaton
 			
 			
 			$dokument = Dokumen_Medis::getAll(['medis' => $status_uw]);
@@ -2188,19 +2199,60 @@ class MemberController extends Controller
 			 'uang_pertanggungan' => $sumInsured,
 			 'rate' => $rate,
 			 'premi' => $nettPremium,
-			 'premi_validaton' => $premi_validaton,
+			 'premi_validaton' => $premi_respons,
 			 'medical_code' => $status_uw,
 			 'dokument' => $dokument,
 			];
-			
-            $personalRows[] = [$personalNo, $name, $birthDate, $idCardNo];
+            // $personalRows[] = [$personalNo, $name, $birthDate, $idCardNo];
 
-            $memberRows[] = [
-                $policybyproduk->policy_no, $batchNo, $memberNo, $personalNo, $age, $term, $startDate, $endDate,
-                $sumInsured, $sumInsured, $nettPremium, $rate, $nettPremium, $nettPremium, $nettPremium,
-                $quotationUwLimit->medical_code, Member::MEMBER_STATUS_PENDING, Member::MEMBER_STATUS_PENDING, date("Y-m-d H:i:s"), $this->createdBy,
-                $contract_date, $produk, $branch_office_code, $id_loan, $status_uw, $no_ktp,$pekerjaan,$jenis_transaksi,
-            ];
+            // $memberRows[] = [
+                // $policybyproduk->policy_no, $batchNo, $memberNo, $personalNo, $age, $term, $startDate, $endDate,
+                // $sumInsured, $sumInsured, $nettPremium, $rate, $nettPremium, $nettPremium, $nettPremium,
+                // $quotationUwLimit->medical_code, Member::MEMBER_STATUS_PENDING, Member::MEMBER_STATUS_PENDING, date("Y-m-d H:i:s"), $this->createdBy,
+                // $contract_date, $produk, $branch_office_code, $id_loan, $status_uw, $no_ktp,$pekerjaan,$jenis_transaksi,$premi_validaton
+			
+			  // $memberCols = [
+            // 'policy_no', 'batch_no', 'member_no', 'personal_no', 'age', 'term', 'start_date', 'end_date',
+            // 'sum_insured', 'total_si', 'total_premium', 'rate_premi', 'gross_premium', 'basic_premium', 'nett_premium',
+            // 'medical_code', 'status', 'member_status', 'created_at', 'created_by', 'contract_date', 'produk', 'branch_office_code',
+			// 'id_loan', 'status_uw', 'no_ktp','pekerjaan','jenis_transaksi','premi_validaton',
+			
+			if($premi_validaton==1)
+			{
+			Yii::$app->db->createCommand()->insert(Member::tableName(), [
+			'policy_no' => $policybyproduk->policy_no,
+			'batch_no' => $batchNo,
+			'member_no' => '',
+			'personal_no' => $personalNo,
+			'age' => $age,
+			'term' => $term,
+			'start_date' => $startDate,
+			'end_date' => $endDate,
+			'sum_insured' => $sumInsured,
+			'total_si' => $sumInsured,
+			'total_premium' => $nettPremium,
+			'rate_premi' => $rate,
+			'gross_premium' => $nettPremium,
+			'basic_premium' => $nettPremium,
+			'nett_premium' => $nettPremium,
+			'medical_code' => $quotationUwLimit->medical_code,
+			'premi_validaton' => $premi_validaton,
+			'created_at' => date("Y-m-d H:i:s"),
+			'created_by' => "Dekai",
+			'id_loan' => $id_loan,
+			'member_status'  => Member::MEMBER_STATUS_PENDING,
+			])->execute();
+			
+			 // $personalCols = ['personal_no', 'name', 'birth_date', 'id_card_no'];
+			 // $personalRows[] = [$personalNo, $name, $birthDate, $idCardNo];
+			Yii::$app->db->createCommand()->insert(Personal::tableName(), [
+			'personal_no' => $personalNo,
+			'name' => $name,
+			'birth_date' => $birthDate,
+			'id_card_no' => $idCardNo,
+			])->execute();
+			
+			}
 			
             $totalMember++;
             $totalUp += $sumInsured;
@@ -2210,10 +2262,12 @@ class MemberController extends Controller
             $idLoan = $member['id_loan'];
 			$policy_no = $policybyproduk->policy_no;
         }
-	
-        Yii::$app->db->createCommand()->batchInsert(Personal::tableName(), $personalCols, $personalRows)->execute();
-        Yii::$app->db->createCommand()->batchInsert(Member::tableName(), $memberCols, $memberRows)->execute();
+		// var_dump($Base_Response);
 		
+		// if($Base_Response){
+		// Yii::$app->db->createCommand()->batchInsert(Personal::tableName(), $personalCols, $personalRows)->execute();
+		// Yii::$app->db->createCommand()->batchInsert(Member::tableName(), $memberCols, $memberRows)->execute();
+		// // }
         return [
             'totalUp' => $totalUp,
             'rate' => $rate,
@@ -2369,6 +2423,7 @@ class MemberController extends Controller
 			'Extra_Premi' => $member->em_premium,
 			'Total_Premi' => $member->nett_premium,
 			'Status_Kepesertaan' => $member->status,
+			'E_Certifikat' => $member->e_certifikat,
         ];
 	}
 }
