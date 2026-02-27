@@ -1268,6 +1268,7 @@ class MemberController extends Controller
 			return $this->redirect(['create']);
 		}
 
+
 		$dateTime = new \DateTime();
 		$currentDateTime = $dateTime->format('Y-m-d H:i:s');
 
