@@ -79,6 +79,10 @@ $this->title = 'Print Policy';
 		 .leaderboard {
             height: 60px;
         }
+		
+		.font-bold {
+            font-weight: bold;
+        }
 	 
 	
 </style>
