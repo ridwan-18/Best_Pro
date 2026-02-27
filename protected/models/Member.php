@@ -807,6 +807,7 @@ class Member extends \yii\db\ActiveRecord
                 self::tableName() . '.nett_premium',
                 self::tableName() . '.em_premium',
 				self::tableName() . '.e_certifikat',
+				self::tableName() . '.member_status',
             ])
             ->asArray()
             ->innerJoin(Personal::tableName(), Personal::tableName() . '.personal_no = ' . self::tableName() . '.personal_no');
