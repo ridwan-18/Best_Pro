@@ -191,7 +191,7 @@ $this->title = 'Print Policy';
         <tr>
             <td width="70%"></td>
             <td width="30%" align="center">
-                <p>Jakarta, <?= Utils::convertDateTodMyPrint(date("Y-m-d")); ?></p>
+                 <p>Jakarta, <?= Utils::convertDateTodMyPrint($member['updated_at']); ?></p>
 				 <p>PT Asuransi Jiwa Reliance Indonesia</p>
                 <img src="https://devweb.bestpro-id.com/images/gideon-heru-prasetya.png" alt="Signature" class="text-center" height="75">
                
