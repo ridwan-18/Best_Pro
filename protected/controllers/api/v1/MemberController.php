@@ -2014,11 +2014,13 @@ class MemberController extends Controller
                 'message' => 'Premi tidak sesuai dengan perhitungan asuransi'
             ];
 		}
-
+		
         Yii::$app->response->statusCode = 200;
         return [
             'is_success' => 1,
             'message' => 'Succesfully',
+			'policy_no' => $batch['member']['policy_no'],
+			'batchNo' => $batch['member']['batchNo'],
 			// 'dokument' => $batch['member']['dokument'],
 			'Base_Response' => $batch['member']['Base_Response'],
 			'total_member' => $batch['batch']->total_member,
@@ -2198,24 +2200,12 @@ class MemberController extends Controller
 			 'name' => $name,
 			 'uang_pertanggungan' => $sumInsured,
 			 'rate' => $rate,
-			 'premi' => $nettPremium,
+			 'premi_gross' => $nettPremium,
+			 'premi_nett' => $nettPremium,
 			 'premi_validaton' => $premi_respons,
 			 'medical_code' => $status_uw,
 			 'dokument' => $dokument,
 			];
-            // $personalRows[] = [$personalNo, $name, $birthDate, $idCardNo];
-
-            // $memberRows[] = [
-                // $policybyproduk->policy_no, $batchNo, $memberNo, $personalNo, $age, $term, $startDate, $endDate,
-                // $sumInsured, $sumInsured, $nettPremium, $rate, $nettPremium, $nettPremium, $nettPremium,
-                // $quotationUwLimit->medical_code, Member::MEMBER_STATUS_PENDING, Member::MEMBER_STATUS_PENDING, date("Y-m-d H:i:s"), $this->createdBy,
-                // $contract_date, $produk, $branch_office_code, $id_loan, $status_uw, $no_ktp,$pekerjaan,$jenis_transaksi,$premi_validaton
-			
-			  // $memberCols = [
-            // 'policy_no', 'batch_no', 'member_no', 'personal_no', 'age', 'term', 'start_date', 'end_date',
-            // 'sum_insured', 'total_si', 'total_premium', 'rate_premi', 'gross_premium', 'basic_premium', 'nett_premium',
-            // 'medical_code', 'status', 'member_status', 'created_at', 'created_by', 'contract_date', 'produk', 'branch_office_code',
-			// 'id_loan', 'status_uw', 'no_ktp','pekerjaan','jenis_transaksi','premi_validaton',
 			
 			if($premi_validaton==1)
 			{
@@ -2276,6 +2266,7 @@ class MemberController extends Controller
             'totalMember' => $totalMember,
             'idLoan' => $idLoan,
 			'policy_no' => $policy_no,
+			'batchNo' => $batchNo,
 			'dokument' => $dokument,
 			'isRedundant' => $isRedundant,
 			// 'memberRows' => $memberRows,
@@ -2426,4 +2417,51 @@ class MemberController extends Controller
 			'E_Certifikat' => $member->e_certifikat,
         ];
 	}
+	
+	public function actionGetMemberBatch()
+    {
+         Yii::$app->response->format = Response::FORMAT_JSON;
+		$members = Yii::$app->request->post('');
+		
+		$policy_no = Yii::$app->request->post('policy_no');
+		$batch_no = Yii::$app->request->post('batch_no');
+		
+		
+		 $member = member::findOne([
+                'policy_no' => $policy_no,
+            ]);
+					
+		
+		 if (empty($member)) {
+            Yii::$app->response->statusCode = 202;
+            return [
+                'is_success' => 0,
+                'message' => 'Data be empty'
+            ];
+        }
+		
+		
+        $personal = personal::findOne([
+                'personal_no' => $member->personal_no,
+        ]);
+		
+		Yii::$app->response->statusCode = 200;
+        return [
+            'is_success' => 1,
+            'Id_Loan' => $id_loan,
+			'Nama_Peserta' => $personal-> name,
+			'Tanggal_Lahir' => $personal-> birth_date,
+			'Nomor_Peserta' =>$member-> member_no,
+			'Jenis_Produk' => $member->produk,
+			'Periode_Asuransi' => $member->start_date .' sd ' . $member ->end_date,
+			'Masa' => $member->term .' '. 'bulan',
+			'Uang_Pertanggungan' => $member->sum_insured,
+			'Premi' => $member->gross_premium,
+			'Extra_Premi' => $member->em_premium,
+			'Total_Premi' => $member->nett_premium,
+			'Status_Kepesertaan' => $member->status,
+			'E_Certifikat' => $member->e_certifikat,
+        ];
+	}
+	
 }
