@@ -100,7 +100,7 @@ $this->title = 'Print Policy';
 
 
     <h4 class="text-center"><b>SERTIFIKAT ASURANSI</b></h4>
-	<h4 class="text-center">NOMOR: <?=  $member->id_loan; ?> </h4>
+	<h4 class="text-center">NOMOR: <?=  $member->member_no; ?> </h4>
 
 
     <table width="100%" cellpadding="5">
