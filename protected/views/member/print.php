@@ -225,7 +225,7 @@ $this->title = 'Print Policy';
 			<table style="width:100%;">
 			<td style="padding-top:40px;">
 				
-                    <img class="leaderboard" src="https://devweb.bestpro-id.com/BestPro/images/leaderboard.png">
+                    <img class="leaderboard" src="https://devweb.bestpro-id.com/images/leaderboard.png">
                 </td>
 				 </table>
         </tr>
