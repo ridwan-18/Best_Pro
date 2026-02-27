@@ -2418,21 +2418,23 @@ class MemberController extends Controller
         ];
 	}
 	
-	public function actionGetMemberBatch()
+	public function actionGetMemberBordero()
     {
          Yii::$app->response->format = Response::FORMAT_JSON;
 		$members = Yii::$app->request->post('');
 		
-		$policy_no = Yii::$app->request->post('policy_no');
-		$batch_no = Yii::$app->request->post('batch_no');
+		$get_members = null;
+		$params = [
+			'policy_no' => Yii::$app->request->post('policy_no'),
+			'batch_no' => Yii::$app->request->post('batch_no'),
+		];
 		
+		 $models = Batch::getAll($params);
+		// var_dump($models);
 		
-		 $member = member::findOne([
-                'policy_no' => $policy_no,
-            ]);
-					
+		$get_members = Member::getJamkrida($params);
 		
-		 if (empty($member)) {
+		 if (empty($get_members)) {
             Yii::$app->response->statusCode = 202;
             return [
                 'is_success' => 0,
@@ -2440,27 +2442,10 @@ class MemberController extends Controller
             ];
         }
 		
-		
-        $personal = personal::findOne([
-                'personal_no' => $member->personal_no,
-        ]);
-		
 		Yii::$app->response->statusCode = 200;
         return [
             'is_success' => 1,
-            'Id_Loan' => $id_loan,
-			'Nama_Peserta' => $personal-> name,
-			'Tanggal_Lahir' => $personal-> birth_date,
-			'Nomor_Peserta' =>$member-> member_no,
-			'Jenis_Produk' => $member->produk,
-			'Periode_Asuransi' => $member->start_date .' sd ' . $member ->end_date,
-			'Masa' => $member->term .' '. 'bulan',
-			'Uang_Pertanggungan' => $member->sum_insured,
-			'Premi' => $member->gross_premium,
-			'Extra_Premi' => $member->em_premium,
-			'Total_Premi' => $member->nett_premium,
-			'Status_Kepesertaan' => $member->status,
-			'E_Certifikat' => $member->e_certifikat,
+			'detail_members' => $get_members,
         ];
 	}
 	

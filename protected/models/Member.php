@@ -553,51 +553,7 @@ class Member extends \yii\db\ActiveRecord
             ])
             ->asArray();
 
-        // if (isset($params['member_id']) && $params['member_id'] != null) {
-            // $query->andFilterWhere(['=', self::tableName() . '.id', $params['member_id']]);
-        // }
-
-        // if (isset($params['policy_no']) && $params['policy_no'] != null) {
-            // $query->andFilterWhere(['=', self::tableName() . '.policy_no', $params['policy_no']]);
-        // }
-
-        // if (isset($params['batch_no']) && $params['batch_no'] != null) {
-            // $query->andFilterWhere(['=', self::tableName() . '.batch_no', $params['batch_no']]);
-        // }
-
-        // if (
-            // isset($params['start_date'])
-            // && $params['start_date'] != null
-            // && isset($params['end_date'])
-            // && $params['end_date'] != null
-        // ) {
-            // $query->andFilterWhere(['>=', self::tableName() . '.start_date', $params['start_date']]);
-            // $query->andFilterWhere(['<=', self::tableName() . '.end_date', $params['end_date']]);
-        // }
-
-        // if (isset($params['status']) && $params['status'] != null) {
-            // $query->andFilterWhere(['=', self::tableName() . '.status', $params['status']]);
-        // }
-
-        // if (isset($params['member_status']) && $params['member_status'] != null) {
-            // $query->andFilterWhere(['=', self::tableName() . '.member_status', $params['member_status']]);
-        // }
-
-        // if (isset($params['reas_status']) && $params['reas_status'] != null) {
-            // $query->andFilterWhere(['=', self::tableName() . '.reas_status', $params['reas_status']]);
-        // }
-
-        // if (isset($params['is_accumulated']) && $params['is_accumulated'] == 1) {
-            // $query->andFilterWhere(['like', self::tableName() . '.acc_status', 'Accumulated']);
-        // }
-
-        // if (isset($params['offset']) && $params['offset'] != null) {
-            // $query->offset($params['offset']);
-        // }
-
-        // if (isset($params['limit']) && $params['limit'] != null) {
-            // $query->limit($params['limit']);
-        // }
+       
 
         $query->groupBy([self::tableName() . '.id', self::tableName() . '.personal_no']);
         $query->orderBy([self::tableName() . '.id' => $params['sort']]);
@@ -830,6 +786,44 @@ class Member extends \yii\db\ActiveRecord
         curl_close($ch);
 
         return json_decode($body, true);
+    }
+	
+	
+	 public static function getJamkrida($params = [])
+    {
+        $query = self::find()
+            ->select([
+                self::tableName() . '.policy_no',
+                self::tableName() . '.batch_no',
+                self::tableName() . '.member_no',
+                Personal::tableName() . '.name',
+                Personal::tableName() . '.birth_date',
+                self::tableName() . '.age',
+                self::tableName() . '.start_date',
+                self::tableName() . '.end_date',
+                self::tableName() . '.term',
+                self::tableName() . '.sum_insured',
+                self::tableName() . '.gross_premium',
+                self::tableName() . '.nett_premium',
+                self::tableName() . '.em_premium',
+				self::tableName() . '.e_certifikat',
+            ])
+            ->asArray()
+            ->innerJoin(Personal::tableName(), Personal::tableName() . '.personal_no = ' . self::tableName() . '.personal_no');
+
+        if (isset($params['policy_no']) && $params['policy_no'] != null) {
+            $query->andFilterWhere(['=', self::tableName() . '.policy_no', $params['policy_no']]);
+        }
+		
+		
+		 if (isset($params['batch_no']) && $params['batch_no'] != null) {
+            $query->andFilterWhere(['=', self::tableName() . '.batch_no', $params['batch_no']]);
+        }
+
+        $query->groupBy([self::tableName() . '.id', self::tableName() . '.personal_no']);
+        $query->orderBy([self::tableName() . '.id' => $params['sort']]);
+
+        return $query->all();
     }
 
 }
