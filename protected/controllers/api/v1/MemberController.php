@@ -1043,8 +1043,6 @@ class MemberController extends Controller
 			
 			$ktp->saveAs($basePath  . $id_loan .'-'. $kode_dokumen .'-'.$ktp->baseName . '.' . $ktp->extension);
 			
-			// $claimDetail = new claim_bank_jatim_detail();
-			
 			$claimDetail->id_loan = $id_loan;
 			$claimDetail->files = $id_loan . '-' .$kode_dokumen .'-'. $ktp->baseName . '.' . $ktp->extension;
 			$claimDetail->kode_dokumen = $kode_dokumen;
@@ -2244,9 +2242,31 @@ class MemberController extends Controller
 			
 			}
 			
-            $totalMember++;
-            $totalUp += $sumInsured;
-            $totalNettPremium += $nettPremium;
+			$totalMember = Member::find()
+				->where([
+				'policy_no' => $policyNo,
+				'batch_no'  => $batchNo,
+				'premi_validaton'  => 1,
+					])
+				->count();
+			// var_dump($totalMember);
+			
+			$totalNettPremium = Member::find()
+				->where([
+				'policy_no' => $policyNo,
+				'batch_no'  => $batchNo,
+				'premi_validaton'  => 1,
+					])
+				->sum($nettPremium);
+				
+				
+				$totalUp = Member::find()
+				->where([
+				'policy_no' => $policyNo,
+				'batch_no'  => $batchNo,
+				'premi_validaton'  => 1,
+					])
+				->sum($sumInsured);
             $rate = $rate;
             $medicalCode = $quotationUwLimit->medical_code;
             $idLoan = $member['id_loan'];
@@ -2352,21 +2372,29 @@ class MemberController extends Controller
 	{
 		Yii::$app->response->format = Response::FORMAT_JSON;
 		
-		$Docmedis = new map_member_medis();
+		$claimDetail = new map_member_medis();
 		
         if (Yii::$app->request->ispost) {
-            $Doc = UploadedFile::getInstanceByName('files');
+            $ktp = UploadedFile::getInstanceByName('files');
             $basePath = \Yii::getAlias('@webroot') . '/images/post_medis/';
 			
 			$id_loan = Yii::$app->request->post('id_loan');
-			$kode_dokumen = Yii::$app->request->post('code_dokumen');
-			$files = Yii::$app->request->post('content_file_base64');
-			// $Doc->saveAs($basePath  . $nomor_transaksi .'-'. $kode_dokumen .'-'.$Doc->baseName . '.' . $Doc->extension);
+			$kode_dokumen = Yii::$app->request->post('kode_dokumen');
 			
-			$Docmedis->id_loan = $id_loan;
-			$Docmedis->files = $files;
-			$Docmedis->kode_dokumen = $kode_dokumen;
-			$Docmedis->save(false);
+			if (empty($ktp)) {
+            Yii::$app->response->statusCode = 202;
+            return [
+                'is_success' => 0,
+                'message' => 'Data Cannot be empty'
+            ];
+			}
+			
+			$ktp->saveAs($basePath  . $id_loan .'-'. $kode_dokumen .'-'.$ktp->baseName . '.' . $ktp->extension);
+			
+			$claimDetail->id_loan = $id_loan;
+			$claimDetail->files = $id_loan . '-' .$kode_dokumen .'-'. $ktp->baseName . '.' . $ktp->extension;
+			$claimDetail->kode_dokumen = $kode_dokumen;
+			$claimDetail->save(false);
 			
 		}
 		return array('status' => "Berhasil upload dokumen underwriting." );

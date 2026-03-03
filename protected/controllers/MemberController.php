@@ -860,6 +860,27 @@ class MemberController extends Controller
 			'created_at',
 			'created_by'
 		];
+		
+		
+		// $model = new Member();
+		// $response = $model->callAPIPostMemberLogin();
+				
+				// var_dump($response);
+				
+			// if (!empty($response) && $response['Status'] === '01') {
+				// var_dump($response);
+				// die;
+				// Yii::$app->session->setFlash('error', "Error while Calling API, " . ($response['id_loan'] ?? '')
+				// );
+
+				// return $this->redirect([
+					// 'view',
+					// 'id' => Yii::$app->request->post('batch_id'),
+				// ]);
+			// }
+		
+		
+		
 		$modelSave = Yii::$app->db->createCommand()
 			->batchInsert(Member::tableName(), $attributes, $members)
 			->execute();

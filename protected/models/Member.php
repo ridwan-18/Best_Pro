@@ -789,6 +789,52 @@ class Member extends \yii\db\ActiveRecord
     }
 	
 	
+	
+	public function callAPIPostMemberLogin()
+    {
+		
+		$url='http://demo-reliancelife.ajrius.id/api/login';
+        // $url = 'http://45.64.1.151/api/akseptasi/bankjatim/post-status-pertanggungan-cbc';
+		// $url = 'https://ws2u.winserver.aapialang.co.id/prod/akseptasi/bankjatim/post-status-pertanggungan-cbc';
+		// https://ws2u.winserver.aapialang.co.id/prod/akseptasi/bankjatim/post-status-pertanggungan-cbc
+		// $url = 'https://ws2u.winserver.aapialang.co.id/dev/pembatalan/bankjatim/post-pembayaran';
+        // $headers = [
+            // 'Content-Type: application/json',
+            // 'Authorization: Basic ' . base64_encode('bjtm:bjtm!@##@!')
+        // ];
+		
+		$fileName = $this->id_loan . '.pdf';
+		
+		$data = json_encode([
+            // 'ID_Loan' => $this->id_loan,
+            // 'Extra_Premi' => $this->em_premium,
+            // 'Status' => $this->uw_notes,
+			// 'Link_E_Polis' => 'https://h2h-ajri.reli.id/images/e_policy/' .$fileName,
+			// 'Nomor_Polis' => $this->policy_no,
+			// 'Keterangan' => $this->em_notes,
+			// 'Asuransi' => '1',
+			
+			
+			'email' => 'api@gmail.com',
+            'password' => '12345678',
+			
+        ]);
+		
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($ch, CURLOPT_HEADER, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+        $response = curl_exec($ch);
+        $body = substr($response, curl_getinfo($ch, CURLINFO_HEADER_SIZE));
+
+        curl_close($ch);
+
+        return json_decode($body, true);
+    }
+	
 	 public static function getJamkrida($params = [])
     {
         $query = self::find()
