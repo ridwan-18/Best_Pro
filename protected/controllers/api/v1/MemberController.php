@@ -2384,7 +2384,7 @@ class MemberController extends Controller
 			if (empty($ktp)) {
             Yii::$app->response->statusCode = 202;
             return [
-                'is_success' => 0,
+                'is_success' => 1,
                 'message' => 'Data Cannot be empty'
             ];
 			}
@@ -2417,7 +2417,7 @@ class MemberController extends Controller
 		 if (empty($member)) {
             Yii::$app->response->statusCode = 202;
             return [
-                'is_success' => 0,
+                'is_success' => 1,
                 'message' => 'Data be empty'
             ];
         }
@@ -2465,7 +2465,7 @@ class MemberController extends Controller
 		 if (empty($get_members)) {
             Yii::$app->response->statusCode = 202;
             return [
-                'is_success' => 0,
+                'is_success' => 1,
                 'message' => 'Data be empty'
             ];
         }
