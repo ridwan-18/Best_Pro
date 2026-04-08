@@ -659,6 +659,9 @@ class MemberController extends Controller
 			$personal->address = $sheetData[$baseRow]['T'];
 			$personal->province = $sheetData[$baseRow]['V'];
 			$personal->city = $sheetData[$baseRow]['U'];
+			
+			
+			
 			if ($personal->save(false)) {
 				$startDate = Utils::convertDateToYmd($sheetData[$baseRow]['J']);
 				$endDate = Utils::convertDateToYmd($sheetData[$baseRow]['K']);
@@ -751,6 +754,42 @@ class MemberController extends Controller
 				// if ($accStatus != '' || $statusReason != '') {
 					// $status = Member::MEMBER_STATUS_PENDING;
 				// }
+				
+				// send data api
+				$name = $sheetData[$baseRow]['D'];
+				$dob = $birthDate;
+				$tgl_mulai = Utils::convertDateToYmd($sheetData[$baseRow]['J']);
+				$tgl_selesai = Utils::convertDateToYmd($sheetData[$baseRow]['K']);
+				$jenis_kelamin = '-';
+				$Up = $sumInsured;
+				$premi = $totalPremium;
+				$rate = $quotationRate->rate;
+				
+				$model = new Member();
+				$response = $model->callAPIPostMemberLogin();
+				$token = $response['token'];
+				$policy_number = $batch->policy_no = $policyNo;;
+				// var_dump($token);
+						
+				// $model_member = new Member();
+				$response_member = $model->callAPIPostMemberPush($token,$policy_number,$name,$dob,$tgl_mulai,$tgl_selesai,$sumInsured,$premi,$rate);
+						
+						 // var_dump($response_member);
+						
+					if (!empty($response_member) && $response_member['code'] !== '200') {
+						// var_dump($response_member);
+						die;
+						Yii::$app->session->setFlash('error', "Error while Calling API, " . ($response_member['batch_id'] ?? '')
+						);
+
+						return $this->redirect([
+							'view',
+							'id' => Yii::$app->request->post('batch_id'),
+						]);
+					}
+				
+				
+				
 
 				$members[] = [
 					'member_no' => $sheetData[$baseRow]['E'],
@@ -794,6 +833,8 @@ class MemberController extends Controller
 
 			$baseRow++;
 		}
+		
+		// var_dump($members);
 
 		if (count($members) == 0) {
 			Yii::$app->session->setFlash('error', "Member was empty");
@@ -820,15 +861,7 @@ class MemberController extends Controller
 			return $this->redirect(['create']);
 		}
 		
-		// Call API post data Peserta		
-		// $response = $model->callAPIPostMember();
-		// if ($response['Status'] == '01') {
-            // Yii::$app->session->setFlash('error', "Error while Calling API, " . $response['id_loan']);
-			// return $this->redirect([
-				// 'view',
-				// 'id' => Yii::$app->request->post('batch_id'),
-			// ]);
-        // }
+		
 		
 		$attributes = [
 			'member_no',
@@ -860,27 +893,6 @@ class MemberController extends Controller
 			'created_at',
 			'created_by'
 		];
-		
-		
-		// $model = new Member();
-		// $response = $model->callAPIPostMemberLogin();
-				
-				// var_dump($response);
-				
-			// if (!empty($response) && $response['Status'] === '01') {
-				// var_dump($response);
-				// die;
-				// Yii::$app->session->setFlash('error', "Error while Calling API, " . ($response['id_loan'] ?? '')
-				// );
-
-				// return $this->redirect([
-					// 'view',
-					// 'id' => Yii::$app->request->post('batch_id'),
-				// ]);
-			// }
-		
-		
-		
 		$modelSave = Yii::$app->db->createCommand()
 			->batchInsert(Member::tableName(), $attributes, $members)
 			->execute();
@@ -888,8 +900,8 @@ class MemberController extends Controller
 			Yii::$app->session->setFlash('error', "Error while saving Member");
 			return $this->redirect(['create']);
 		}
-
-		Yii::$app->session->setFlash('success', "Successfully uploaded");
+	
+		yii::$app->session->setflash('success', "successfully uploaded");
 		return $this->redirect([
 			'view',
 			'id' => $batch->id
@@ -1277,10 +1289,10 @@ class MemberController extends Controller
 			$runningNo = $existingMemberTotal + 1;
 		}
 		foreach ($members as $member) {
+			
 			$id= $member->id;
-	
-			// $url = "http://localhost/BestPro/member/print?id=$id";
-			$url = "https://devweb.bestpro-id.com/member/print?id=$id";
+			// $url = 'http://localhost/BestPro/member/print?id=$id';
+			$url = "http://localhost/BestPro/member/print?id=$id";
 			var_dump($url);
 			
 			$stncDate = Member::getStnc($member->start_date, $tc->retroactive);

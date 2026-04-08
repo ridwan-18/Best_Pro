@@ -2477,4 +2477,47 @@ class MemberController extends Controller
         ];
 	}
 	
+	public function actionAkseptasiCoreSystem()
+    {
+       Yii::$app->response->format = Response::FORMAT_JSON;
+
+		$members = Yii::$app->request->post('members');
+
+		$updatedCount = 0;
+
+		foreach ($members as $m) {
+			$policy_no = Utils::sanitize($m['policy_no']);
+			$start_date = Utils::sanitize($m['start_date']); // if needed
+			$nama_peserta = Utils::sanitize($m['nama_peserta']);
+			$birth_date = Utils::sanitize($m['birth_date']);
+			$status = Utils::sanitize($m['status']);
+			
+
+			$get_data_members = Member::getdatacoresystem($policy_no,$nama_peserta,$birth_date,$start_date);
+
+			if ($get_data_members) {
+				foreach ($get_data_members as $member) {
+					$member->status = $status;
+					$member->save(false);
+					$updatedCount++;
+				}
+			}
+		}
+
+		if ($updatedCount > 0) 
+		{
+			return [
+				'is_success' => 1,
+				'message' => "$updatedCount data berhasil diupdate"
+			];
+		} 
+		else 
+		{
+			return [
+				'is_success' => 0,
+				'message' => 'Data tidak ditemukan'
+			];
+		}	
+	}
+	
 }
