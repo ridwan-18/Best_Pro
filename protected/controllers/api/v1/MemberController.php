@@ -2491,6 +2491,7 @@ class MemberController extends Controller
 			$nama_peserta = Utils::sanitize($m['nama_peserta']);
 			$birth_date = Utils::sanitize($m['birth_date']);
 			$status = Utils::sanitize($m['status']);
+			$member_no = Utils::sanitize($m['member_no']);
 			
 
 			$get_data_members = Member::getdatacoresystem($policy_no,$nama_peserta,$birth_date,$start_date);
@@ -2498,6 +2499,7 @@ class MemberController extends Controller
 			if ($get_data_members) {
 				foreach ($get_data_members as $member) {
 					$member->status = $status;
+					$member->member_no = $member_no;
 					$member->save(false);
 					$updatedCount++;
 				}
