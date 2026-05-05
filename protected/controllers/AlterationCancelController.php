@@ -82,7 +82,7 @@ class AlterationCancelController extends Controller
     public function actionGetMemberData()
     {
         $member = Member::findOne(['member_no' => Yii::$app->request->post('member_no')]);
-        $personal = Personal::findOne(['id' => $member->personal_id]);
+        $personal = Personal::findOne(['id' => $member->personal_no]);
         $data = [];
         $data['member_no'] = $member->member_no;
         $data['name'] = $personal->name;
@@ -214,7 +214,9 @@ class AlterationCancelController extends Controller
         $totalPremium = 0;
         foreach ($membersNo as $key => $value) {
             $member = Member::findOne(['member_no' => $value]);
-            $personal = Personal::findOne(['id' => $member->personal_id]);
+            // $personal = Personal::findOne(['id' => $member->personal_no]);
+			$personal = Personal::findOne(['personal_no' => $member->personal_no]);
+			// var_dump($personal);
             $members[] = [
                 'alteration_no' => $model->alteration_no,
                 'member_no' => $member->member_no,

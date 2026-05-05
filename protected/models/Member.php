@@ -120,6 +120,8 @@ class Member extends \yii\db\ActiveRecord
 			 // [['imageFile'], 'file', 'skipOnEmpty' => false, 'extensions' => 'png, jpg','pdf'],
 			 // [['imageFile'], 'file', 'skipOnEmpty' => false, 'extensions' => 'png, jpg, pdf'],
 			 [['imageFile'], 'file', 'skipOnEmpty' => true, 'extensions' => 'png, jpg, pdf'],
+			   [['tinggi_badan', 'berat_badan', 'bmi'], 'number'],
+				[['bmi_kategori'], 'string'],
         ];
     }
 
@@ -178,7 +180,11 @@ class Member extends \yii\db\ActiveRecord
 			 'files_medis' => 'files_medis',
             'file_upload' => 'file_upload',
 			'link_e_polis' => 'link_e_polis',
-			'status_em' => 'status_em,'
+			'status_em' => 'status_em,',
+			'tinggi_badan' => 'tinggi_badan',
+			'berat_badan' => 'berat_badan',
+			'bmi' => 'bmi',
+			'bmi_kategori' => 'bmi_kategori'
 			
         ];
     }

@@ -36,9 +36,14 @@ class Personal extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['personal_no', 'name', 'birth_date'], 'required'],
+            [['personal_no', 'name', 'birth_date','phone', 'id_card_no'], 'required'],
             [['birth_date'], 'safe'],
-            [['personal_no', 'name', 'birth_place', 'id_card_no', 'phone', 'email', 'address', 'province', 'city', 'profession'], 'string', 'max' => 255],
+            [['personal_no', 'name', 'birth_place', 'id_card_no', 'phone', 
+			'email', 'address', 'province', 'city', 'profession'], 'string', 'max' => 255],
+			
+			
+			[['phone'], 'number'],
+			
             [['gender'], 'string', 'max' => 20],
         ];
     }

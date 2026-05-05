@@ -47,7 +47,7 @@ class AlterationEndorsementMember extends \yii\db\ActiveRecord
             [['age', 'new_age', 'term', 'new_term'], 'integer'],
             [['sum_insured', 'new_sum_insured', 'premi', 'new_premi', 'extra_premi'], 'number'],
             [['alteration_no', 'member_no'], 'string', 'max' => 100],
-            [['name'], 'string', 'max' => 255],
+            [['name','new_name'], 'string', 'max' => 255],
         ];
     }
 
@@ -76,6 +76,7 @@ class AlterationEndorsementMember extends \yii\db\ActiveRecord
             'premi' => 'Premi',
             'new_premi' => 'New Premi',
             'extra_premi' => 'Extra Premi',
+			'new_name' => 'new_name',
         ];
     }
 

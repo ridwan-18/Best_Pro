@@ -3,6 +3,8 @@
 namespace app\models;
 
 use Yii;
+use app\models\User;
+use app\models\Partner;
 
 /**
  * This is the model class for table "batch".
@@ -84,6 +86,10 @@ class Batch extends \yii\db\ActiveRecord
 
     public static function getAll($params = [])
     {
+		
+		$createdBy = Yii::$app->user->identity->id;
+		$user = user::findOne(['id' => $createdBy]);
+		// var_dump($user);
         $query = self::find()
             ->select([
                 self::tableName() . '.id',
@@ -93,19 +99,44 @@ class Batch extends \yii\db\ActiveRecord
                 self::tableName() . '.status',
                 self::tableName() . '.created_at',
 				self::tableName() . '.created_by',
-                '(SELECT ' . Partner::tableName() . '.name' .  ' FROM ' . Policy::tableName() . ' INNER JOIN ' . 
-				Partner::tableName() . ' ON ' . Policy::tableName() . '.partner_id = ' . Partner::tableName() .
-				'.id WHERE ' . Policy::tableName() . '.policy_no = ' . self::tableName() . '.policy_no GROUP BY ' 
+                '(SELECT ' . Partner::tableName() . '.name' .  ' FROM ' . Policy::tableName() . 
+				' INNER JOIN ' . Partner::tableName() . ' ON ' . Policy::tableName() . '.partner_id = ' . Partner::tableName() . '.id'.
+				' INNER JOIN ' . User::tableName() . ' ON ' . Partner::tableName() . '.id = ' . User::tableName() . '.partner_id where '
+				. Policy::tableName() . '.policy_no = ' . self::tableName() . '.policy_no GROUP BY ' 
 				. Policy::tableName() . '.policy_no) AS partner',
-            ])
+				])
             ->asArray();
+			
 			
 		if (!Yii::$app->user->isGuest) {
 			if (Yii::$app->user->identity->role == User::ROLE_UW) {
 				$query->andWhere(['=', self::tableName() . '.created_by', Yii::$app->user->identity->id]);
 			}
 		}
-
+		
+		
+		// if (!yii::$app->user->isguest) {
+			// if (yii::$app->user->identity->role == user::ROLE_PUSAT) {
+				// $query->andwhere(['=', user::tablename() . '.partner_id', $user->partner_id]);
+			// }
+		// }
+		
+		// $policies = Policy::find()
+    // ->asArray()
+    // ->select([
+        // Policy::tableName() . '.policy_no',
+        // Partner::tableName() . '.name AS partner'
+    // ])
+    // ->innerJoin(Partner::tableName(), Partner::tableName() . '.id = ' .  Policy::tableName() . '.partner_id')
+	// ->innerJoin(User::tableName(), Partner::tableName() . '.id = ' .  User::tableName() . '.partner_id')
+	// ->where([
+						// User::tableName() . '.partner_id' => $user->partner_id
+					// ])
+    // ->orderBy([Policy::tableName() . '.id' => SORT_ASC])
+    // ->all();
+		
+		
+		
         if (isset($params['policy_no']) && $params['policy_no'] != null) {
             $query->andFilterWhere(['=', self::tableName() . '.policy_no', $params['policy_no']]);
         }

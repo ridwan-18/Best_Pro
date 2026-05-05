@@ -17,6 +17,11 @@ use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
 use yii\data\Pagination;
+use app\models\dokument_claim_jatim;
+use app\models\claim_bank_jatim;
+use app\models\claim_bank_jatim_detail;
+use yii\web\UploadedFile;
+
 
 /**
  * ClaimController implements the CRUD actions for Claim model.
@@ -99,6 +104,8 @@ class ClaimController extends Controller
         $quotationProduct = QuotationProduct::findOne(['quotation_id' => $policy->quotation_id]);
         $product = Product::findOne(['id' => $quotationProduct->product_id]);
         $component = Component::findOne(['product_id' => $product->id]);
+		$dokumen_detail = dokument_claim_jatim::getAll();
+		
 
         return $this->render('view', [
             'model' => $model,
@@ -108,6 +115,7 @@ class ClaimController extends Controller
             'partner' => $partner,
             'product' => $product,
             'component' => $component,
+			'dokumen_detail' => $dokumen_detail,
         ]);
     }
 
@@ -116,119 +124,148 @@ class ClaimController extends Controller
      * If creation is successful, the browser will be redirected to the 'view' page.
      * @return string|\yii\web\Response
      */
-    public function actionCreate()
-    {
-        if (
-            Yii::$app->user->isGuest
-            || !User::findIdentityByAccessToken(Yii::$app->user->identity->access_token)
-        ) {
-            return $this->goHome();
-        }
+	public function actionCreate()
+	{
+		if (
+			Yii::$app->user->isGuest ||
+			!Yii::$app->user->identity ||
+			!User::findIdentityByAccessToken(Yii::$app->user->identity->access_token)
+		) {
+			return $this->goHome();
+		}
 
-        if (!Yii::$app->request->post('policy_no')) {
-            return $this->render('create');
-        }
+		$request = Yii::$app->request;
 
-        $policy = Policy::findOne(['policy_no' => Yii::$app->request->post('policy_no')]);
-        if ($policy == null) {
-            Yii::$app->session->setFlash('error', "Policy not found");
-            return $this->redirect(['create']);
-        }
+		// ✅ WAJIB: pastikan hanya dipanggil sekali
+		$dokumen_detail = dokument_claim_jatim::getAll();
 
-        $member = Member::findOne(['member_no' => Yii::$app->request->post('member_no')]);
-        if ($member == null) {
-            Yii::$app->session->setFlash('error', "Member not found");
-            return $this->redirect(['create']);
-        }
+		// 🔒 pastikan selalu array
+		if (!is_array($dokumen_detail)) {
+			$dokumen_detail = [];
+		}
+
+		$memberNo = $request->post('member_no');
+
+		if (!$memberNo) {
+			return $this->render('create', [
+				'dokumen_detail' => $dokumen_detail,
+				'selectedMemberNo' => null,
+			]);
+		}
+
+		$get_member = Member::findOne(['member_no' => $memberNo]);
+		// var_dump($get_member);
 		
-		// var_dump($member);
+
+		$policy = Policy::findOne(['policy_no' => $get_member->policy_no]);
+		if (!$policy) {
+			Yii::$app->session->setFlash('error', "Policy not found");
+			return $this->redirect(['create']);
+		}
+
+		$personal = Personal::findOne(['personal_no' => $get_member->personal_no]);
+		if (!$personal) {
+			Yii::$app->session->setFlash('error', "Personal not found");
+			return $this->redirect(['create']);
+		}
 		
-        $personal = Personal::findOne(['personal_no' => $member->personal_no]);
-        if ($personal == null) {
-            Yii::$app->session->setFlash('error', "Personal not found");
-            return $this->redirect(['create']);
-        }
+		$quotationProduct = QuotationProduct::findOne(['quotation_id' => $policy->quotation_id]);
+        $product = Product::findOne(['id' => $quotationProduct->product_id]);
+		$partner = Partner::findOne(['id' => $policy->partner_id]);
 
-        $dateTime = new \DateTime();
-        $currentDateTime = $dateTime->format('Y-m-d H:i:s');
+		if (!$request->post('submit_claim')) {
+			return $this->render('create', [
+				'dokumen_detail' => $dokumen_detail,
+				'selectedMemberNo' => $memberNo,
+				'policy' => $policy,
+				'get_member' => $get_member,
+				'personal' => $personal,
+				'partner' => $partner,
+				'product' => $product,
+			]);
+		}
 
-        $claim = Claim::find()->orderBy(['id' => SORT_DESC])->one();
-        if ($claim != null) {
-            $newestId = $claim->id + 1;
-        } else {
-            $newestId = 1;
-        }
+		// ======================
+		// SAVE CLAIM
+		// ======================
+		 $claim = Claim::find()->orderBy(['id' => SORT_DESC])->one();
+			if ($claim != null) {
+				$newestId = $claim->id + 1;
+			} else {
+				$newestId = 1;
+			}
+		$model = new Claim();
 
-        $model = new Claim();
-        $model->claim_no = Claim::generateClaimNo(['id' => $newestId]);
-        $model->policy_no = $policy->policy_no;
-        $model->member_no = $member->member_no;
+		 $model->claim_no = Claim::generateClaimNo(['id' => $newestId]);
+		$model->policy_no = $get_member->policy_no;
+		$model->member_no = $get_member->member_no;
 
-        // Claim Info
-        $model->claim_age = Claim::getClaimAge($personal->birth_date, Yii::$app->request->post('incident_date'));
-        $model->incident_date = Yii::$app->request->post('incident_date');
-        $model->estimated_amount = Yii::$app->request->post('estimated_amount');
-        $model->claim_reason = Yii::$app->request->post('claim_reason');
-        $model->disease = Yii::$app->request->post('disease');
-        $model->place_of_death = Yii::$app->request->post('place_of_death');
+		$incidentDate = $request->post('incident_date');
 
-        // Claim Document
-        $model->doc_status = Yii::$app->request->post('doc_status');
-        $model->doc_pre_received_date = Yii::$app->request->post('doc_pre_received_date');
-        $model->doc_received_date = Yii::$app->request->post('doc_received_date');
-        $model->doc_complete_date = Yii::$app->request->post('doc_complete_date');
-        $model->doc_notes = Yii::$app->request->post('doc_notes');
+		if (!$incidentDate) {
+			Yii::$app->session->setFlash('error', "Incident Date wajib diisi");
+			return $this->redirect(['create']);
+		}
 
-        $model->status = Claim::STATUS_REGISTRATION;
-        $model->doc_status = Claim::DOC_STATUS_PENDING;
-        $model->created_at = $currentDateTime;
-        $model->created_by = Yii::$app->user->identity->id;
-        if (!$model->save(false)) {
-            Yii::$app->session->setFlash('error', "Error while saving");
-            return $this->redirect(['create']);
-        }
+		$model->incident_date = $incidentDate;
+		$model->claim_age = Claim::getClaimAge($personal->birth_date, $incidentDate);
 
-        // Claim Document
-        $documentIds = Yii::$app->request->post('document_ids');
-        $documents = [];
-        foreach ($documentIds as $key => $value) {
-            $documents[] = [
-                'claim_id' => $model->id,
-                'document_id' => $value,
-                'is_checked' => null,
-                'is_mandatory' => null,
-            ];
-        }
+		$model->estimated_amount = $request->post('estimated_amount');
+		$model->claim_reason = $request->post('claim_reason');
+		$model->disease = $request->post('disease');
+		$model->place_of_death = $request->post('place_of_death');
 
-        $attributes = ['claim_id', 'document_id', 'is_checked', 'is_mandatory'];
-        $modelSave = Yii::$app->db->createCommand()
-            ->batchInsert(ClaimDocument::tableName(), $attributes, $documents)
-            ->execute();
-        if (!$modelSave) {
-            Yii::$app->session->setFlash('error', "Error while saving Document");
-            return $this->redirect(['create']);
-        }
+		$model->doc_status = $request->post('doc_status');
+		$model->doc_notes = $request->post('doc_notes');
 
-        // Claim Document
-        $isCheckeds = Yii::$app->request->post('is_checkeds');
-        $isMandatories = Yii::$app->request->post('is_mandatories');
-        $claimDocuments = ClaimDocument::find()
-            ->asArray()
-            ->where(['claim_id' => $model->id])
-            ->all();
-        foreach ($claimDocuments as $claimDocument) {
-            $document = ClaimDocument::findOne(['id' => $claimDocument['id']]);
-            $document->is_checked = (in_array($claimDocument['document_id'], $isCheckeds)) ? 1 : null;
-            $document->is_mandatory = (in_array($claimDocument['document_id'], $isMandatories)) ? 1 : null;
-            $document->save(false);
-        }
+		$model->status = Claim::STATUS_REGISTRATION;
+		$model->created_at = date('Y-m-d H:i:s');
+		$model->created_by = Yii::$app->user->id;
 
-        Yii::$app->session->setFlash('success', "Successfully saved");
-        return $this->redirect([
-            'view',
-            'id' => $model->id
-        ]);
-    }
+		if (!$model->save()) {
+			Yii::$app->session->setFlash('error', json_encode($model->errors));
+			return $this->redirect(['create']);
+		}
+		
+		$files = UploadedFile::getInstancesByName('documents');
+		$docIds = Yii::$app->request->post('doc_ids');
+
+		if (!empty($files)) {
+			foreach ($files as $index => $file) {
+
+				if ($file->error == 0) {
+					 // $filename = $this->id;
+					$fileName = time() . $model->id . $file->baseName . '.' . $file->extension;
+					$uploadPath = Yii::getAlias('@webroot/images/post_images/');
+					
+					if (!is_dir($uploadPath)) {
+						mkdir($uploadPath, 0777, true);
+					}
+
+					$file->saveAs($uploadPath . $fileName);
+
+					// simpan ke tabel document
+					$doc = new claim_bank_jatim_detail();
+					$doc->id_loan = $model->id;
+					$doc->kode_dokumen = $docIds[$index] ?? null;
+					$doc->files = 'uploads/claims/' . $fileName;
+					$doc->tgl_upload = date('Y-m-d H:i:s');
+
+					if (!$doc->save()) {
+						// Yii::error($doc->errors);
+						  echo "<pre>";
+						print_r($doc->errors);
+						die;
+					}
+				}
+			}
+		}
+		
+
+		Yii::$app->session->setFlash('success', "Claim berhasil disimpan");
+
+		return $this->redirect(['index', 'id' => $model->id]);
+	}
 
     /**
      * Updates an existing Claim model.
@@ -397,4 +434,5 @@ class ClaimController extends Controller
 
         throw new NotFoundHttpException('The requested page does not exist.');
     }
+	
 }
