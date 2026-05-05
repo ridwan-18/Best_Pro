@@ -161,7 +161,7 @@ $this->title = 'Create - ' . Yii::$app->name;
                                                 <?= Html::a(
                                                     '<i class="fa fa-pencil"></i>',
                                                     [
-                                                        'quotation/update',
+                                                        'create-member/update',
                                                         'id' => $model['id'],
                                                     ],
                                                     [
@@ -172,8 +172,8 @@ $this->title = 'Create - ' . Yii::$app->name;
                                                 <?= Html::a(
                                                     '<i class="fa fa-trash"></i>',
                                                     [
-                                                        'quotation/delete',
-                                                        'id' => $model['id'],
+                                                        'create-member/delete',
+                                                        'id' => $model->id,
                                                     ],
                                                     [
                                                         'class' => 'btn btn-light btn-sm waves-effect',

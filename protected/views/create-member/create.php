@@ -6,17 +6,36 @@ use app\models\Member;
 use app\models\Policy;
 use app\models\Partner;
 use app\models\User;
+use yii\helpers\ArrayHelper;
 
 $createdBy = Yii::$app->user->identity->id;
 $user = User::findOne(['id' => $createdBy]);
 
+
+
+
+
 $policies = Policy::find()
-    ->select([Policy::tableName() . '.id', Policy::tableName() . '.policy_no'])
+	->asArray()
+    ->select([
+	Policy::tableName() . '.id', 
+	Policy::tableName() . '.policy_no',
+	Policy::tableName() . '.produk',
+	])
     ->innerJoin(Partner::tableName(), Partner::tableName() . '.id = ' . Policy::tableName() . '.partner_id')
     ->orderBy([Policy::tableName() . '.id' => SORT_ASC])
     ->all();
 
-$policyOptions = \yii\helpers\ArrayHelper::map($policies, 'id', 'policy_no');
+
+$options = [];
+foreach ($policies as $policy) {
+    $items = [];
+    $items['value'] = $policy['policy_no'];
+    $items['label'] = $policy['policy_no'] . ' - ' . $policy['produk'];
+    $options[] = $items;
+}
+
+$policyOptions = ArrayHelper::map($options, 'value', 'label');
 
 $this->title = 'Input Data Member - ' . Yii::$app->name;
 
@@ -99,6 +118,24 @@ $calculateUrl = \yii\helpers\Url::to(['create-member/calculate-premium']);
                 <?= $form->field($personal, 'address')->textInput() ?>
             </div>
 			
+			
+			 <div class="col-md-4">
+               <?= $form->field($model, 'tinggi_badan')->input('number', [
+					'id' => 'member-tinggi_badan',
+					'onchange' => 'updatePremium()'
+				]) ?>
+
+            </div>
+            <div class="col-md-4">
+               <?= $form->field($model, 'berat_badan')->input('number', [
+					'id' => 'member-berat_badan',
+					'onchange' => 'updatePremium()'
+				]) ?>
+            </div>
+			 <div class="col-md-4">
+                <label>BMI:</label>
+                <div id="bmi-display" class="p-2 border rounded bg-light">-</div>
+            </div>
 
             <!-- Calculated Premium Display -->
             <div class="col-md-4 mt-3">
@@ -132,44 +169,66 @@ window.updatePremium = function() {
     var startDate = $('#member-start_date').val();
     var endDate = $('#member-end_date').val();
     var sumInsured = $('#member-sum_insured').val();
-	var berat_badan = $('#member-berat_badan').val();
-	var tinggi_badan = $('#member-tinggi_badan').val();
+    var beratbadan = $('#member-berat_badan').val();
+    var tinggibadan = $('#member-tinggi_badan').val();
 
-    if (!policyNo || !birthDate || !startDate || !endDate || !sumInsured) {
+    // Jika data belum lengkap, reset display
+    if (!policyNo || !birthDate || !startDate || !endDate || !sumInsured || !beratbadan || !tinggibadan) {
         $('#premium-display').html('-');
         $('#rate-display').html('-');
         $('#uw-display').html('-');
-		$('#uw-display').html('-');
+        $('#bmi-display').html('-');
         return;
     }
 
+    // Hitung BMI
+    var tinggiMeter = tinggibadan / 100;
+    var bmi = (tinggiMeter > 0) ? beratbadan / (tinggiMeter * tinggiMeter) : 0;
+	
+	// Tentukan kategori BMI
+	var bmiKategori = '';
+	if (bmi < 18.5) {
+		bmiKategori = 'Berat badan kurang';
+	} else if (bmi >= 18.5 && bmi <= 22.9) {
+		bmiKategori = 'Normal';
+	} else if (bmi >= 23 && bmi <= 24.9) {
+		bmiKategori = 'Kelebihan berat badan';
+	} else if (bmi >= 25) {
+		bmiKategori = 'Obesitas';
+	}
+	
+	$('#bmi-display').html(bmi.toFixed(2) + ' (' + bmiKategori + ')');
+
+    // Hitung premium via AJAX
     $.ajax({
-       url: '{$calculateUrl}',
-       type: 'POST',
-       data: {
-           policy_no: policyNo,
-           birth_date: birthDate,
-           start_date: startDate,
-           end_date: endDate,
-           sum_insured: sumInsured
-       },
-       success: function(data) {
-           if (data.success) {
-               $('#premium-display').html(data.premium_formatted);
-               $('#rate-display').html(data.rate);
-               $('#uw-display').html(data.uw_limit || '-');
-           } else {
-               $('#premium-display').html(data.message);
-               $('#rate-display').html('-');
-               $('#uw-display').html('-');
-           }
-       },
-       error: function(xhr) {
-           console.error(xhr.responseText);
-           $('#premium-display').html('Error calculating premium');
-           $('#rate-display').html('-');
-           $('#uw-display').html('-');
-       }
+        url: '{$calculateUrl}',
+        type: 'POST',
+        data: {
+            policy_no: policyNo,
+            birth_date: birthDate,
+            start_date: startDate,
+            end_date: endDate,
+            sum_insured: sumInsured,
+            berat_badan: beratbadan,
+            tinggi_badan: tinggibadan,
+        },
+        success: function(data) {
+            if (data.success) {
+                $('#premium-display').html(data.premium_formatted);
+                $('#rate-display').html(data.rate);
+                $('#uw-display').html(data.uw_limit || '-');
+            } else {
+                $('#premium-display').html(data.message);
+                $('#rate-display').html('-');
+                $('#uw-display').html('-');
+            }
+        },
+        error: function(xhr) {
+            console.error(xhr.responseText);
+            $('#premium-display').html('Error calculating premium');
+            $('#rate-display').html('-');
+            $('#uw-display').html('-');
+        }
     });
 }
 JS;

@@ -600,6 +600,8 @@ class CreateMemberController extends Controller
 		$phone = $personal->phone;
 		$address = $personal->address;
 		$id_card_no = $personal->id_card_no;
+		
+		$currentDate = new \DateTime();
 		$tinggi_badan = $model->tinggi_badan;
 		$berat_badan = $model->berat_badan;
 		
@@ -610,21 +612,18 @@ class CreateMemberController extends Controller
 		$tinggiMeter = $tinggi_badan / 100;
 		$bmi = ($tinggiMeter > 0) ? $berat_badan / ($tinggiMeter * $tinggiMeter) : 0;
 		
-		// Tentukan kategori BMI
 		$bmiKategori = '';
 		if ($bmi < 18.5) {
 			$bmiKategori = 'Berat badan kurang';
-		} else if ($bmi >= 18.5 && $bmi <= 22.9) {
+		} else if ($bmi >= 18.5 && $bmi <= 24.9) {
 			$bmiKategori = 'Normal';
-		} else if ($bmi >= 23 && $bmi <= 24.9) {
+		} else if ($bmi >= 25 && $bmi <= 27) {
 			$bmiKategori = 'Kelebihan berat badan';
 		} else if ($bmi >= 25) {
 			$bmiKategori = 'Obesitas';
 		}
-				
-		$currentDate = new \DateTime();
 		
-		$policy = Policy::findOne(['id' => $policyNo]);
+		$policy = Policy::findOne(['policy_no' => $policyNo]);
 		
 		if (!$policy) {
 			Yii::$app->session->setFlash('error', 'Policy not found');
@@ -716,6 +715,7 @@ class CreateMemberController extends Controller
 		$model->id_loan = $id_loan;
 		$model->created_by = Yii::$app->user->identity->id;
         $model->created_at = $currentDate->format('Y-m-d H:i:s');
+		
 		$model->bmi = round($bmi, 2);
 		$model->bmi_kategori = $bmiKategori;
 		$model->tinggi_badan = $tinggi_badan;
@@ -777,17 +777,15 @@ class CreateMemberController extends Controller
 	 public function actionCalculatePremium()
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
-
+	
         $policyNo = Yii::$app->request->post('policy_no');
         $birthDate = Yii::$app->request->post('birth_date');
         $startDate = Yii::$app->request->post('start_date');
         $endDate = Yii::$app->request->post('end_date');
         $sumInsured = (float) Yii::$app->request->post('sum_insured');
-		$beratBadan = Yii::$app->request->post('berat_badan');
-        $tinggiBadan = (float) Yii::$app->request->post('tinggi_badan');
 	
 
-        if (!$policyNo || !$birthDate || !$startDate || !$endDate || !$sumInsured || !$beratBadan || !$tinggiBadan) {
+        if (!$policyNo || !$birthDate || !$startDate || !$endDate || !$sumInsured) {
             return ['success' => false, 'message' => 'Incomplete data'];
         }
 		$bmi = 0;
@@ -797,7 +795,7 @@ class CreateMemberController extends Controller
             $bmi = $beratBadan / ($tinggiMeter * $tinggiMeter);
         }
 
-        $policy = Policy::findOne(['id' => $policyNo]);
+        $policy = Policy::findOne(['policy_no' => $policyNo]);
         if (!$policy) return ['success' => false, 'message' => 'Policy not found'];
 
         $quotation = Quotation::findOne(['id' => $policy->quotation_id]);
@@ -846,7 +844,7 @@ class CreateMemberController extends Controller
 			'rate' => $quotationRate->rate,
 			'uw_limit' => $quotationUwLimit->medical_code,
             'premium_formatted' => 'Rp ' . number_format($totalPremium, 0, ',', '.'),
-			// 'bmi' => $bmi,
+			'bmi' => $bmi,
         ];
     }
 
@@ -1233,14 +1231,14 @@ class CreateMemberController extends Controller
 
 		$model = Member::findOne($id);
 		
-		var_dump($model); die;
+		// var_dump($model); die;
 
 		if ($model == null) {
 			Yii::$app->session->setFlash('error', "Data not found");
 			return $this->redirect(['index']);
 		}
 
-		$personal = $model->personal;
+		$personal = Personal::findOne(['personal_no' => $model->personal_no]);
 
 		return $this->render('update', [
 			'model' => $model,
