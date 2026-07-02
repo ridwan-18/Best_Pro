@@ -261,6 +261,51 @@ class AlterationCancelController extends Controller
         $modelSave = Yii::$app->db->createCommand()
             ->batchInsert(AlterationCancelMember::tableName(), $attributes, $members)
             ->execute();
+			
+			$response = $model->callAPIPostMemberLogin();
+
+				// if (!is_array($response)) {
+					// echo "<pre>";
+					// var_dump($response);
+					// die("Login API bukan array");
+				// }
+
+				// if (!isset($response['token'])) {
+					// echo "<pre>";
+					// var_dump($response);
+					// die("Token tidak ditemukan");
+				// }
+
+				$token = $response['token'];
+
+				$policy_number = $policy->policy_no;
+
+				// ================= REFUND API ===================
+				$response_member = $model->callAPIPostMemberCancelPush(
+					$token,
+					$policy->policy_no,
+					$membersNo
+				);
+
+			
+		
+
+				// Jika response memang array
+				if (
+					is_array($response_member) &&
+					isset($response_member['code']) &&
+					$response_member['code'] != '200'
+				) {
+					Yii::$app->session->setFlash(
+						'error',
+						"Error while Calling API"
+					);
+				}
+					
+			
+			
+			
+			
         if (!$modelSave) {
             Yii::$app->session->setFlash('error', "Error while saving Member");
             return $this->redirect(['create']);

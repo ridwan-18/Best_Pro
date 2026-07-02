@@ -250,7 +250,7 @@ class ClaimController extends Controller
 					$doc->kode_dokumen = $docIds[$index] ?? null;
 					$doc->files = 'uploads/claims/' . $fileName;
 					$doc->tgl_upload = date('Y-m-d H:i:s');
-
+				
 					if (!$doc->save()) {
 						// Yii::error($doc->errors);
 						  echo "<pre>";
@@ -260,6 +260,46 @@ class ClaimController extends Controller
 				}
 			}
 		}
+		
+			$response = $model->callAPIPostMemberLogin();
+
+				// if (!is_array($response)) {
+					// echo "<pre>";
+					// var_dump($response);
+					// die("Login API bukan array");
+				// }
+
+				// if (!isset($response['token'])) {
+					// echo "<pre>";
+					// var_dump($response);
+					// die("Token tidak ditemukan");
+				// }
+
+				$token = $response['token'];
+
+				$policy_number = $policy->policy_no;
+
+				// ================= REFUND API ===================
+				$response_member = $model->callAPIPostMemberClaimPush(
+					$token,
+					$policy->policy_no,
+					$membersNo
+				);
+
+			
+		
+
+				// Jika response memang array
+				if (
+					is_array($response_member) &&
+					isset($response_member['code']) &&
+					$response_member['code'] != '200'
+				) {
+					Yii::$app->session->setFlash(
+						'error',
+						"Error while Calling API"
+					);
+				}
 		
 
 		Yii::$app->session->setFlash('success', "Claim berhasil disimpan");

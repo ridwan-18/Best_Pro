@@ -225,7 +225,10 @@ class AlterationRefundController extends Controller
             $member = Member::findOne(['member_no' => $value]);
             $personal = Personal::findOne(['personal_no' => $member->personal_no]);
             $remainingTerm = Member::getTerm($quotation->rate_type, $newEndDates[$key], $member->end_date);
-            $premiRefund = round(($remainingTerm / $member->term) * (0.5 * $member->total_premium));
+            $premiRefund = round(($remainingTerm / $member->term) * (40/100 * $member->total_premium));
+			// var_dump($remainingTerm);
+				// var_dump($member->term);
+				// var_dump($member->total_premium);
             $members[] = [
                 'alteration_no' => $model->alteration_no,
                 'member_no' => $member->member_no,
@@ -245,7 +248,7 @@ class AlterationRefundController extends Controller
 
             $totalSi += $member->sum_insured;
             $totalPremium += $member->total_premium;
-            $totalPremiumRefund += $premiRefund;
+            // $totalPremiumRefund += $premiRefund;
         }
 
         if (count($members) == 0) {
@@ -255,7 +258,7 @@ class AlterationRefundController extends Controller
 
         $model->total_si = $totalSi;
         $model->total_premium = $totalPremium;
-        $model->total_premium_refund = $totalPremiumRefund;
+        $model->total_premium_refund = $premiRefund;
         if (!$model->save(false)) {
             Yii::$app->session->setFlash('error', "Error while saving");
             return $this->redirect(['create']);
@@ -280,10 +283,62 @@ class AlterationRefundController extends Controller
         $modelSave = Yii::$app->db->createCommand()
             ->batchInsert(AlterationRefundMember::tableName(), $attributes, $members)
             ->execute();
+			
+		$response = $model->callAPIPostMemberLogin();
+
+				// if (!is_array($response)) {
+					// echo "<pre>";
+					// var_dump($response);
+					// die("Login API bukan array");
+				// }
+
+				// if (!isset($response['token'])) {
+					// echo "<pre>";
+					// var_dump($response);
+					// die("Token tidak ditemukan");
+				// }
+
+				$token = $response['token'];
+
+				$policy_number = $policy->policy_no;
+
+				// ================= REFUND API ===================
+				$response_member = $model->callAPIPostMemberRefundPush(
+					$token,
+					$policy_number,
+					$newEndDates,
+					$membersNo,
+					$remainingTerm,
+					$premiRefund,
+					$totalPremium
+				);
+
+				// echo "<pre>";
+				// echo "===== RESPONSE REFUND =====<br>";
+				// var_dump($response_member);
+				// die;
+
+				// Jika response memang array
+				if (
+					is_array($response_member) &&
+					isset($response_member['code']) &&
+					$response_member['code'] != '200'
+				) {
+					Yii::$app->session->setFlash(
+						'error',
+						"Error while Calling API"
+					);
+				}
+							
+			
         if (!$modelSave) {
             Yii::$app->session->setFlash('error', "Error while saving Member");
             return $this->redirect(['create']);
         }
+		
+		
+		
+		
 
         Yii::$app->session->setFlash('success', "Successfully saved");
         return $this->redirect(['index']);
@@ -326,6 +381,7 @@ class AlterationRefundController extends Controller
         foreach ($members as $member) {
             $membership = Member::findOne(['member_no' => $member['member_no']]);
             $membership->status = Member::STATUS_SURRENDER;
+			$membership->member_status = Member::STATUS_SURRENDER;
             $membership->save(false);
         }
 

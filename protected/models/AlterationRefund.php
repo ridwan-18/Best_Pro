@@ -109,4 +109,111 @@ class AlterationRefund extends \yii\db\ActiveRecord
     {
         return $params['id'] . '/CNR/AJRI/' . date("Y");
     }
+	
+	public function callAPIPostMemberLogin()
+    {
+		
+		// $url='http://demo-reliancelife.ajrius.id/api/login';
+		$url='http://127.0.0.1:8000/api/login';
+        $headers = [
+            'Content-Type: application/json',
+        ];
+		$data = json_encode([
+			'email' => 'api@gmail.com',
+            'password' => '12345678',
+			
+			
+        ]);
+		
+         $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($ch, CURLOPT_HEADER, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+        $response = curl_exec($ch);
+        $body = substr($response, curl_getinfo($ch, CURLINFO_HEADER_SIZE));
+
+        curl_close($ch);
+
+        return json_decode($body, true);
+    }
+	
+	public function callAPIPostMemberRefundPush($token,$policy_number,$newEndDates,$membersNo,$remainingTerm,$premiRefund,$totalPremium)
+	{
+		$headers = [
+			'Content-Type: application/json',
+			'Authorization: Bearer ' . $token
+		];
+
+		$data = [
+			'no_polis' => '1032410000705',
+
+			'data' => [
+				'tanggal_pengajuan'   => date('Y-m-d'),
+				'tanggal_efektif'     => is_array($newEndDates) ? $newEndDates[0] : $newEndDates,
+				'tujuan_pembayaran'   => 'Transfer',
+				'nama_bank'           => 'BCA',
+				'nomor_peserta_awal' => '111-25050005236-308',
+				'nomor_peserta_akhir' =>  '111-25050005236-308'
+			],
+
+			'peserta' => [
+				[
+					'no_peserta' => '111-25050005236-308',
+
+					'refund_tanggal_efektif' =>
+						is_array($newEndDates) ? $newEndDates[0] : $newEndDates,
+
+					'refund_sisa_masa_asuransi' => $remainingTerm,
+
+					'total_kontribusi_dibayar' => $totalPremium,
+
+					'refund_kontribusi' => $premiRefund
+				]
+			]
+		];
+
+		$ch = curl_init('http://127.0.0.1:8000/api/memo-refund/store');
+
+		curl_setopt_array($ch, [
+			CURLOPT_RETURNTRANSFER => true,
+			CURLOPT_POST => true,
+			CURLOPT_POSTFIELDS => json_encode($data),
+			CURLOPT_HTTPHEADER => $headers
+		]);
+
+		$response = curl_exec($ch);
+
+		if (curl_errno($ch)) {
+			return [
+				'success' => false,
+				'message' => curl_error($ch)
+			];
+		}
+
+		$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
+		curl_close($ch);
+
+		// echo "<pre>";
+		// echo "HTTP CODE : ".$httpCode."<br><br>";
+
+		// echo "REQUEST<br>";
+		// print_r($data);
+
+		// echo "<br><br>RESPONSE<br>";
+		// var_dump($response);
+
+		$decode = json_decode($response, true);
+
+		// echo "<br><br>JSON DECODE<br>";
+		// var_dump($decode);
+
+		// die;
+
+		return $decode;
+	}
+	
 }

@@ -39,7 +39,13 @@ use FPDF;
 use yii\helpers\Html;
 use app\widgets\Alert;
 use yii\widgets\LinkPager;
-
+use app\models\AlterationRefund;
+use app\models\AlterationRefundMember;
+use app\models\AlterationCancel;
+use app\models\AlterationCancelMember;
+use app\models\AlterationEndorsement;
+use app\models\AlterationEndorsementMember;
+use app\models\Claim;
 
 class MemberController extends Controller
 {
@@ -2384,7 +2390,7 @@ class MemberController extends Controller
 			if (empty($ktp)) {
             Yii::$app->response->statusCode = 202;
             return [
-                'is_success' => 1,
+                'is_success' => 0,
                 'message' => 'Data Cannot be empty'
             ];
 			}
@@ -2417,7 +2423,7 @@ class MemberController extends Controller
 		 if (empty($member)) {
             Yii::$app->response->statusCode = 202;
             return [
-                'is_success' => 1,
+                'is_success' => 0,
                 'message' => 'Data be empty'
             ];
         }
@@ -2465,7 +2471,7 @@ class MemberController extends Controller
 		 if (empty($get_members)) {
             Yii::$app->response->statusCode = 202;
             return [
-                'is_success' => 1,
+                'is_success' => 0,
                 'message' => 'Data be empty'
             ];
         }
@@ -2477,49 +2483,285 @@ class MemberController extends Controller
         ];
 	}
 	
-	public function actionAkseptasiCoreSystem()
+	
+	public function actionRefund()
     {
-       Yii::$app->response->format = Response::FORMAT_JSON;
+        Yii::$app->response->format = Response::FORMAT_JSON;
+		
+		$members = Yii::$app->request->post();
+		
+		$no_peserta = Yii::$app->request->post('no_peserta');
+		$status = Yii::$app->request->post('status');
+		$files = Yii::$app->request->post('files');
+		
+		$get_data_member = AlterationRefundMember::findOne([
+                'member_no' => $no_peserta
+            ]);
+		
+		 if (empty($get_data_member)) {
+            Yii::$app->response->statusCode = 202;
+            return [
+                'is_success' => 0,
+                'message' => 'Data Empty'
+            ];
+        }
+		
+		$statusRefund = AlterationRefund::findOne([
+                'alteration_no' => $get_data_member->alteration_no
+            ]);
+		
+		
+		$statusRefund->status = $status;
+		$statusRefund->files = $files;
+		$statusRefund->save(false);
+		
+		
+        Yii::$app->response->statusCode = 200;
+		return [
+			'status_code' => 200,
+			'error' => false,
+			'message' => 'Update Succesfully'
+			
+		];
+    }	
+	
+	
+	public function actionCancel()
+    {
+        Yii::$app->response->format = Response::FORMAT_JSON;
+		
+		$members = Yii::$app->request->post();
+		
+		$no_peserta = Yii::$app->request->post('no_peserta');
+		$status = Yii::$app->request->post('status');
+		$files = Yii::$app->request->post('files');
+		
+		$get_data_member = AlterationCancelMember::findOne([
+                'member_no' => $no_peserta
+            ]);
+		
+		 if (empty($get_data_member)) {
+            Yii::$app->response->statusCode = 202;
+            return [
+                'is_success' => 0,
+                'message' => 'Data Empty'
+            ];
+        }
+		
+		$statusCancel = AlterationCancel::findOne([
+                'alteration_no' => $get_data_member->alteration_no
+            ]);
+		
+		
+		$statusCancel->status = $status;
+		$statusCancel->files = $files;
+		$statusCancel->save(false);
+		
+		
+        Yii::$app->response->statusCode = 200;
+		return [
+			'status_code' => 200,
+			'error' => false,
+			'message' => 'Update Succesfully'
+			
+		];
+    }
+	
+	public function actionEndorsement()
+    {
+        Yii::$app->response->format = Response::FORMAT_JSON;
+		
+		$members = Yii::$app->request->post();
+		
+		$no_peserta = Yii::$app->request->post('no_peserta');
+		$status = Yii::$app->request->post('status');
+		$files = Yii::$app->request->post('files');
+		
+		$get_data_member = AlterationEndorsementMember::findOne([
+                'member_no' => $no_peserta
+            ]);
+		
+		 if (empty($get_data_member)) {
+            Yii::$app->response->statusCode = 202;
+            return [
+                'is_success' => 0,
+                'message' => 'Data Empty'
+            ];
+        }
+		
+		$statusCancel = AlterationEndorsement::findOne([
+                'alteration_no' => $get_data_member->alteration_no
+            ]);
+		
+		
+		$statusCancel->status = $status;
+		$statusCancel->files = $files;
+		$statusCancel->save(false);
+		
+		
+        Yii::$app->response->statusCode = 200;
+		return [
+			'status_code' => 200,
+			'error' => false,
+			'message' => 'Update Succesfully'
+			
+		];
+    }
+	
+	public function actionAkseptasiCoreSystem()
+	{
+		Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
 
-		$members = Yii::$app->request->post('members');
+		// Ambil payload JSON
+		$body = Yii::$app->request->bodyParams;
+
+		if (empty($body)) {
+			return [
+				'is_success' => 0,
+				'message' => 'Payload tidak boleh kosong'
+			];
+		}
+
+		// Validasi field utama
+		if (
+			empty($body['no_polis']) ||
+			empty($body['peserta']) ||
+			!is_array($body['peserta'])
+		) {
+			return [
+				'is_success' => 0,
+				'message' => 'Parameter no_polis atau peserta tidak valid'
+			];
+		}
+
+		$policyNo = Utils::sanitize($body['no_polis']);
+		$invoice  = $body['Invoice']['files'] ?? null;
 
 		$updatedCount = 0;
+		$failed = [];
 
-		foreach ($members as $m) {
-			$policy_no = Utils::sanitize($m['policy_no']);
-			$start_date = Utils::sanitize($m['start_date']); // if needed
-			$nama_peserta = Utils::sanitize($m['nama_peserta']);
-			$birth_date = Utils::sanitize($m['birth_date']);
-			$status = Utils::sanitize($m['status']);
-			$member_no = Utils::sanitize($m['member_no']);
+		foreach ($body['peserta'] as $item) {
+
+			$startDate    = Utils::sanitize($item['start_date'] ?? '');
+			$namaPeserta  = Utils::sanitize($item['nama_peserta'] ?? '');
+			$birthDate    = Utils::sanitize($item['birth_date'] ?? '');
+			$status       = Utils::sanitize($item['status'] ?? '');
+			$noPeserta    = Utils::sanitize($item['no_peserta'] ?? '');
+
+			// Cari data member
+			$members = Member::getdatacoresystem(
+				$policyNo,
+				$namaPeserta,
+				$birthDate,
+				$startDate
+			);
 			
+			// get_data_members = Member::getdatacoresystem($policy_no,$nama_peserta,$birth_date,$start_date);
+			
+			if ($members) {
+				foreach ($members as $member) {
 
-			$get_data_members = Member::getdatacoresystem($policy_no,$nama_peserta,$birth_date,$start_date);
-
-			if ($get_data_members) {
-				foreach ($get_data_members as $member) {
 					$member->status = $status;
-					$member->member_no = $member_no;
+
+					// Jika ada field no_peserta di tabel
+					if ($member->hasAttribute('member_no')) {
+						$member->member_no = $noPeserta;
+					}
 					$member->save(false);
+
 					$updatedCount++;
 				}
+			} else {
+
+				$failed[] = [
+					'nama_peserta' => $namaPeserta,
+					'birth_date'   => $birthDate,
+					'start_date'   => $startDate
+				];
 			}
 		}
 
-		if ($updatedCount > 0) 
-		{
-			return [
-				'is_success' => 1,
-				'message' => "$updatedCount data berhasil diupdate"
-			];
-		} 
-		else 
-		{
-			return [
-				'is_success' => 0,
-				'message' => 'Data tidak ditemukan'
-			];
-		}	
+		return [
+			'is_success' => $updatedCount > 0 ? 1 : 0,
+			'message' => $updatedCount > 0
+				? $updatedCount . ' data berhasil diupdate'
+				: 'Data tidak ditemukan',
+			'invoice_file' => $invoice,
+			'failed_data' => $failed
+		];
 	}
+	
+	public function actionStatusClaim()
+    {
+        Yii::$app->response->format = Response::FORMAT_JSON;
+		
+		$members = Yii::$app->request->post();
+		
+		$no_peserta = Yii::$app->request->post('no_peserta');
+		$status = Yii::$app->request->post('status');
+		
+		$get_data_member = claim::findOne([
+                'member_no' => $no_peserta
+            ]);
+		
+		 if (empty($get_data_member)) {
+            Yii::$app->response->statusCode = 202;
+            return [
+                'is_success' => 0,
+                'message' => 'Data Empty'
+            ];
+        }
+		
+		
+		$get_data_member->status = $status;
+		
+		$get_data_member->save(false);
+		
+		
+        Yii::$app->response->statusCode = 200;
+		return [
+			'status_code' => 200,
+			'error' => false,
+			'message' => 'Update Succesfully'
+			
+		];
+    }
+	
+	public function actionApprovedAmountClaim()
+    {
+        Yii::$app->response->format = Response::FORMAT_JSON;
+		
+		$members = Yii::$app->request->post();
+		
+		$no_peserta = Yii::$app->request->post('no_peserta');
+		$approved_amount = Yii::$app->request->post('approved_amount');
+		
+		$get_data_member = claim::findOne([
+                'member_no' => $no_peserta
+            ]);
+		
+		 if (empty($get_data_member)) {
+            Yii::$app->response->statusCode = 202;
+            return [
+                'is_success' => 0,
+                'message' => 'Data Empty'
+            ];
+        }
+		
+		
+		$get_data_member->approved_amount = $approved_amount;
+		
+		$get_data_member->save(false);
+		
+		
+        Yii::$app->response->statusCode = 200;
+		return [
+			'status_code' => 200,
+			'error' => false,
+			'message' => 'Update Succesfully'
+			
+		];
+    }
+	
 	
 }

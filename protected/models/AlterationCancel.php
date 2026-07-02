@@ -107,4 +107,96 @@ class AlterationCancel extends \yii\db\ActiveRecord
     {
         return $params['id'] . '/CNC/AJRI/' . date("Y");
     }
+	
+	public function callAPIPostMemberLogin()
+    {
+		
+		// $url='http://demo-reliancelife.ajrius.id/api/login';
+		$url='http://127.0.0.1:8000/api/login';
+        $headers = [
+            'Content-Type: application/json',
+        ];
+		$data = json_encode([
+			'email' => 'api@gmail.com',
+            'password' => '12345678',
+			
+			
+        ]);
+		
+         $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($ch, CURLOPT_HEADER, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+        $response = curl_exec($ch);
+        $body = substr($response, curl_getinfo($ch, CURLINFO_HEADER_SIZE));
+
+        curl_close($ch);
+
+        return json_decode($body, true);
+    }
+	
+	
+	
+	public function callAPIPostMemberCancelPush($token, $policy_number, $membersNo)
+	{
+		$headers = [
+			'Content-Type: application/json',
+			'Authorization: Bearer ' . $token,
+		];
+
+		// Membentuk array peserta sesuai payload API
+		$peserta = [];
+
+		foreach ($membersNo as $memberNo) {
+			$peserta[] = [
+				'no_peserta' => '111-25050005236-308',
+				'cancel_kontribusi_netto' => 0,
+				'total_kontribusi_dibayar' => 0,
+			];
+		}
+
+		$data = [
+			'no_polis' => '1032410000705',
+			'peserta' => $peserta,
+			'data' => [
+				'tanggal_efektif'   => date('Y-m-d'),
+				'tanggal_pengajuan' => date('Y-m-d'),
+				'tujuan_pembayaran' => 'ABC',
+				'nama_bank'         => 'ABC',
+				'no_rekening'       => 'ABC',
+			],
+		];
+
+		$ch = curl_init('http://127.0.0.1:8000/api/memo-cancel/store');
+
+		curl_setopt_array($ch, [
+			CURLOPT_RETURNTRANSFER => true,
+			CURLOPT_POST => true,
+			CURLOPT_POSTFIELDS => json_encode($data),
+			CURLOPT_HTTPHEADER => $headers,
+		]);
+
+		$response = curl_exec($ch);
+
+		if (curl_errno($ch)) {
+			return [
+				'http_code' => 0,
+				'error' => curl_error($ch),
+			];
+		}
+
+		$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
+		curl_close($ch);
+
+		return [
+			'http_code' => $httpCode,
+			'request' => $data,
+			'response_raw' => $response,
+			'response' => json_decode($response, true),
+		];
+	}
 }
