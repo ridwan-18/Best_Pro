@@ -2485,128 +2485,243 @@ class MemberController extends Controller
 	
 	
 	public function actionRefund()
-    {
-        Yii::$app->response->format = Response::FORMAT_JSON;
-		
-		$members = Yii::$app->request->post();
-		
-		$no_peserta = Yii::$app->request->post('no_peserta');
-		$status = Yii::$app->request->post('status');
-		$files = Yii::$app->request->post('files');
-		
-		$get_data_member = AlterationRefundMember::findOne([
-                'member_no' => $no_peserta
-            ]);
-		
-		 if (empty($get_data_member)) {
-            Yii::$app->response->statusCode = 202;
-            return [
-                'is_success' => 0,
-                'message' => 'Data Empty'
-            ];
-        }
-		
-		$statusRefund = AlterationRefund::findOne([
-                'alteration_no' => $get_data_member->alteration_no
-            ]);
-		
-		
-		$statusRefund->status = $status;
-		$statusRefund->files = $files;
-		$statusRefund->save(false);
-		
-		
-        Yii::$app->response->statusCode = 200;
+	{
+		Yii::$app->response->format = Response::FORMAT_JSON;
+
+		$request = Yii::$app->request->post();
+
+		$noPolis = $request['no_polis'] ?? '';
+		$peserta = $request['peserta'] ?? [];
+		$files = $request['Invoice']['files'] ?? '';
+
+		if (empty($noPolis)) {
+			Yii::$app->response->statusCode = 400;
+			return [
+				'status_code' => 400,
+				'error' => true,
+				'message' => 'No polis wajib diisi.'
+			];
+		}
+
+		if (empty($peserta)) {
+			Yii::$app->response->statusCode = 400;
+			return [
+				'status_code' => 400,
+				'error' => true,
+				'message' => 'Data peserta tidak ditemukan.'
+			];
+		}
+
+		$updated = [];
+		$notFound = [];
+
+		foreach ($peserta as $member) {
+
+			$noPeserta = $member['no_peserta'] ?? '';
+			$status = $member['status'] ?? '';
+
+			$getDataMember = AlterationRefundMember::findOne([
+				'member_no' => $noPeserta
+			]);
+
+			if (!$getDataMember) {
+				$notFound[] = $noPeserta;
+				continue;
+			}
+			
+			$getDataMember->status = $status;
+			$getDataMember->save(false);
+			
+			$refund = AlterationRefund::findOne([
+				'alteration_no' => $getDataMember->alteration_no
+			]);
+
+			if (!$refund) {
+				$notFound[] = $noPeserta;
+				continue;
+			}
+
+			$refund->status = $status;
+			$refund->files = $files;
+
+			if ($refund->save(false)) {
+				$updated[] = $noPeserta;
+			}
+		}
+
+		Yii::$app->response->statusCode = 200;
+
 		return [
 			'status_code' => 200,
 			'error' => false,
-			'message' => 'Update Succesfully'
-			
+			'message' => 'Proses refund selesai.',
+			'data' => [
+				'no_polis' => $noPolis,
+				'updated_member' => $updated,
+				'not_found_member' => $notFound
+			]
 		];
-    }	
-	
+	}
 	
 	public function actionCancel()
-    {
-        Yii::$app->response->format = Response::FORMAT_JSON;
-		
-		$members = Yii::$app->request->post();
-		
-		$no_peserta = Yii::$app->request->post('no_peserta');
-		$status = Yii::$app->request->post('status');
-		$files = Yii::$app->request->post('files');
-		
-		$get_data_member = AlterationCancelMember::findOne([
-                'member_no' => $no_peserta
-            ]);
-		
-		 if (empty($get_data_member)) {
-            Yii::$app->response->statusCode = 202;
-            return [
-                'is_success' => 0,
-                'message' => 'Data Empty'
-            ];
-        }
-		
-		$statusCancel = AlterationCancel::findOne([
-                'alteration_no' => $get_data_member->alteration_no
-            ]);
-		
-		
-		$statusCancel->status = $status;
-		$statusCancel->files = $files;
-		$statusCancel->save(false);
-		
-		
-        Yii::$app->response->statusCode = 200;
+	{
+		Yii::$app->response->format = Response::FORMAT_JSON;
+
+		$request = Yii::$app->request->post();
+
+		$noPolis = $request['no_polis'] ?? '';
+		$peserta = $request['peserta'] ?? [];
+		$files = $request['Invoice']['files'] ?? '';
+
+		if (empty($noPolis)) {
+			Yii::$app->response->statusCode = 400;
+			return [
+				'status_code' => 400,
+				'error' => true,
+				'message' => 'No polis wajib diisi.'
+			];
+		}
+
+		if (empty($peserta)) {
+			Yii::$app->response->statusCode = 400;
+			return [
+				'status_code' => 400,
+				'error' => true,
+				'message' => 'Data peserta tidak ditemukan.'
+			];
+		}
+
+		$updated = [];
+		$notFound = [];
+
+		foreach ($peserta as $member) {
+
+			$noPeserta = $member['no_peserta'] ?? '';
+			$status = $member['status'] ?? '';
+
+			$getDataMember = AlterationCancelMember::findOne([
+				'member_no' => $noPeserta
+			]);
+
+			if (!$getDataMember) {
+				$notFound[] = $noPeserta;
+				continue;
+			}
+			
+			$getDataMember->status = $status;
+			$getDataMember->save(false);
+			
+			$refund = AlterationCancel::findOne([
+				'alteration_no' => $getDataMember->alteration_no
+			]);
+
+			if (!$refund) {
+				$notFound[] = $noPeserta;
+				continue;
+			}
+
+			$refund->status = $status;
+			$refund->files = $files;
+
+			if ($refund->save(false)) {
+				$updated[] = $noPeserta;
+			}
+		}
+
+		Yii::$app->response->statusCode = 200;
+
 		return [
 			'status_code' => 200,
 			'error' => false,
-			'message' => 'Update Succesfully'
-			
+			'message' => 'Proses Cancel selesai.',
+			'data' => [
+				'no_polis' => $noPolis,
+				'updated_member' => $updated,
+				'not_found_member' => $notFound
+			]
 		];
-    }
+	}
 	
 	public function actionEndorsement()
-    {
-        Yii::$app->response->format = Response::FORMAT_JSON;
-		
-		$members = Yii::$app->request->post();
-		
-		$no_peserta = Yii::$app->request->post('no_peserta');
-		$status = Yii::$app->request->post('status');
-		$files = Yii::$app->request->post('files');
-		
-		$get_data_member = AlterationEndorsementMember::findOne([
-                'member_no' => $no_peserta
-            ]);
-		
-		 if (empty($get_data_member)) {
-            Yii::$app->response->statusCode = 202;
-            return [
-                'is_success' => 0,
-                'message' => 'Data Empty'
-            ];
-        }
-		
-		$statusCancel = AlterationEndorsement::findOne([
-                'alteration_no' => $get_data_member->alteration_no
-            ]);
-		
-		
-		$statusCancel->status = $status;
-		$statusCancel->files = $files;
-		$statusCancel->save(false);
-		
-		
-        Yii::$app->response->statusCode = 200;
+	{
+		Yii::$app->response->format = Response::FORMAT_JSON;
+
+		$request = Yii::$app->request->post();
+
+		$noPolis = $request['no_polis'] ?? '';
+		$peserta = $request['peserta'] ?? [];
+		$files = $request['Invoice']['files'] ?? '';
+
+		if (empty($noPolis)) {
+			Yii::$app->response->statusCode = 400;
+			return [
+				'status_code' => 400,
+				'error' => true,
+				'message' => 'No polis wajib diisi.'
+			];
+		}
+
+		if (empty($peserta)) {
+			Yii::$app->response->statusCode = 400;
+			return [
+				'status_code' => 400,
+				'error' => true,
+				'message' => 'Data peserta tidak ditemukan.'
+			];
+		}
+
+		$updated = [];
+		$notFound = [];
+
+		foreach ($peserta as $member) {
+
+			$noPeserta = $member['no_peserta'] ?? '';
+			$status = $member['status'] ?? '';
+
+			$getDataMember = AlterationEndorsementMember::findOne([
+				'member_no' => $noPeserta
+			]);
+
+			if (!$getDataMember) {
+				$notFound[] = $noPeserta;
+				continue;
+			}
+			
+			$getDataMember->status = $status;
+			$getDataMember->save(false);
+			
+			$refund = AlterationEndorsement::findOne([
+				'alteration_no' => $getDataMember->alteration_no
+			]);
+
+			if (!$refund) {
+				$notFound[] = $noPeserta;
+				continue;
+			}
+
+			$refund->status = $status;
+			$refund->files = $files;
+
+			if ($refund->save(false)) {
+				$updated[] = $noPeserta;
+			}
+		}
+
+		Yii::$app->response->statusCode = 200;
+
 		return [
 			'status_code' => 200,
 			'error' => false,
-			'message' => 'Update Succesfully'
-			
+			'message' => 'Proses Endorsement selesai.',
+			'data' => [
+				'no_polis' => $noPolis,
+				'updated_member' => $updated,
+				'not_found_member' => $notFound
+			]
 		];
-    }
+	}
+	
+	
 	
 	public function actionAkseptasiCoreSystem()
 	{
