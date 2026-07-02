@@ -374,4 +374,199 @@ class Claim extends \yii\db\ActiveRecord
 
         return $data[$selected];
     }
+	
+	public function callAPIPostMemberLogin()
+    {
+		
+		// $url='http://demo-reliancelife.ajrius.id/api/login';
+		$url='http://127.0.0.1:8000/api/login';
+        $headers = [
+            'Content-Type: application/json',
+        ];
+		$data = json_encode([
+			'email' => 'api@gmail.com',
+            'password' => '12345678',
+			
+			
+        ]);
+		
+         $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($ch, CURLOPT_HEADER, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+        $response = curl_exec($ch);
+        $body = substr($response, curl_getinfo($ch, CURLINFO_HEADER_SIZE));
+
+        curl_close($ch);
+
+        return json_decode($body, true);
+    }
+	
+	
+	
+	public function callAPIPostMemberClaimPush($token, $policy_number, $membersNo)
+	{
+		$headers = [
+			'Content-Type: application/json',
+			'Authorization: Bearer ' . $token,
+		];
+
+		// Membentuk array peserta sesuai payload API
+		$peserta = [];
+
+		foreach ($membersNo as $memberNo) {
+			$peserta[] = [
+				'no_peserta' => '111-25050005236-308',
+				'cancel_kontribusi_netto' => 0,
+				'total_kontribusi_dibayar' => 0,
+			];
+		}
+
+		$data = [
+			'no_polis' => '1032410000705',
+			'peserta' => $peserta,
+			'data' => [
+				'tanggal_efektif'   => date('Y-m-d'),
+				'tanggal_pengajuan' => date('Y-m-d'),
+				'tujuan_pembayaran' => 'ABC',
+				'nama_bank'         => 'ABC',
+				'no_rekening'       => 'ABC',
+			],
+		];
+
+		$ch = curl_init('http://127.0.0.1:8000/api/memo-cancel/store');
+
+		curl_setopt_array($ch, [
+			CURLOPT_RETURNTRANSFER => true,
+			CURLOPT_POST => true,
+			CURLOPT_POSTFIELDS => json_encode($data),
+			CURLOPT_HTTPHEADER => $headers,
+		]);
+
+		$response = curl_exec($ch);
+
+		if (curl_errno($ch)) {
+			return [
+				'http_code' => 0,
+				'error' => curl_error($ch),
+			];
+		}
+
+		$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
+		curl_close($ch);
+
+		return [
+			'http_code' => $httpCode,
+			'request' => $data,
+			'response_raw' => $response,
+			'response' => json_decode($response, true),
+		];
+	}
+	
+	public function callAPIPostPengajuanKlaim(
+    $token,
+    $noPolis,
+    $data,
+    $peserta,
+    $formulirPengajuanKlaim,
+    $suratKeteranganMeninggalKelurahan,
+    $suratKeteranganMeninggalRs,
+    $copyKtp,
+    $copyKtpAhliWaris,
+    $resumeMedis,
+    $daftarAngsuran,
+    $copyAkadPembiayaan,
+    $suratKuasa,
+    $suratKeteranganAhliWaris,
+    $suratDariPemegangPolis,
+    $dokumenLain
+	) 
+	{
+
+		$headers = [
+			'Authorization: Bearer ' . $token
+		];
+
+		$postData = [
+			'no_polis' => $noPolis,
+			'data' => json_encode($data),
+			'peserta' => json_encode($peserta),
+		];
+
+		// Lampiran
+		if (!empty($formulirPengajuanKlaim) && file_exists($formulirPengajuanKlaim)) {
+			$postData['formulir_pengajuan_klaim'] = new CURLFile($formulirPengajuanKlaim);
+		}
+
+		if (!empty($suratKeteranganMeninggalKelurahan) && file_exists($suratKeteranganMeninggalKelurahan)) {
+			$postData['surat_keterangan_meninggal_kelurahan'] = new CURLFile($suratKeteranganMeninggalKelurahan);
+		}
+
+		if (!empty($suratKeteranganMeninggalRs) && file_exists($suratKeteranganMeninggalRs)) {
+			$postData['surat_keterangan_meninggal_rs'] = new CURLFile($suratKeteranganMeninggalRs);
+		}
+
+		if (!empty($copyKtp) && file_exists($copyKtp)) {
+			$postData['copy_ktp'] = new CURLFile($copyKtp);
+		}
+
+		if (!empty($copyKtpAhliWaris) && file_exists($copyKtpAhliWaris)) {
+			$postData['copy_ktp_ahli_waris'] = new CURLFile($copyKtpAhliWaris);
+		}
+
+		if (!empty($resumeMedis) && file_exists($resumeMedis)) {
+			$postData['resume_medis'] = new CURLFile($resumeMedis);
+		}
+
+		if (!empty($daftarAngsuran) && file_exists($daftarAngsuran)) {
+			$postData['daftar_angsuran'] = new CURLFile($daftarAngsuran);
+		}
+
+		if (!empty($copyAkadPembiayaan) && file_exists($copyAkadPembiayaan)) {
+			$postData['copy_akad_pembiayaan'] = new CURLFile($copyAkadPembiayaan);
+		}
+
+		if (!empty($suratKuasa) && file_exists($suratKuasa)) {
+			$postData['surat_kuasa'] = new CURLFile($suratKuasa);
+		}
+
+		if (!empty($suratKeteranganAhliWaris) && file_exists($suratKeteranganAhliWaris)) {
+			$postData['surat_keterangan_ahli_waris'] = new CURLFile($suratKeteranganAhliWaris);
+		}
+
+		if (!empty($suratDariPemegangPolis) && file_exists($suratDariPemegangPolis)) {
+			$postData['surat_dari_pemegang_polis'] = new CURLFile($suratDariPemegangPolis);
+		}
+
+		if (!empty($dokumenLain) && file_exists($dokumenLain)) {
+			$postData['dokumen_lain'] = new CURLFile($dokumenLain);
+		}
+
+		$curl = curl_init();
+
+		curl_setopt_array($curl, [
+			CURLOPT_URL => Yii::$app->params['apiUrl'] . '/klaim/pengajuan',
+			CURLOPT_RETURNTRANSFER => true,
+			CURLOPT_POST => true,
+			CURLOPT_HTTPHEADER => $headers,
+			CURLOPT_POSTFIELDS => $postData,
+			CURLOPT_TIMEOUT => 60,
+		]);
+
+		$response = curl_exec($curl);
+		$httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+		$error = curl_error($curl);
+
+		curl_close($curl);
+
+		return [
+			'http_code' => $httpCode,
+			'response' => json_decode($response, true),
+			'error' => $error
+		];
+	}
 }

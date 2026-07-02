@@ -64,6 +64,7 @@ $this->title = 'Alteration Cancel - ' . Yii::$app->name;
                                 <th>Total SI</th>
                                 <th>Total Premium</th>
                                 <th>Status</th>
+								<th>Print Invoice</th>
                                 <th width="1">Action</th>
                             </tr>
                         </thead>
@@ -80,6 +81,18 @@ $this->title = 'Alteration Cancel - ' . Yii::$app->name;
                                         <td><?= number_format($model['total_si']); ?></td>
                                         <td><?= number_format($model['total_premium']); ?></td>
                                         <td><?= $model['status']; ?></td>
+										<td>
+											<?php if (!empty($model['files'])) : ?>
+												<a href="<?= $model['files']; ?>"
+												   target="_blank"
+												   rel="noopener noreferrer"
+												   class="btn btn-sm btn-primary">
+													<i class="fa fa-file-pdf-o"></i> Open
+												</a>
+											<?php else : ?>
+												-
+											<?php endif; ?>
+										</td>
                                         <td>
                                             <div class="btn-group mb-2">
                                                 <?= Html::a(

@@ -66,6 +66,8 @@ $this->title = 'Alteration Endorsement - ' . Yii::$app->name;
                                 <th>New Total SI</th>
                                 <th>New Total Premium</th>
                                 <th>Status</th>
+								<th>Description</th>
+								<th>Print Invoice</th>
                                 <th width="1">Action</th>
                             </tr>
                         </thead>
@@ -84,6 +86,19 @@ $this->title = 'Alteration Endorsement - ' . Yii::$app->name;
                                         <td><?= number_format($model['new_total_si']); ?></td>
                                         <td><?= number_format($model['new_total_premium']); ?></td>
                                         <td><?= $model['status']; ?></td>
+										<td><?= $model['description']; ?></td>
+										<td>
+											<?php if (!empty($model['files'])) : ?>
+												<a href="<?= $model['files']; ?>"
+												   target="_blank"
+												   rel="noopener noreferrer"
+												   class="btn btn-sm btn-primary">
+													<i class="fa fa-file-pdf-o"></i> Open
+												</a>
+											<?php else : ?>
+												-
+											<?php endif; ?>
+										</td>
                                         <td>
                                             <div class="btn-group mb-2">
                                                 <?= Html::a(

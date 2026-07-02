@@ -39,7 +39,13 @@ use FPDF;
 use yii\helpers\Html;
 use app\widgets\Alert;
 use yii\widgets\LinkPager;
-
+use app\models\AlterationRefund;
+use app\models\AlterationRefundMember;
+use app\models\AlterationCancel;
+use app\models\AlterationCancelMember;
+use app\models\AlterationEndorsement;
+use app\models\AlterationEndorsementMember;
+use app\models\Claim;
 
 class MemberController extends Controller
 {
@@ -1043,8 +1049,6 @@ class MemberController extends Controller
 			
 			$ktp->saveAs($basePath  . $id_loan .'-'. $kode_dokumen .'-'.$ktp->baseName . '.' . $ktp->extension);
 			
-			// $claimDetail = new claim_bank_jatim_detail();
-			
 			$claimDetail->id_loan = $id_loan;
 			$claimDetail->files = $id_loan . '-' .$kode_dokumen .'-'. $ktp->baseName . '.' . $ktp->extension;
 			$claimDetail->kode_dokumen = $kode_dokumen;
@@ -2014,11 +2018,13 @@ class MemberController extends Controller
                 'message' => 'Premi tidak sesuai dengan perhitungan asuransi'
             ];
 		}
-
+		
         Yii::$app->response->statusCode = 200;
         return [
             'is_success' => 1,
             'message' => 'Succesfully',
+			'policy_no' => $batch['member']['policy_no'],
+			'batchNo' => $batch['member']['batchNo'],
 			// 'dokument' => $batch['member']['dokument'],
 			'Base_Response' => $batch['member']['Base_Response'],
 			'total_member' => $batch['batch']->total_member,
@@ -2067,7 +2073,7 @@ class MemberController extends Controller
             'policy_no', 'batch_no', 'member_no', 'personal_no', 'age', 'term', 'start_date', 'end_date',
             'sum_insured', 'total_si', 'total_premium', 'rate_premi', 'gross_premium', 'basic_premium', 'nett_premium',
             'medical_code', 'status', 'member_status', 'created_at', 'created_by', 'contract_date', 'produk', 'branch_office_code',
-			'id_loan', 'status_uw', 'no_ktp','pekerjaan','jenis_transaksi',
+			'id_loan', 'status_uw', 'no_ktp','pekerjaan','jenis_transaksi','premi_validaton',
         ];
         $personalRows = [];
         $memberRows = [];
@@ -2141,9 +2147,28 @@ class MemberController extends Controller
                 ->andWhere(['>=', 'max_si', $sumInsured])
                 ->one();
 			
+			$premi_dekai = Utils::sanitize($member['premi']);
 			$totalPremium = $sumInsured * $ratepremi->rate / 1000;
 			$tgl = Utils::sanitize($member['birth_date']);
 			 $dob = str_replace('T00:00:00', '', $tgl);
+			 
+			 
+			 if($totalPremium != $premi_dekai){
+				 $premi_validaton =0;
+			 }
+			 
+			 else {
+				 $premi_validaton = 1;
+			 }
+			
+			
+			if($totalPremium != $premi_dekai){
+				 $premi_respons ="Premi Tidak Sesuai Dengan Asuransi ";
+			 }
+			 
+			 else {
+				 $premi_respons = "Premi Sudah Sesuai Dengan Asuransi ";
+			 }
             // $birthDate = Utils::sanitize($member['birth_date']);
 			$birthDate = $dob;
 
@@ -2154,7 +2179,7 @@ class MemberController extends Controller
             $sumInsured = Utils::sanitize($member['sum_insured']);
             $startDate = Utils::sanitize($member['start_date']);;
             $endDate = Utils::sanitize($member['end_date']);
-            $term = Utils::sanitize($member['term']);
+            // $term = Utils::sanitize($member['term']);
             $rate = $ratepremi->rate;
             $nettPremium = $totalPremium;
             $personalNo = Personal::generatePersonalNo($name, $birthDate);
@@ -2168,16 +2193,8 @@ class MemberController extends Controller
 			$pekerjaan = Utils::sanitize($member['pekerjaan']);
 			$jenis_transaksi = Utils::sanitize($member['jenis_transaksi']);
 			$premi_dekai = Utils::sanitize($member['premi']);
+			$premi_validaton = $premi_validaton;
 			
-			 if($totalPremium != $premi_dekai){
-				 $premi_validaton = " Premi Tidak Sesuai Dengan Asuransi ";
-			 }
-			 
-			 else {
-				 $premi_validaton = " Premi Sudah Sesuai Dengan Asuransi ";
-			 }
-				
-			// $premi_validaton
 			
 			
 			$dokument = Dokumen_Medis::getAll(['medis' => $status_uw]);
@@ -2187,33 +2204,86 @@ class MemberController extends Controller
 			 'name' => $name,
 			 'uang_pertanggungan' => $sumInsured,
 			 'rate' => $rate,
-			 'premi' => $nettPremium,
-			 'premi_validaton' => $premi_validaton,
+			 'premi_gross' => $nettPremium,
+			 'premi_nett' => $nettPremium,
+			 'premi_validaton' => $premi_respons,
 			 'medical_code' => $status_uw,
 			 'dokument' => $dokument,
 			];
 			
-            $personalRows[] = [$personalNo, $name, $birthDate, $idCardNo];
-
-            $memberRows[] = [
-                $policybyproduk->policy_no, $batchNo, $memberNo, $personalNo, $age, $term, $startDate, $endDate,
-                $sumInsured, $sumInsured, $nettPremium, $rate, $nettPremium, $nettPremium, $nettPremium,
-                $quotationUwLimit->medical_code, Member::MEMBER_STATUS_PENDING, Member::MEMBER_STATUS_PENDING, date("Y-m-d H:i:s"), $this->createdBy,
-                $contract_date, $produk, $branch_office_code, $id_loan, $status_uw, $no_ktp,$pekerjaan,$jenis_transaksi,
-            ];
+			if($premi_validaton==1)
+			{
+			Yii::$app->db->createCommand()->insert(Member::tableName(), [
+			'policy_no' => $policybyproduk->policy_no,
+			'batch_no' => $batchNo,
+			'member_no' => '',
+			'personal_no' => $personalNo,
+			'age' => $age,
+			'term' => $term,
+			'start_date' => $startDate,
+			'end_date' => $endDate,
+			'sum_insured' => $sumInsured,
+			'total_si' => $sumInsured,
+			'total_premium' => $nettPremium,
+			'rate_premi' => $rate,
+			'gross_premium' => $nettPremium,
+			'basic_premium' => $nettPremium,
+			'nett_premium' => $nettPremium,
+			'medical_code' => $quotationUwLimit->medical_code,
+			'premi_validaton' => $premi_validaton,
+			'created_at' => date("Y-m-d H:i:s"),
+			'created_by' => "Dekai",
+			'id_loan' => $id_loan,
+			'member_status'  => Member::MEMBER_STATUS_PENDING,
+			])->execute();
 			
-            $totalMember++;
-            $totalUp += $sumInsured;
-            $totalNettPremium += $nettPremium;
+			 // $personalCols = ['personal_no', 'name', 'birth_date', 'id_card_no'];
+			 // $personalRows[] = [$personalNo, $name, $birthDate, $idCardNo];
+			Yii::$app->db->createCommand()->insert(Personal::tableName(), [
+			'personal_no' => $personalNo,
+			'name' => $name,
+			'birth_date' => $birthDate,
+			'id_card_no' => $idCardNo,
+			])->execute();
+			
+			}
+			
+			$totalMember = Member::find()
+				->where([
+				'policy_no' => $policyNo,
+				'batch_no'  => $batchNo,
+				'premi_validaton'  => 1,
+					])
+				->count();
+			// var_dump($totalMember);
+			
+			$totalNettPremium = Member::find()
+				->where([
+				'policy_no' => $policyNo,
+				'batch_no'  => $batchNo,
+				'premi_validaton'  => 1,
+					])
+				->sum($nettPremium);
+				
+				
+				$totalUp = Member::find()
+				->where([
+				'policy_no' => $policyNo,
+				'batch_no'  => $batchNo,
+				'premi_validaton'  => 1,
+					])
+				->sum($sumInsured);
             $rate = $rate;
             $medicalCode = $quotationUwLimit->medical_code;
             $idLoan = $member['id_loan'];
 			$policy_no = $policybyproduk->policy_no;
         }
-	
-        Yii::$app->db->createCommand()->batchInsert(Personal::tableName(), $personalCols, $personalRows)->execute();
-        Yii::$app->db->createCommand()->batchInsert(Member::tableName(), $memberCols, $memberRows)->execute();
+		// var_dump($Base_Response);
 		
+		// if($Base_Response){
+		// Yii::$app->db->createCommand()->batchInsert(Personal::tableName(), $personalCols, $personalRows)->execute();
+		// Yii::$app->db->createCommand()->batchInsert(Member::tableName(), $memberCols, $memberRows)->execute();
+		// // }
         return [
             'totalUp' => $totalUp,
             'rate' => $rate,
@@ -2222,6 +2292,7 @@ class MemberController extends Controller
             'totalMember' => $totalMember,
             'idLoan' => $idLoan,
 			'policy_no' => $policy_no,
+			'batchNo' => $batchNo,
 			'dokument' => $dokument,
 			'isRedundant' => $isRedundant,
 			// 'memberRows' => $memberRows,
@@ -2307,21 +2378,29 @@ class MemberController extends Controller
 	{
 		Yii::$app->response->format = Response::FORMAT_JSON;
 		
-		$Docmedis = new map_member_medis();
+		$claimDetail = new map_member_medis();
 		
         if (Yii::$app->request->ispost) {
-            $Doc = UploadedFile::getInstanceByName('files');
+            $ktp = UploadedFile::getInstanceByName('files');
             $basePath = \Yii::getAlias('@webroot') . '/images/post_medis/';
 			
 			$id_loan = Yii::$app->request->post('id_loan');
-			$kode_dokumen = Yii::$app->request->post('code_dokumen');
-			$files = Yii::$app->request->post('content_file_base64');
-			// $Doc->saveAs($basePath  . $nomor_transaksi .'-'. $kode_dokumen .'-'.$Doc->baseName . '.' . $Doc->extension);
+			$kode_dokumen = Yii::$app->request->post('kode_dokumen');
 			
-			$Docmedis->id_loan = $id_loan;
-			$Docmedis->files = $files;
-			$Docmedis->kode_dokumen = $kode_dokumen;
-			$Docmedis->save(false);
+			if (empty($ktp)) {
+            Yii::$app->response->statusCode = 202;
+            return [
+                'is_success' => 0,
+                'message' => 'Data Cannot be empty'
+            ];
+			}
+			
+			$ktp->saveAs($basePath  . $id_loan .'-'. $kode_dokumen .'-'.$ktp->baseName . '.' . $ktp->extension);
+			
+			$claimDetail->id_loan = $id_loan;
+			$claimDetail->files = $id_loan . '-' .$kode_dokumen .'-'. $ktp->baseName . '.' . $ktp->extension;
+			$claimDetail->kode_dokumen = $kode_dokumen;
+			$claimDetail->save(false);
 			
 		}
 		return array('status' => "Berhasil upload dokumen underwriting." );
@@ -2335,16 +2414,21 @@ class MemberController extends Controller
 		$id_loan = Yii::$app->request->post('id_loan');
 		$status = Yii::$app->request->post('status');
 		
-		// var_dump($id_loan);
-		// $member = Member::findOne(['id_loan' => $id_loan]);
 		
-		$member = Member::find()
-			->where(['id_loan' => $id_loan])
-			->orWhere(['status' => $status])
-			->all();
+		 $member = member::findOne([
+                'id_loan' => $id_loan,
+            ]);
+					
 		
-		// var_dump($member);
-
+		 if (empty($member)) {
+            Yii::$app->response->statusCode = 202;
+            return [
+                'is_success' => 0,
+                'message' => 'Data be empty'
+            ];
+        }
+		
+		
         $personal = personal::findOne([
                 'personal_no' => $member->personal_no,
         ]);
@@ -2364,6 +2448,320 @@ class MemberController extends Controller
 			'Extra_Premi' => $member->em_premium,
 			'Total_Premi' => $member->nett_premium,
 			'Status_Kepesertaan' => $member->status,
+			'E_Certifikat' => $member->e_certifikat,
         ];
 	}
+	
+	public function actionGetMemberBordero()
+    {
+         Yii::$app->response->format = Response::FORMAT_JSON;
+		$members = Yii::$app->request->post('');
+		
+		$get_members = null;
+		$params = [
+			'policy_no' => Yii::$app->request->post('policy_no'),
+			'batch_no' => Yii::$app->request->post('batch_no'),
+		];
+		
+		 $models = Batch::getAll($params);
+		// var_dump($models);
+		
+		$get_members = Member::getJamkrida($params);
+		
+		 if (empty($get_members)) {
+            Yii::$app->response->statusCode = 202;
+            return [
+                'is_success' => 0,
+                'message' => 'Data be empty'
+            ];
+        }
+		
+		Yii::$app->response->statusCode = 200;
+        return [
+            'is_success' => 1,
+			'detail_members' => $get_members,
+        ];
+	}
+	
+	
+	public function actionRefund()
+    {
+        Yii::$app->response->format = Response::FORMAT_JSON;
+		
+		$members = Yii::$app->request->post();
+		
+		$no_peserta = Yii::$app->request->post('no_peserta');
+		$status = Yii::$app->request->post('status');
+		$files = Yii::$app->request->post('files');
+		
+		$get_data_member = AlterationRefundMember::findOne([
+                'member_no' => $no_peserta
+            ]);
+		
+		 if (empty($get_data_member)) {
+            Yii::$app->response->statusCode = 202;
+            return [
+                'is_success' => 0,
+                'message' => 'Data Empty'
+            ];
+        }
+		
+		$statusRefund = AlterationRefund::findOne([
+                'alteration_no' => $get_data_member->alteration_no
+            ]);
+		
+		
+		$statusRefund->status = $status;
+		$statusRefund->files = $files;
+		$statusRefund->save(false);
+		
+		
+        Yii::$app->response->statusCode = 200;
+		return [
+			'status_code' => 200,
+			'error' => false,
+			'message' => 'Update Succesfully'
+			
+		];
+    }	
+	
+	
+	public function actionCancel()
+    {
+        Yii::$app->response->format = Response::FORMAT_JSON;
+		
+		$members = Yii::$app->request->post();
+		
+		$no_peserta = Yii::$app->request->post('no_peserta');
+		$status = Yii::$app->request->post('status');
+		$files = Yii::$app->request->post('files');
+		
+		$get_data_member = AlterationCancelMember::findOne([
+                'member_no' => $no_peserta
+            ]);
+		
+		 if (empty($get_data_member)) {
+            Yii::$app->response->statusCode = 202;
+            return [
+                'is_success' => 0,
+                'message' => 'Data Empty'
+            ];
+        }
+		
+		$statusCancel = AlterationCancel::findOne([
+                'alteration_no' => $get_data_member->alteration_no
+            ]);
+		
+		
+		$statusCancel->status = $status;
+		$statusCancel->files = $files;
+		$statusCancel->save(false);
+		
+		
+        Yii::$app->response->statusCode = 200;
+		return [
+			'status_code' => 200,
+			'error' => false,
+			'message' => 'Update Succesfully'
+			
+		];
+    }
+	
+	public function actionEndorsement()
+    {
+        Yii::$app->response->format = Response::FORMAT_JSON;
+		
+		$members = Yii::$app->request->post();
+		
+		$no_peserta = Yii::$app->request->post('no_peserta');
+		$status = Yii::$app->request->post('status');
+		$files = Yii::$app->request->post('files');
+		
+		$get_data_member = AlterationEndorsementMember::findOne([
+                'member_no' => $no_peserta
+            ]);
+		
+		 if (empty($get_data_member)) {
+            Yii::$app->response->statusCode = 202;
+            return [
+                'is_success' => 0,
+                'message' => 'Data Empty'
+            ];
+        }
+		
+		$statusCancel = AlterationEndorsement::findOne([
+                'alteration_no' => $get_data_member->alteration_no
+            ]);
+		
+		
+		$statusCancel->status = $status;
+		$statusCancel->files = $files;
+		$statusCancel->save(false);
+		
+		
+        Yii::$app->response->statusCode = 200;
+		return [
+			'status_code' => 200,
+			'error' => false,
+			'message' => 'Update Succesfully'
+			
+		];
+    }
+	
+	public function actionAkseptasiCoreSystem()
+	{
+		Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
+
+		// Ambil payload JSON
+		$body = Yii::$app->request->bodyParams;
+
+		if (empty($body)) {
+			return [
+				'is_success' => 0,
+				'message' => 'Payload tidak boleh kosong'
+			];
+		}
+
+		// Validasi field utama
+		if (
+			empty($body['no_polis']) ||
+			empty($body['peserta']) ||
+			!is_array($body['peserta'])
+		) {
+			return [
+				'is_success' => 0,
+				'message' => 'Parameter no_polis atau peserta tidak valid'
+			];
+		}
+
+		$policyNo = Utils::sanitize($body['no_polis']);
+		$invoice  = $body['Invoice']['files'] ?? null;
+
+		$updatedCount = 0;
+		$failed = [];
+
+		foreach ($body['peserta'] as $item) {
+
+			$startDate    = Utils::sanitize($item['start_date'] ?? '');
+			$namaPeserta  = Utils::sanitize($item['nama_peserta'] ?? '');
+			$birthDate    = Utils::sanitize($item['birth_date'] ?? '');
+			$status       = Utils::sanitize($item['status'] ?? '');
+			$noPeserta    = Utils::sanitize($item['no_peserta'] ?? '');
+
+			// Cari data member
+			$members = Member::getdatacoresystem(
+				$policyNo,
+				$namaPeserta,
+				$birthDate,
+				$startDate
+			);
+			
+			// get_data_members = Member::getdatacoresystem($policy_no,$nama_peserta,$birth_date,$start_date);
+			
+			if ($members) {
+				foreach ($members as $member) {
+
+					$member->status = $status;
+
+					// Jika ada field no_peserta di tabel
+					if ($member->hasAttribute('member_no')) {
+						$member->member_no = $noPeserta;
+					}
+					$member->save(false);
+
+					$updatedCount++;
+				}
+			} else {
+
+				$failed[] = [
+					'nama_peserta' => $namaPeserta,
+					'birth_date'   => $birthDate,
+					'start_date'   => $startDate
+				];
+			}
+		}
+
+		return [
+			'is_success' => $updatedCount > 0 ? 1 : 0,
+			'message' => $updatedCount > 0
+				? $updatedCount . ' data berhasil diupdate'
+				: 'Data tidak ditemukan',
+			'invoice_file' => $invoice,
+			'failed_data' => $failed
+		];
+	}
+	
+	public function actionStatusClaim()
+    {
+        Yii::$app->response->format = Response::FORMAT_JSON;
+		
+		$members = Yii::$app->request->post();
+		
+		$no_peserta = Yii::$app->request->post('no_peserta');
+		$status = Yii::$app->request->post('status');
+		
+		$get_data_member = claim::findOne([
+                'member_no' => $no_peserta
+            ]);
+		
+		 if (empty($get_data_member)) {
+            Yii::$app->response->statusCode = 202;
+            return [
+                'is_success' => 0,
+                'message' => 'Data Empty'
+            ];
+        }
+		
+		
+		$get_data_member->status = $status;
+		
+		$get_data_member->save(false);
+		
+		
+        Yii::$app->response->statusCode = 200;
+		return [
+			'status_code' => 200,
+			'error' => false,
+			'message' => 'Update Succesfully'
+			
+		];
+    }
+	
+	public function actionApprovedAmountClaim()
+    {
+        Yii::$app->response->format = Response::FORMAT_JSON;
+		
+		$members = Yii::$app->request->post();
+		
+		$no_peserta = Yii::$app->request->post('no_peserta');
+		$approved_amount = Yii::$app->request->post('approved_amount');
+		
+		$get_data_member = claim::findOne([
+                'member_no' => $no_peserta
+            ]);
+		
+		 if (empty($get_data_member)) {
+            Yii::$app->response->statusCode = 202;
+            return [
+                'is_success' => 0,
+                'message' => 'Data Empty'
+            ];
+        }
+		
+		
+		$get_data_member->approved_amount = $approved_amount;
+		
+		$get_data_member->save(false);
+		
+		
+        Yii::$app->response->statusCode = 200;
+		return [
+			'status_code' => 200,
+			'error' => false,
+			'message' => 'Update Succesfully'
+			
+		];
+    }
+	
+	
 }

@@ -164,6 +164,7 @@ $this->title = 'Create Alteration Endorsement - ' . Yii::$app->name;
                                 <tr>
                                     <td>Member No</td>
                                     <td>Name</td>
+									<td>New Name</td>
                                     <td>Birth Date</td>
                                     <td>New Birth Date</td>
                                     <td>Age</td>
@@ -209,6 +210,7 @@ $(document).ready(function(){
                     var html = '<tr>';
                     html += '<td>' + data.member_no + '<input type="hidden" name="members_no[]" value="' + data.member_no + '"></td>';
                     html += '<td>' + data.name + '</td>';
+					html += '<td><input type="text" class="form-control" name="new_names[]" value="' + (data.new_names_raw || '') + '"></td>';
                     html += '<td>' + data.birth_date + '</td>';
                     html += '<td><input type="text" class="form-control dtpckr" name="birth_dates[]" value="' + data.birth_date + '"></td>';
                     html += '<td>' + data.age + '</td>';
@@ -240,6 +242,7 @@ $(document).ready(function(){
                         var html = '<tr>';
                         html += '<td>' + data[i].member_no + '<input type="hidden" name="members_no[]" value="' + data[i].member_no + '"></td>';
                         html += '<td>' + data[i].name + '</td>';
+						html += '<td><input type="text" class="form-control" name="new_names[]" value="' + data.new_names_raw + '"></td>';
                         html += '<td>' + data[i].birth_date + '</td>';
                         html += '<td><input type="text" class="form-control dtpckr" name="birth_dates[]" value="' + data[i].birth_date + '"></td>';
                         html += '<td>' + data[i].age + '</td>';

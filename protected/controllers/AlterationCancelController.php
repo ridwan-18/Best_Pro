@@ -82,7 +82,7 @@ class AlterationCancelController extends Controller
     public function actionGetMemberData()
     {
         $member = Member::findOne(['member_no' => Yii::$app->request->post('member_no')]);
-        $personal = Personal::findOne(['id' => $member->personal_id]);
+        $personal = Personal::findOne(['id' => $member->personal_no]);
         $data = [];
         $data['member_no'] = $member->member_no;
         $data['name'] = $personal->name;
@@ -214,7 +214,9 @@ class AlterationCancelController extends Controller
         $totalPremium = 0;
         foreach ($membersNo as $key => $value) {
             $member = Member::findOne(['member_no' => $value]);
-            $personal = Personal::findOne(['id' => $member->personal_id]);
+            // $personal = Personal::findOne(['id' => $member->personal_no]);
+			$personal = Personal::findOne(['personal_no' => $member->personal_no]);
+			// var_dump($personal);
             $members[] = [
                 'alteration_no' => $model->alteration_no,
                 'member_no' => $member->member_no,
@@ -259,6 +261,51 @@ class AlterationCancelController extends Controller
         $modelSave = Yii::$app->db->createCommand()
             ->batchInsert(AlterationCancelMember::tableName(), $attributes, $members)
             ->execute();
+			
+			$response = $model->callAPIPostMemberLogin();
+
+				// if (!is_array($response)) {
+					// echo "<pre>";
+					// var_dump($response);
+					// die("Login API bukan array");
+				// }
+
+				// if (!isset($response['token'])) {
+					// echo "<pre>";
+					// var_dump($response);
+					// die("Token tidak ditemukan");
+				// }
+
+				$token = $response['token'];
+
+				$policy_number = $policy->policy_no;
+
+				// ================= REFUND API ===================
+				$response_member = $model->callAPIPostMemberCancelPush(
+					$token,
+					$policy->policy_no,
+					$membersNo
+				);
+
+			
+		
+
+				// Jika response memang array
+				if (
+					is_array($response_member) &&
+					isset($response_member['code']) &&
+					$response_member['code'] != '200'
+				) {
+					Yii::$app->session->setFlash(
+						'error',
+						"Error while Calling API"
+					);
+				}
+					
+			
+			
+			
+			
         if (!$modelSave) {
             Yii::$app->session->setFlash('error', "Error while saving Member");
             return $this->redirect(['create']);
