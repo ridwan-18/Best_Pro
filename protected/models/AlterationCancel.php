@@ -170,7 +170,7 @@ class AlterationCancel extends \yii\db\ActiveRecord
 			],
 		];
 
-		$ch = curl_init('http://127.0.0.1:8000/api/memo-cancel/store');
+		$ch = curl_init('http://demo-reliancelife.ajrius.id/api/memo-cancel/store');
 
 		curl_setopt_array($ch, [
 			CURLOPT_RETURNTRANSFER => true,

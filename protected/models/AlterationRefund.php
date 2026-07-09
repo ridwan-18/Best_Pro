@@ -155,13 +155,13 @@ class AlterationRefund extends \yii\db\ActiveRecord
 				'tanggal_efektif'     => is_array($newEndDates) ? $newEndDates[0] : $newEndDates,
 				'tujuan_pembayaran'   => 'Transfer',
 				'nama_bank'           => 'BCA',
-				'nomor_peserta_awal' => '111-25050005236-308',
+				'nomor_peserta_awal' => '103-26070000025-705',
 				'nomor_peserta_akhir' =>  '111-25050005236-308'
 			],
 
 			'peserta' => [
 				[
-					'no_peserta' => '111-25050005236-308',
+					'no_peserta' => '103-26070000025-705',
 
 					'refund_tanggal_efektif' =>
 						is_array($newEndDates) ? $newEndDates[0] : $newEndDates,
