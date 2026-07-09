@@ -289,8 +289,8 @@ class AlterationRefundController extends Controller
 				$token = $response['token'];
 
 				$policy_number = $policy->policy_no;
-				var_dump($response);
-			die;
+				// var_dump($response);
+			// die;
 				// REFUND API
 				$response_member = $model->callAPIPostMemberRefundPush(
 					$token,

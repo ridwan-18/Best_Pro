@@ -111,37 +111,33 @@ class AlterationRefund extends \yii\db\ActiveRecord
     }
 	
 	public function callAPIPostMemberLogin()
-{
-    $url = 'http://127.0.0.1:8000/api/login';
-
-    $data = [
-        'email' => 'api@gmail.com',
-        'password' => '12345678',
-    ];
-
-    $ch = curl_init($url);
-
-    curl_setopt_array($ch, [
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_POST => true,
-        CURLOPT_HTTPHEADER => [
+    {
+		
+		$url='http://demo-reliancelife.ajrius.id/api/login';
+        $headers = [
             'Content-Type: application/json',
-            'Accept: application/json',
-        ],
-        CURLOPT_POSTFIELDS => json_encode($data),
-    ]);
+        ];
+		$data = json_encode([
+			'email' => 'api@gmail.com',
+            'password' => '12345678',
+			
+			
+        ]);
+		
+         $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($ch, CURLOPT_HEADER, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
-    $response = curl_exec($ch);
+        $response = curl_exec($ch);
+        $body = substr($response, curl_getinfo($ch, CURLINFO_HEADER_SIZE));
 
-    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
 
-    curl_close($ch);
-
-    echo "<pre>";
-    echo "HTTP CODE : ".$httpCode."<br><br>";
-    echo $response;
-    die;
-}
+        return json_decode($body, true);
+    }
 	
 	public function callAPIPostMemberRefundPush($token,$policy_number,$newEndDates,$membersNo,$remainingTerm,$premiRefund,$totalPremium)
 	{
