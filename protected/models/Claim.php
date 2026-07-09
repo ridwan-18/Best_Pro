@@ -467,106 +467,106 @@ class Claim extends \yii\db\ActiveRecord
 		];
 	}
 	
-	public function callAPIPostPengajuanKlaim(
-    $token,
-    $noPolis,
-    $data,
-    $peserta,
-    $formulirPengajuanKlaim,
-    $suratKeteranganMeninggalKelurahan,
-    $suratKeteranganMeninggalRs,
-    $copyKtp,
-    $copyKtpAhliWaris,
-    $resumeMedis,
-    $daftarAngsuran,
-    $copyAkadPembiayaan,
-    $suratKuasa,
-    $suratKeteranganAhliWaris,
-    $suratDariPemegangPolis,
-    $dokumenLain
-	) 
-	{
+	// public function callAPIPostPengajuanKlaim(
+    // $token,
+    // $noPolis,
+    // $data,
+    // $peserta,
+    // $formulirPengajuanKlaim,
+    // $suratKeteranganMeninggalKelurahan,
+    // $suratKeteranganMeninggalRs,
+    // $copyKtp,
+    // $copyKtpAhliWaris,
+    // $resumeMedis,
+    // $daftarAngsuran,
+    // $copyAkadPembiayaan,
+    // $suratKuasa,
+    // $suratKeteranganAhliWaris,
+    // $suratDariPemegangPolis,
+    // $dokumenLain
+	// ) 
+	// {
 
-		$headers = [
-			'Authorization: Bearer ' . $token
-		];
+		// $headers = [
+			// 'Authorization: Bearer ' . $token
+		// ];
 
-		$postData = [
-			'no_polis' => $noPolis,
-			'data' => json_encode($data),
-			'peserta' => json_encode($peserta),
-		];
+		// $postData = [
+			// 'no_polis' => $noPolis,
+			// 'data' => json_encode($data),
+			// 'peserta' => json_encode($peserta),
+		// ];
 
-		// Lampiran
-		if (!empty($formulirPengajuanKlaim) && file_exists($formulirPengajuanKlaim)) {
-			$postData['formulir_pengajuan_klaim'] = new CURLFile($formulirPengajuanKlaim);
-		}
+		// // Lampiran
+		// if (!empty($formulirPengajuanKlaim) && file_exists($formulirPengajuanKlaim)) {
+			// $postData['formulir_pengajuan_klaim'] = new CURLFile($formulirPengajuanKlaim);
+		// }
 
-		if (!empty($suratKeteranganMeninggalKelurahan) && file_exists($suratKeteranganMeninggalKelurahan)) {
-			$postData['surat_keterangan_meninggal_kelurahan'] = new CURLFile($suratKeteranganMeninggalKelurahan);
-		}
+		// if (!empty($suratKeteranganMeninggalKelurahan) && file_exists($suratKeteranganMeninggalKelurahan)) {
+			// $postData['surat_keterangan_meninggal_kelurahan'] = new CURLFile($suratKeteranganMeninggalKelurahan);
+		// }
 
-		if (!empty($suratKeteranganMeninggalRs) && file_exists($suratKeteranganMeninggalRs)) {
-			$postData['surat_keterangan_meninggal_rs'] = new CURLFile($suratKeteranganMeninggalRs);
-		}
+		// if (!empty($suratKeteranganMeninggalRs) && file_exists($suratKeteranganMeninggalRs)) {
+			// $postData['surat_keterangan_meninggal_rs'] = new CURLFile($suratKeteranganMeninggalRs);
+		// }
 
-		if (!empty($copyKtp) && file_exists($copyKtp)) {
-			$postData['copy_ktp'] = new CURLFile($copyKtp);
-		}
+		// if (!empty($copyKtp) && file_exists($copyKtp)) {
+			// $postData['copy_ktp'] = new CURLFile($copyKtp);
+		// }
 
-		if (!empty($copyKtpAhliWaris) && file_exists($copyKtpAhliWaris)) {
-			$postData['copy_ktp_ahli_waris'] = new CURLFile($copyKtpAhliWaris);
-		}
+		// if (!empty($copyKtpAhliWaris) && file_exists($copyKtpAhliWaris)) {
+			// $postData['copy_ktp_ahli_waris'] = new CURLFile($copyKtpAhliWaris);
+		// }
 
-		if (!empty($resumeMedis) && file_exists($resumeMedis)) {
-			$postData['resume_medis'] = new CURLFile($resumeMedis);
-		}
+		// if (!empty($resumeMedis) && file_exists($resumeMedis)) {
+			// $postData['resume_medis'] = new CURLFile($resumeMedis);
+		// }
 
-		if (!empty($daftarAngsuran) && file_exists($daftarAngsuran)) {
-			$postData['daftar_angsuran'] = new CURLFile($daftarAngsuran);
-		}
+		// if (!empty($daftarAngsuran) && file_exists($daftarAngsuran)) {
+			// $postData['daftar_angsuran'] = new CURLFile($daftarAngsuran);
+		// }
 
-		if (!empty($copyAkadPembiayaan) && file_exists($copyAkadPembiayaan)) {
-			$postData['copy_akad_pembiayaan'] = new CURLFile($copyAkadPembiayaan);
-		}
+		// if (!empty($copyAkadPembiayaan) && file_exists($copyAkadPembiayaan)) {
+			// $postData['copy_akad_pembiayaan'] = new CURLFile($copyAkadPembiayaan);
+		// }
 
-		if (!empty($suratKuasa) && file_exists($suratKuasa)) {
-			$postData['surat_kuasa'] = new CURLFile($suratKuasa);
-		}
+		// if (!empty($suratKuasa) && file_exists($suratKuasa)) {
+			// $postData['surat_kuasa'] = new CURLFile($suratKuasa);
+		// }
 
-		if (!empty($suratKeteranganAhliWaris) && file_exists($suratKeteranganAhliWaris)) {
-			$postData['surat_keterangan_ahli_waris'] = new CURLFile($suratKeteranganAhliWaris);
-		}
+		// if (!empty($suratKeteranganAhliWaris) && file_exists($suratKeteranganAhliWaris)) {
+			// $postData['surat_keterangan_ahli_waris'] = new CURLFile($suratKeteranganAhliWaris);
+		// }
 
-		if (!empty($suratDariPemegangPolis) && file_exists($suratDariPemegangPolis)) {
-			$postData['surat_dari_pemegang_polis'] = new CURLFile($suratDariPemegangPolis);
-		}
+		// if (!empty($suratDariPemegangPolis) && file_exists($suratDariPemegangPolis)) {
+			// $postData['surat_dari_pemegang_polis'] = new CURLFile($suratDariPemegangPolis);
+		// }
 
-		if (!empty($dokumenLain) && file_exists($dokumenLain)) {
-			$postData['dokumen_lain'] = new CURLFile($dokumenLain);
-		}
+		// if (!empty($dokumenLain) && file_exists($dokumenLain)) {
+			// $postData['dokumen_lain'] = new CURLFile($dokumenLain);
+		// }
 
-		$curl = curl_init();
+		// $curl = curl_init();
 
-		curl_setopt_array($curl, [
-			CURLOPT_URL => Yii::$app->params['apiUrl'] . '/klaim/pengajuan',
-			CURLOPT_RETURNTRANSFER => true,
-			CURLOPT_POST => true,
-			CURLOPT_HTTPHEADER => $headers,
-			CURLOPT_POSTFIELDS => $postData,
-			CURLOPT_TIMEOUT => 60,
-		]);
+		// curl_setopt_array($curl, [
+			// CURLOPT_URL => Yii::$app->params['apiUrl'] . '/klaim/pengajuan',
+			// CURLOPT_RETURNTRANSFER => true,
+			// CURLOPT_POST => true,
+			// CURLOPT_HTTPHEADER => $headers,
+			// CURLOPT_POSTFIELDS => $postData,
+			// CURLOPT_TIMEOUT => 60,
+		// ]);
 
-		$response = curl_exec($curl);
-		$httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-		$error = curl_error($curl);
+		// $response = curl_exec($curl);
+		// $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+		// $error = curl_error($curl);
 
-		curl_close($curl);
+		// curl_close($curl);
 
-		return [
-			'http_code' => $httpCode,
-			'response' => json_decode($response, true),
-			'error' => $error
-		];
-	}
+		// return [
+			// 'http_code' => $httpCode,
+			// 'response' => json_decode($response, true),
+			// 'error' => $error
+		// ];
+	// }
 }

@@ -860,7 +860,11 @@ class Member extends \yii\db\ActiveRecord
 		foreach ($peserta as $p) {
 		$data['peserta[]'] = json_encode($p);
 		}
-			$ch = curl_init ('http://demo-reliancelife.ajrius.id/api/pengajuan/store');
+			$ch = curl_init ('http://demo-reliancelife.ajrius.id/api/pengajuan-v2/store');
+			   // "url": {
+              // "raw": "{{url}}pengajuan-v2/store",
+              // "host": [
+                // "{{url}}pengajuan-v2"
 
 			curl_setopt_array($ch, [
 				CURLOPT_RETURNTRANSFER => true,
