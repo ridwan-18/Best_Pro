@@ -175,7 +175,7 @@ class AlterationRefund extends \yii\db\ActiveRecord
 			]
 		];
 
-		$ch = curl_init('https://demo-reliancelife.ajrius.id/api/memo-refund/store');
+		$ch = curl_init('http://demo-reliancelife.ajrius.id/api/memo-refund/store');
 
 
 		curl_setopt_array($ch, [
