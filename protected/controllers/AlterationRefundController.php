@@ -324,12 +324,9 @@ class AlterationRefundController extends Controller
             return $this->redirect(['create']);
         }
 		
-		
-		
-		
 
-        // Yii::$app->session->setFlash('success', "Successfully saved");
-        // return $this->redirect(['index']);
+        Yii::$app->session->setFlash('success', "Successfully saved");
+        return $this->redirect(['index']);
     }
 
     /**

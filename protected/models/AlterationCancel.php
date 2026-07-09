@@ -111,8 +111,7 @@ class AlterationCancel extends \yii\db\ActiveRecord
 	public function callAPIPostMemberLogin()
     {
 		
-		// $url='http://demo-reliancelife.ajrius.id/api/login';
-		$url='http://127.0.0.1:8000/api/login';
+		$url='http://demo-reliancelife.ajrius.id/api/login';
         $headers = [
             'Content-Type: application/json',
         ];
@@ -192,11 +191,23 @@ class AlterationCancel extends \yii\db\ActiveRecord
 
 		curl_close($ch);
 
-		return [
-			'http_code' => $httpCode,
-			'request' => $data,
-			'response_raw' => $response,
-			'response' => json_decode($response, true),
-		];
+		
+		echo "<pre>";
+		echo "HTTP CODE : ".$httpCode."<br><br>";
+
+		echo "REQUEST<br>";
+		print_r($data);
+
+		echo "<br><br>RESPONSE<br>";
+		// var_dump($response);
+
+		$decode = json_decode($response, true);
+
+		echo "<br><br>JSON DECODE<br>";
+		var_dump($decode);
+
+		die;
+
+		return $decode;
 	}
 }

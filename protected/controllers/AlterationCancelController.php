@@ -264,17 +264,17 @@ class AlterationCancelController extends Controller
 			
 			$response = $model->callAPIPostMemberLogin();
 
-				// if (!is_array($response)) {
-					// echo "<pre>";
-					// var_dump($response);
-					// die("Login API bukan array");
-				// }
+				if (!is_array($response)) {
+					echo "<pre>";
+					var_dump($response);
+					die("Login API bukan array");
+				}
 
-				// if (!isset($response['token'])) {
-					// echo "<pre>";
-					// var_dump($response);
-					// die("Token tidak ditemukan");
-				// }
+				if (!isset($response['token'])) {
+					echo "<pre>";
+					var_dump($response);
+					die("Token tidak ditemukan");
+				}
 
 				$token = $response['token'];
 
@@ -286,11 +286,12 @@ class AlterationCancelController extends Controller
 					$policy->policy_no,
 					$membersNo
 				);
+				
+					echo "<pre>";
+				echo "===== RESPONSE REFUND =====<br>";
+				var_dump($response_member);
+				die;
 
-			
-		
-
-				// Jika response memang array
 				if (
 					is_array($response_member) &&
 					isset($response_member['code']) &&
@@ -311,8 +312,8 @@ class AlterationCancelController extends Controller
             return $this->redirect(['create']);
         }
 
-        Yii::$app->session->setFlash('success', "Successfully saved");
-        return $this->redirect(['index']);
+        // Yii::$app->session->setFlash('success', "Successfully saved");
+        // return $this->redirect(['index']);
     }
 
     /**
