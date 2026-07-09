@@ -286,23 +286,12 @@ class AlterationRefundController extends Controller
 			
 		$response = $model->callAPIPostMemberLogin();
 
-				// if (!is_array($response)) {
-					// echo "<pre>";
-					// var_dump($response);
-					// die("Login API bukan array");
-				// }
-
-				// if (!isset($response['token'])) {
-					// echo "<pre>";
-					// var_dump($response);
-					// die("Token tidak ditemukan");
-				// }
-
 				$token = $response['token'];
 
 				$policy_number = $policy->policy_no;
-
-				// ================= REFUND API ===================
+				var_dump($token);
+die;
+				// REFUND API
 				$response_member = $model->callAPIPostMemberRefundPush(
 					$token,
 					$policy_number,
@@ -318,7 +307,6 @@ class AlterationRefundController extends Controller
 				var_dump($response_member);
 				die;
 
-				// Jika response memang array
 				if (
 					is_array($response_member) &&
 					isset($response_member['code']) &&
