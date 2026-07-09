@@ -198,21 +198,21 @@ class AlterationRefund extends \yii\db\ActiveRecord
 
 		curl_close($ch);
 
-		// echo "<pre>";
-		// echo "HTTP CODE : ".$httpCode."<br><br>";
+		echo "<pre>";
+		echo "HTTP CODE : ".$httpCode."<br><br>";
 
-		// echo "REQUEST<br>";
-		// print_r($data);
+		echo "REQUEST<br>";
+		print_r($data);
 
-		// echo "<br><br>RESPONSE<br>";
+		echo "<br><br>RESPONSE<br>";
 		// var_dump($response);
 
 		$decode = json_decode($response, true);
 
-		// echo "<br><br>JSON DECODE<br>";
-		// var_dump($decode);
+		echo "<br><br>JSON DECODE<br>";
+		var_dump($decode);
 
-		// die;
+		die;
 
 		return $decode;
 	}

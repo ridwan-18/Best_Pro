@@ -152,7 +152,7 @@ class AlterationCancel extends \yii\db\ActiveRecord
 
 		foreach ($membersNo as $memberNo) {
 			$peserta[] = [
-				'no_peserta' => '111-25050005236-308',
+				'no_peserta' => '103-26070000025-705',
 				'cancel_kontribusi_netto' => 0,
 				'total_kontribusi_dibayar' => 0,
 			];
