@@ -2231,7 +2231,6 @@ class MemberController extends Controller
 				->where([
 				'policy_no' => $policyNo,
 				'batch_no'  => $batchNo,
-				'premi_validaton'  => 1,
 					])
 				->count();
 			// var_dump($totalMember);
