@@ -2011,13 +2011,13 @@ class MemberController extends Controller
 
         $batch = $this->_createBatchSubmit($policy, $members);
 		
-		if ($batch['member']['isRedundant'] == 1) {
-            Yii::$app->response->statusCode = 406;
-            return [
-                'is_success' => 0,
-                'message' => 'Premi tidak sesuai dengan perhitungan asuransi'
-            ];
-		}
+		// if ($batch['member']['isRedundant'] == 1) {
+            // Yii::$app->response->statusCode = 406;
+            // return [
+                // 'is_success' => 0,
+                // 'message' => 'Premi tidak sesuai dengan perhitungan asuransi'
+            // ];
+		// }
 		
         Yii::$app->response->statusCode = 200;
         return [
@@ -2153,22 +2153,22 @@ class MemberController extends Controller
 			 $dob = str_replace('T00:00:00', '', $tgl);
 			 
 			 
-			 if($totalPremium != $premi_dekai){
-				 $premi_validaton =0;
-			 }
+			 // if($totalPremium != $premi_dekai){
+				 // $premi_validaton =0;
+			 // }
 			 
-			 else {
-				 $premi_validaton = 1;
-			 }
+			 // else {
+				 // $premi_validaton = 1;
+			 // }
 			
 			
-			if($totalPremium != $premi_dekai){
-				 $premi_respons ="Premi Tidak Sesuai Dengan Asuransi ";
-			 }
+			// if($totalPremium != $premi_dekai){
+				 // $premi_respons ="Premi Tidak Sesuai Dengan Asuransi ";
+			 // }
 			 
-			 else {
-				 $premi_respons = "Premi Sudah Sesuai Dengan Asuransi ";
-			 }
+			 // else {
+				 // $premi_respons = "Premi Sudah Sesuai Dengan Asuransi ";
+			 // }
             // $birthDate = Utils::sanitize($member['birth_date']);
 			$birthDate = $dob;
 
@@ -2206,13 +2206,12 @@ class MemberController extends Controller
 			 'rate' => $rate,
 			 'premi_gross' => $nettPremium,
 			 'premi_nett' => $nettPremium,
-			 'premi_validaton' => $premi_respons,
+			 // 'premi_validaton' => $premi_respons,
 			 'medical_code' => $status_uw,
 			 'dokument' => $dokument,
 			];
 			
-			if($premi_validaton==1)
-			{
+		
 			Yii::$app->db->createCommand()->insert(Member::tableName(), [
 			'policy_no' => $policybyproduk->policy_no,
 			'batch_no' => $batchNo,
@@ -2246,7 +2245,7 @@ class MemberController extends Controller
 			'id_card_no' => $idCardNo,
 			])->execute();
 			
-			}
+			
 			
 			$totalMember = Member::find()
 				->where([
