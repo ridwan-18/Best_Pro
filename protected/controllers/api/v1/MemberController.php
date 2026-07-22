@@ -2027,9 +2027,6 @@ class MemberController extends Controller
 			'batchNo' => $batch['member']['batchNo'],
 			// 'dokument' => $batch['member']['dokument'],
 			'Base_Response' => $batch['member']['Base_Response'],
-			'total_member' => $batch['batch']->total_member,
-            'total_up' => $batch['batch']->total_up,
-            'total_nett_premium' => $batch['batch']->total_nett_premium,
         ];
     }
 
