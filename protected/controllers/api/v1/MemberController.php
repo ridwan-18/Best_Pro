@@ -2047,7 +2047,7 @@ class MemberController extends Controller
         $batch->total_member = $member['totalMember'];
         $batch->total_member_accepted = $member['totalMember'];
         $batch->total_member_pending = 0;
-        $batch->total_up = $members['sum_insured'];
+        $batch->total_up = $member['totalUp'];
         $batch->total_gross_premium = $member['totalNettPremium'];
         $batch->total_discount_premium = 0;
         $batch->total_extra_premium = 0;
@@ -2152,24 +2152,7 @@ class MemberController extends Controller
 			$tgl = Utils::sanitize($member['birth_date']);
 			 $dob = str_replace('T00:00:00', '', $tgl);
 			 
-			 
-			 // if($totalPremium != $premi_dekai){
-				 // $premi_validaton =0;
-			 // }
-			 
-			 // else {
-				 // $premi_validaton = 1;
-			 // }
-			
-			
-			// if($totalPremium != $premi_dekai){
-				 // $premi_respons ="Premi Tidak Sesuai Dengan Asuransi ";
-			 // }
-			 
-			 // else {
-				 // $premi_respons = "Premi Sudah Sesuai Dengan Asuransi ";
-			 // }
-            // $birthDate = Utils::sanitize($member['birth_date']);
+	
 			$birthDate = $dob;
 
             $name = Utils::sanitize($member['name']);
@@ -2284,9 +2267,9 @@ class MemberController extends Controller
 		// Yii::$app->db->createCommand()->batchInsert(Member::tableName(), $memberCols, $memberRows)->execute();
 		// // }
         return [
-            'totalUp' => $totalUp,
+            'totalUp' => $sumInsured,
             'rate' => $rate,
-            'totalNettPremium' => $totalNettPremium,
+            'totalNettPremium' => $totalPremium,
             'medicalCode' => $medicalCode,
             'totalMember' => $totalMember,
             'idLoan' => $idLoan,
