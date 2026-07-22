@@ -2047,7 +2047,7 @@ class MemberController extends Controller
         $batch->total_member = $member['totalMember'];
         $batch->total_member_accepted = $member['totalMember'];
         $batch->total_member_pending = 0;
-        $batch->total_up = $member['sum_insured'];
+        $batch->total_up = $members['sum_insured'];
         $batch->total_gross_premium = $member['totalNettPremium'];
         $batch->total_discount_premium = 0;
         $batch->total_extra_premium = 0;
