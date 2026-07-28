@@ -2761,6 +2761,17 @@ class MemberController extends Controller
 						$member->member_no = $noPeserta;
 					}
 					$member->save(false);
+					
+					
+			$batch_status = Batch::findOne([
+			'batch_no' => $member->batch_no,
+			'policy_no' => $member->policy_no
+			]);
+		
+		
+			$batch_status->status = Batch::STATUS_CLOSED;
+			$batch_status->files = $invoice;
+			$batch_status->save(false);	
 
 					$updatedCount++;
 				}
