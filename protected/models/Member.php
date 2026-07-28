@@ -853,8 +853,8 @@ class Member extends \yii\db\ActiveRecord
 		];	 
 		
 		$data = [
-			'no_polis' => '	1032410000705',
-			// 'no_polis' => $policy_number,
+			// 'no_polis' => '1032410000705',
+			'no_polis' => $policy_number,
 		];
 		
 		foreach ($peserta as $p) {
