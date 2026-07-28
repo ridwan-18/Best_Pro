@@ -764,6 +764,7 @@ class MemberController extends Controller
 				$Up = $sumInsured;
 				$premi = $totalPremium;
 				$rate = $quotationRate->rate;
+				$uw =$quotationUwLimit->medical_code;
 				
 				$model = new Member();
 				$response = $model->callAPIPostMemberLogin();
@@ -772,7 +773,7 @@ class MemberController extends Controller
 				// var_dump($token);
 						
 				// $model_member = new Member();
-				$response_member = $model->callAPIPostMemberPush($token,$policy_number,$name,$dob,$tgl_mulai,$tgl_selesai,$sumInsured,$premi,$rate);
+				$response_member = $model->callAPIPostMemberPush($token,$policy_number,$name,$dob,$tgl_mulai,$tgl_selesai,$sumInsured,$premi,$rate,$uw);
 						
 						 // var_dump($response_member);
 						

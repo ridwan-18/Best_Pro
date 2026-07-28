@@ -826,7 +826,7 @@ class Member extends \yii\db\ActiveRecord
         return json_decode($body, true);
     }
 	
-	public function callAPIPostMemberPush($token,$policy_number,$name,$dob,$tgl_mulai,$tgl_selesai,$sumInsured,$premi,$rate)
+	public function callAPIPostMemberPush($token,$policy_number,$name,$dob,$tgl_mulai,$tgl_selesai,$sumInsured,$premi,$rate,$uw)
     {
 		$member = $sheetData;
 		// var_dump($member);
@@ -848,7 +848,8 @@ class Member extends \yii\db\ActiveRecord
         'jenis_kelamin' => 'L',
         'no_ktp' => '444442224',
         'alamat' => 'tes',
-        'tinggi_badan' => '166'
+        'tinggi_badan' => '166',
+		'uw' => $uw
 			]
 		];	 
 		
