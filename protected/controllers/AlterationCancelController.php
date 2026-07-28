@@ -264,17 +264,17 @@ class AlterationCancelController extends Controller
 			
 			$response = $model->callAPIPostMemberLogin();
 
-				if (!is_array($response)) {
-					echo "<pre>";
-					var_dump($response);
-					die("Login API bukan array");
-				}
+				// if (!is_array($response)) {
+					// echo "<pre>";
+					// var_dump($response);
+					// die("Login API bukan array");
+				// }
 
-				if (!isset($response['token'])) {
-					echo "<pre>";
-					var_dump($response);
-					die("Token tidak ditemukan");
-				}
+				// if (!isset($response['token'])) {
+					// echo "<pre>";
+					// var_dump($response);
+					// die("Token tidak ditemukan");
+				// }
 
 				$token = $response['token'];
 
@@ -287,10 +287,10 @@ class AlterationCancelController extends Controller
 					$membersNo
 				);
 				
-					echo "<pre>";
-				echo "===== RESPONSE REFUND =====<br>";
-				var_dump($response_member);
-				die;
+					// echo "<pre>";
+				// echo "===== RESPONSE REFUND =====<br>";
+				// var_dump($response_member);
+				// die;
 
 				if (
 					is_array($response_member) &&

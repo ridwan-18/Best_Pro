@@ -165,7 +165,7 @@ class AlterationRefundController extends Controller
      * If creation is successful, the browser will be redirected to the 'view' page.
      * @return string|\yii\web\Response
      */
-    public function actionCreate()
+     public function actionCreate()
     {
         if (
             Yii::$app->user->isGuest
@@ -286,12 +286,23 @@ class AlterationRefundController extends Controller
 			
 		$response = $model->callAPIPostMemberLogin();
 
+				// if (!is_array($response)) {
+					// echo "<pre>";
+					// var_dump($response);
+					// die("Login API bukan array");
+				// }
+
+				// if (!isset($response['token'])) {
+					// echo "<pre>";
+					// var_dump($response);
+					// die("Token tidak ditemukan");
+				// }
+
 				$token = $response['token'];
 
 				$policy_number = $policy->policy_no;
-				// var_dump($response);
-			// die;
-				// REFUND API
+
+				// ================= REFUND API ===================
 				$response_member = $model->callAPIPostMemberRefundPush(
 					$token,
 					$policy_number,
@@ -302,11 +313,12 @@ class AlterationRefundController extends Controller
 					$totalPremium
 				);
 
-				echo "<pre>";
-				echo "===== RESPONSE REFUND =====<br>";
-				var_dump($response_member);
-				die;
+				// echo "<pre>";
+				// echo "===== RESPONSE REFUND =====<br>";
+				// var_dump($response_member);
+				// die;
 
+				// Jika response memang array
 				if (
 					is_array($response_member) &&
 					isset($response_member['code']) &&
@@ -323,6 +335,9 @@ class AlterationRefundController extends Controller
             Yii::$app->session->setFlash('error', "Error while saving Member");
             return $this->redirect(['create']);
         }
+		
+		
+		
 		
 
         Yii::$app->session->setFlash('success', "Successfully saved");
