@@ -768,7 +768,7 @@ class MemberController extends Controller
 				$model = new Member();
 				$response = $model->callAPIPostMemberLogin();
 				$token = $response['token'];
-				$policy_number = $batch->policy_no = $policyNo;;
+				$policy_number = $policyNo;
 				// var_dump($token);
 						
 				// $model_member = new Member();
