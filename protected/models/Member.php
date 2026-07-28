@@ -846,10 +846,11 @@ class Member extends \yii\db\ActiveRecord
         'kontribusi' => $premi,
         'rate' => $rate,
         'jenis_kelamin' => 'L',
-        'no_ktp' => '444442224',
-        'alamat' => 'tes',
+        'no_ktp' => '-',
+        'alamat' => '-',
         'tinggi_badan' => '166',
-		'uw' => $uw
+		'uw' => $uw,
+		'ul' => $uw
 			]
 		];	 
 		
