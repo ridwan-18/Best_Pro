@@ -637,7 +637,7 @@ class MemberController extends Controller
 		$sheetData = $objPHPExcel->getActiveSheet()->toArray(null, true, true, true);
 
 		$baseRow = 2;
-		$members = [];
+		// $members = [];
 		$totalMember = 0;
 		$totalUp = 0;
 		$totalGrossPremium = 0;
@@ -645,6 +645,11 @@ class MemberController extends Controller
 		$totalExtraPremium = 0;
 		$totalSavingPremium = 0;
 		$totalNettPremium = 0;
+		
+		
+		$members = [];
+		$pesertaApi = [];
+		
 		while (!empty($sheetData[$baseRow]['D'])) {
 			$birthDate = Utils::trueBirthDate($sheetData[$baseRow]['F']);
 			$sumInsured = Utils::removeComma($sheetData[$baseRow]['L']);
@@ -766,32 +771,47 @@ class MemberController extends Controller
 				$rate = $quotationRate->rate;
 				$uw =$quotationUwLimit->medical_code;
 				
-				$model = new Member();
-				$response = $model->callAPIPostMemberLogin();
-				$token = $response['token'];
-				$policy_number = $policyNo;
-				// var_dump($token);
+				// $model = new Member();
+				// $response = $model->callAPIPostMemberLogin();
+				// $token = $response['token'];
+				// $policy_number = $policyNo;
+				// // var_dump($token);
 						
-				// $model_member = new Member();
-				$response_member = $model->callAPIPostMemberPush($token,$policy_number,$name,$dob,$tgl_mulai,$tgl_selesai,$sumInsured,$premi,$rate,$uw);
+				// // $model_member = new Member();
+				// $response_member = $model->callAPIPostMemberPush($token,$policy_number,$name,$dob,$tgl_mulai,$tgl_selesai,$sumInsured,$premi,$rate,$uw);
 						
-						 // var_dump($response_member);
+						 // // var_dump($response_member);
 						
-					if (!empty($response_member) && $response_member['code'] !== '200') {
-						// var_dump($response_member);
-						die;
-						Yii::$app->session->setFlash('error', "Error while Calling API, " . ($response_member['batch_id'] ?? '')
-						);
+					// if (!empty($response_member) && $response_member['code'] !== '200') {
+						// // var_dump($response_member);
+						// die;
+						// Yii::$app->session->setFlash('error', "Error while Calling API, " . ($response_member['batch_id'] ?? '')
+						// );
 
-						return $this->redirect([
-							'view',
-							'id' => Yii::$app->request->post('batch_id'),
-						]);
-					}
-				
-				
-				
-
+						// return $this->redirect([
+							// 'view',
+							// 'id' => Yii::$app->request->post('batch_id'),
+						// ]);
+					// }
+					
+					$pesertaApi[] = [
+						'nama' => $name,
+						'tanggal_lahir' => $dob,
+						'tanggal_mulai' => $tgl_mulai,
+						'tanggal_akhir' => $tgl_selesai,
+						'id_loan' => '-',
+						'basic' => $sumInsured,
+						'kontribusi' => $premi,
+						'rate' => $rate,
+						'jenis_kelamin' => 'L',
+						'no_ktp' => '-',
+						'alamat' => '-',
+						'tinggi_badan' => '166',
+						'uw' => $uw,
+						'ul' => $uw,
+					];
+					
+					
 				$members[] = [
 					'member_no' => $sheetData[$baseRow]['E'],
 					'policy_no' => $policyNo,
@@ -834,6 +854,40 @@ class MemberController extends Controller
 
 			$baseRow++;
 		}
+		
+		
+		
+		$model = new Member();
+
+			$response = $model->callAPIPostMemberLogin();
+
+			if (empty($response['token'])) {
+
+				Yii::$app->session->setFlash(
+					'error',
+					'Login API gagal'
+				);
+
+				return $this->redirect(['create']);
+			}
+
+			$token = $response['token'];
+
+			$response_member = $model->callAPIPostMemberPush(
+				$token,
+				$policyNo,
+				$pesertaApi
+			);
+
+			if (!empty($response_member['code']) && $response_member['code'] != '200') {
+
+				Yii::$app->session->setFlash(
+					'error',
+					$response_member['message'] ?? 'Error Call API'
+				);
+
+				return $this->redirect(['create']);
+			}
 		
 		// var_dump($members);
 

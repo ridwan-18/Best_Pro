@@ -826,60 +826,43 @@ class Member extends \yii\db\ActiveRecord
         return json_decode($body, true);
     }
 	
-	public function callAPIPostMemberPush($token,$policy_number,$name,$dob,$tgl_mulai,$tgl_selesai,$sumInsured,$premi,$rate,$uw)
-    {
-		$member = $sheetData;
-		// var_dump($member);
+	public function callAPIPostMemberPush($token, $policy_number, $peserta)
+	{
 		$headers = [
-		   'Authorization: Bearer ' . $token
-        ];
-		 
-		$peserta =[
-			[
-			
-        'nama' => $name,
-        'tanggal_lahir' => $dob,
-        'tanggal_mulai' => $tgl_mulai,
-        'tanggal_akhir' => $tgl_selesai,
-        'id_loan' => '-',
-        'basic' => $sumInsured,
-        'kontribusi' => $premi,
-        'rate' => $rate,
-        'jenis_kelamin' => 'L',
-        'no_ktp' => '-',
-        'alamat' => '-',
-        'tinggi_badan' => '166',
-		'uw' => $uw,
-		'ul' => $uw
-			]
-		];	 
-		
-		$data = [
-			// 'no_polis' => '1032410000705',
-			'no_polis' => $policy_number,
+			'Authorization: Bearer ' . $token
 		];
-		
-		foreach ($peserta as $p) {
-		$data['peserta[]'] = json_encode($p);
-		}
-			$ch = curl_init ('http://demo-reliancelife.ajrius.id/api/pengajuan-v2/store');
-			   // "url": {
-              // "raw": "{{url}}pengajuan-v2/store",
-              // "host": [
-                // "{{url}}pengajuan-v2"
 
-			curl_setopt_array($ch, [
-				CURLOPT_RETURNTRANSFER => true,
-				CURLOPT_POST => true,
-				CURLOPT_POSTFIELDS => $data,
-				CURLOPT_HTTPHEADER => $headers
-			]);
-			$response = curl_exec($ch);
-			curl_close($ch);
-			 // var_dump($peserta);
-			// var_dump($response);
-		
-    }
+		$data = [
+			'no_polis' => $policy_number
+		];
+
+		foreach ($peserta as $i => $item) {
+			$data["peserta[$i]"] = json_encode($item);
+		}
+
+		$ch = curl_init('http://demo-reliancelife.ajrius.id/api/pengajuan-v2/store');
+
+		curl_setopt_array($ch, [
+			CURLOPT_RETURNTRANSFER => true,
+			CURLOPT_POST => true,
+			CURLOPT_POSTFIELDS => $data,
+			CURLOPT_HTTPHEADER => $headers
+		]);
+
+		$response = curl_exec($ch);
+
+		if (curl_errno($ch)) {
+
+			return [
+				'code' => 500,
+				'message' => curl_error($ch)
+			];
+		}
+
+		curl_close($ch);
+
+		return json_decode($response, true);
+	}
 	
 	
 	 public static function getJamkrida($params = [])
