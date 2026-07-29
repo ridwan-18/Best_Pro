@@ -722,7 +722,7 @@ class CreateMemberController extends Controller
 	    $model->berat_badan = $berat_badan ;
 		
 		$rate = $quotationRate->rate;
-		
+		$uw =$quotationUwLimit->medical_code;
         if (!$model->save(false)) {
             Yii::$app->session->setFlash('error', "Error while saving");
             return $this->render('create', [
@@ -737,7 +737,7 @@ class CreateMemberController extends Controller
 				// var_dump($token);
 						
 				// $model_member = new Member();
-				$response_member = $model->callAPIPostMemberPush($token,$policy_number,$name,$birth_date,$start_date,$end_date,$sum_insured,$totalPremium,$rate);
+				$response_member = $model->callAPIPostMemberPush($token,$policy_number,$name,$birth_date,$start_date,$end_date,$sum_insured,$totalPremium,$rate,$uw);
 						
 						 // var_dump($response_member);
 						
