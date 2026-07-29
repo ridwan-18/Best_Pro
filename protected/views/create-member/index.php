@@ -4,6 +4,7 @@ use yii\helpers\Html;
 use app\widgets\Alert;
 use yii\widgets\LinkPager;
 use app\models\Utils;
+use app\models\Batch;
 
 $this->title = 'Create - ' . Yii::$app->name;
 ?>
@@ -123,6 +124,7 @@ $this->title = 'Create - ' . Yii::$app->name;
 								<th>Premi</th>
 								<th>Sum Insured</th>
 								<th>Status</th>
+								<th>Print Invoice</th>
 								<th>User</th>
                                 <th width="1">Action</th>
                             </tr>
@@ -155,6 +157,19 @@ $this->title = 'Create - ' . Yii::$app->name;
 										 <td><?= number_format($model['gross_premium']); ?></td>
 										 <td><?= number_format($model['sum_insured']); ?></td>
 										<td><?= $model['status']; ?></td>
+										<td>
+											<?php if (!empty($batch['files'])) : ?>
+												<a href="<?= $batch['files']; ?>"
+												   target="_blank"
+												   rel="noopener noreferrer"
+												   class="btn btn-sm btn-primary">
+													<i class="fa fa-file-pdf-o"></i> Open
+												</a>
+											<?php else : ?>
+												-
+											<?php endif; ?>
+										</td>
+										
 										<td><?= $model['username']; ?></td>
                                         <td>
                                             <div class="btn-group mb-2">

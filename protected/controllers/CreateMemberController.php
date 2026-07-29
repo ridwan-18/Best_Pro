@@ -98,10 +98,19 @@ class CreateMemberController extends Controller
 		]);
 
 		$models = BatchByPeserta::getAllProductionParticipant($paramsGetAllProduksi);
+		
+		// $batch = 
+		$batch = Batch::getAll([
+			'policy_no' => $models->policy_no,
+			'batch_no' => $models->batch_no,
+			// 'member_status' => $memberStatus,
+		]);
+		
 
 		return $this->render('index', [
 			'models' => $models,
 			'pagination' => $pagination,
+			'batch'  => $batch,
 		]);
 	}
 
