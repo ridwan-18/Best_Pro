@@ -6084,3 +6084,7 @@ table.nowrap td  {
 .help-block {
   color: red;
 }
+
+label {
+    color: #313a46 !important;
+}
