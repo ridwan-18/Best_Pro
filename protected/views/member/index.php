@@ -88,6 +88,7 @@ $this->title = 'Member - ' . Yii::$app->name;
                                 <th>Batch No</th>
                                 <th>Total Member</th>
                                 <th>Status</th>
+								<th>Print Invoice</th>
                                 <th>Created At</th>
                                 <th width="1">Action</th>
                             </tr>
@@ -108,6 +109,18 @@ $this->title = 'Member - ' . Yii::$app->name;
                                         <td><?= $model['batch_no']; ?></td>
                                         <td><?= $model['total_member']; ?></td>
                                         <td><?= $model['status']; ?></td>
+										<td>
+											<?php if (!empty($model['files'])) : ?>
+												<a href="<?= $model['files']; ?>"
+												   target="_blank"
+												   rel="noopener noreferrer"
+												   class="btn btn-sm btn-primary">
+													<i class="fa fa-file-pdf-o"></i> Open
+												</a>
+											<?php else : ?>
+												-
+											<?php endif; ?>
+										</td>
                                         <td><?= $model['created_at']; ?></td>
                                         <td>
                                             <div class="btn-group mb-2">

@@ -99,6 +99,7 @@ class Batch extends \yii\db\ActiveRecord
                 self::tableName() . '.status',
                 self::tableName() . '.created_at',
 				self::tableName() . '.created_by',
+				self::tableName() . '.files',
                 '(SELECT ' . Partner::tableName() . '.name' .  ' FROM ' . Policy::tableName() . 
 				' INNER JOIN ' . Partner::tableName() . ' ON ' . Policy::tableName() . '.partner_id = ' . Partner::tableName() . '.id'.
 				' INNER JOIN ' . User::tableName() . ' ON ' . Partner::tableName() . '.id = ' . User::tableName() . '.partner_id where '
