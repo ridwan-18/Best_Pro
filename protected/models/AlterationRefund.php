@@ -147,7 +147,7 @@ class AlterationRefund extends \yii\db\ActiveRecord
 		];
 
 		$data = [
-			'no_polis' => '1032410000705',
+			'no_polis' => $policy_number ,
 
 			'data' => [
 				'tanggal_pengajuan'   => date('Y-m-d'),

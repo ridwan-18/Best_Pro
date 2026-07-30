@@ -146,7 +146,7 @@ class AlterationCancel extends \yii\db\ActiveRecord
 			'Authorization: Bearer ' . $token,
 		];
 
-		// Membentuk array peserta sesuai payload API
+
 		$peserta = [];
 
 		foreach ($membersNo as $memberNo) {
@@ -158,7 +158,7 @@ class AlterationCancel extends \yii\db\ActiveRecord
 		}
 
 		$data = [
-			'no_polis' => '1032410000705',
+			'no_polis' => $policy_number,
 			'peserta' => $peserta,
 			'data' => [
 				'tanggal_efektif'   => date('Y-m-d'),
