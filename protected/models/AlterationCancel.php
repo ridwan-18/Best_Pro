@@ -139,7 +139,7 @@ class AlterationCancel extends \yii\db\ActiveRecord
 	
 	
 	
-	public function callAPIPostMemberCancelPush($token, $policy_number, $membersNo)
+	public function callAPIPostMemberCancelPush($token, $policy_number, $membersNo,$cancel_premi)
 	{
 		$headers = [
 			'Content-Type: application/json',
@@ -152,8 +152,8 @@ class AlterationCancel extends \yii\db\ActiveRecord
 			foreach ($membersNo as $memberNo) {
 				$peserta[] = [
 					'no_peserta' => $memberNo,
-					'cancel_kontribusi_netto' => 0,
-					'total_kontribusi_dibayar' => 0,
+					'cancel_kontribusi_netto' => $cancel_premi,
+					'total_kontribusi_dibayar' => $cancel_premi,
 				];
 			}
 

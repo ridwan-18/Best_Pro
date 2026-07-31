@@ -279,12 +279,14 @@ class AlterationCancelController extends Controller
 				$token = $response['token'];
 
 				$policy_number = $policy->policy_no;
+				$cancel_premi =$member->total_premium;
 
 				// ================= REFUND API ===================
 				$response_member = $model->callAPIPostMemberCancelPush(
 					$token,
 					$policy->policy_no,
-					$membersNo
+					$membersNo,
+					$cancel_premi
 				);
 				
 					// echo "<pre>";
