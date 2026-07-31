@@ -149,16 +149,17 @@ class AlterationCancel extends \yii\db\ActiveRecord
 
 		$peserta = [];
 
-foreach ($membersNo as $memberNo) {
-    $peserta[] = [
-        'no_peserta' => $memberNo,
-        'cancel_kontribusi_netto' => 0,
-        'total_kontribusi_dibayar' => 0,
-    ];
-}
+			foreach ($membersNo as $memberNo) {
+				$peserta[] = [
+					'no_peserta' => $memberNo,
+					'cancel_kontribusi_netto' => 0,
+					'total_kontribusi_dibayar' => 0,
+				];
+			}
 
 		$data = [
 			'no_polis' => $policy_number,
+			'source' => 2,
 			'peserta' => $peserta,
 			'data' => [
 				'tanggal_efektif'   => date('Y-m-d'),
