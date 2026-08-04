@@ -329,9 +329,51 @@ class AlterationEndorsementController extends Controller
             Yii::$app->session->setFlash('error', "Error while saving Member");
             return $this->redirect(['create']);
         }
+		
+		$response = $model->callAPIPostMemberLogin();
 
-        Yii::$app->session->setFlash('success', "Successfully saved");
-        return $this->redirect(['index']);
+				// if (!is_array($response)) {
+					// echo "<pre>";
+					// var_dump($response);
+					// die("Login API bukan array");
+				// }
+
+				// if (!isset($response['token'])) {
+					// echo "<pre>";
+					// var_dump($response);
+					// die("Token tidak ditemukan");
+				// }
+
+				$token = $response['token'];
+
+				$policy_number = $policy->policy_no;
+
+				// ================= REFUND API ===================
+				$response_member = $model->callAPIPostMemberEndorsementPush(
+					$token,
+					$policy->policy_no,
+					$membersNo
+				);
+				var_dump($response_member);
+
+				// Jika response memang array
+				if (
+					is_array($response_member) &&
+					isset($response_member['code']) &&
+					$response_member['code'] != '200'
+				) {
+					Yii::$app->session->setFlash(
+						'error',
+						"Error while Calling API"
+					);
+				}
+		
+		
+		
+		
+
+        // Yii::$app->session->setFlash('success', "Successfully saved");
+        // return $this->redirect(['index']);
     }
 
     /**
