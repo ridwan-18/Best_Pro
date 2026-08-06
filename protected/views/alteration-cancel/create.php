@@ -10,10 +10,14 @@ use app\models\Partner;
 use app\models\Member;
 use app\models\Personal;
 use app\models\Batch;
+use app\models\User;
+
 
 $urlMemberData = Url::to(['alteration-refund/get-member-data']);
 $urlBatchData = Url::to(['alteration-refund/get-batch-data']);
 
+$createdBy = Yii::$app->user->identity->id;
+$user = user::findOne(['id' => $createdBy]);
 $policies = Policy::find()
     ->asArray()
     ->select([
@@ -21,6 +25,10 @@ $policies = Policy::find()
         Partner::tableName() . '.name AS partner'
     ])
     ->innerJoin(Partner::tableName(), Partner::tableName() . '.id = ' .  Policy::tableName() . '.partner_id')
+	->innerJoin(User::tableName(), Partner::tableName() . '.id = ' .  User::tableName() . '.partner_id')
+	->where([
+						User::tableName() . '.partner_id' => $user->partner_id
+					])
     ->orderBy([Policy::tableName() . '.id' => SORT_ASC])
     ->all();
 
