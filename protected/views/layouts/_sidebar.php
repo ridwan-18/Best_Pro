@@ -129,7 +129,7 @@ use app\models\User;
                         </ul>
                     </li>
 					
-					<!-- 
+					
 					
                     <li>
                         <a href="javascript: void(0);"><i class="fa fa-pencil"></i> <span> Alteration </span> <span class="menu-arrow"></span></a>
@@ -139,15 +139,15 @@ use app\models\User;
                             <li><a href="<?= Url::base() . '/alteration-cancel'; ?>">Cancel</a></li>
                         </ul>
                     </li>
-					-->
+				
 					
-					<!-- 
+					
 					<li>
                         <a href="<?= Url::base() . '/claim'; ?>">
                             <i class="fa fa-dropbox"></i> <span> Claim </span>
                         </a>
                     </li>
-					-->
+				
 					
                     <li>
                         <a href="javascript: void(0);"><i class="fa fa-book"></i> <span> Report </span> <span class="menu-arrow"></span></a>
