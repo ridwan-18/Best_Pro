@@ -25,11 +25,17 @@ $members = Member::find()
         Member::tableName() . '.member_no',
         Personal::tableName() . '.name'
     ])
-    ->innerJoin(Personal::tableName(), Personal::tableName() . '.personal_no = ' .  Member::tableName() . '.personal_no')
-    ->where([Member::tableName() . '.status' => Member::STATUS_INFORCE])
-    ->orderBy([Member::tableName() . '.id' => SORT_ASC])
+    ->innerJoin(
+        Personal::tableName(),
+        Personal::tableName() . '.personal_no = ' . Member::tableName() . '.personal_no'
+    )
+    ->where([
+        Member::tableName() . '.status' => 'Accepted'
+    ])
+    ->orderBy([
+        Member::tableName() . '.id' => SORT_ASC
+    ])
     ->all();
-
 $options = [];
 foreach ($members as $member) {
     $items = [];
