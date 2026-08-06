@@ -5,6 +5,7 @@ use yii\helpers\Html;
 use app\widgets\Alert;
 use app\models\Policy;
 use app\models\Partner;
+use app\models\User;
 
 $createdBy = Yii::$app->user->identity->id;
 $user = user::findOne(['id' => $createdBy]);
