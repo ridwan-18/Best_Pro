@@ -69,15 +69,27 @@ $this->title = 'Create Alteration Cancel - ' . Yii::$app->name;
         $partner = Partner::findOne(['id' => $policy->partner_id]);
 
         $members = Member::find()
-            ->asArray()
-            ->select([
-                Member::tableName() . '.member_no',
-                Personal::tableName() . '.name'
-            ])
-            ->innerJoin(Personal::tableName(), Personal::tableName() . '.personal_no = ' .  Member::tableName() . '.personal_no')
-            ->where([Member::tableName() . '.policy_no' => $policy->policy_no])
-            ->orderBy([Member::tableName() . '.id' => SORT_ASC])
-            ->all();
+			->asArray()
+			->select([
+				Member::tableName() . '.member_no',
+				Personal::tableName() . '.name'
+			])
+			->innerJoin(
+				Personal::tableName(),
+				Personal::tableName() . '.personal_no = ' . Member::tableName() . '.personal_no'
+			)
+			->where([
+				Member::tableName() . '.policy_no' => $policy->policy_no
+			])
+			->andWhere([
+				'=',
+				Member::tableName() . '.created_by',
+				Yii::$app->user->identity->id
+			])
+			->orderBy([
+				Member::tableName() . '.id' => SORT_ASC
+			])
+			->all();
 
         $options = [];
         foreach ($members as $member) {
