@@ -32,6 +32,9 @@ $members = Member::find()
     ->where([
         Member::tableName() . '.status' => 'Accepted'
     ])
+    ->andWhere([
+        Member::tableName() . '.created_by' => Yii::$app->user->identity->id
+    ])
     ->orderBy([
         Member::tableName() . '.id' => SORT_ASC
     ])
