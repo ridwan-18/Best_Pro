@@ -10,10 +10,13 @@ use app\models\Partner;
 use app\models\Member;
 use app\models\Personal;
 use app\models\Batch;
+use app\models\User;
 
 $urlMemberData = Url::to(['alteration-refund/get-member-data']);
 $urlBatchData = Url::to(['alteration-refund/get-batch-data']);
 
+$createdBy = Yii::$app->user->identity->id;
+$user = user::findOne(['id' => $createdBy]);
 $policies = Policy::find()
     ->asArray()
     ->select([
@@ -21,6 +24,10 @@ $policies = Policy::find()
         Partner::tableName() . '.name AS partner'
     ])
     ->innerJoin(Partner::tableName(), Partner::tableName() . '.id = ' .  Policy::tableName() . '.partner_id')
+	->innerJoin(User::tableName(), Partner::tableName() . '.id = ' .  User::tableName() . '.partner_id')
+	->where([
+						User::tableName() . '.partner_id' => $user->partner_id
+					])
     ->orderBy([Policy::tableName() . '.id' => SORT_ASC])
     ->all();
 
@@ -164,6 +171,7 @@ $this->title = 'Create Alteration Endorsement - ' . Yii::$app->name;
                                 <tr>
                                     <td>Member No</td>
                                     <td>Name</td>
+									<td>New Name</td>
                                     <td>Birth Date</td>
                                     <td>New Birth Date</td>
                                     <td>Age</td>
@@ -209,6 +217,7 @@ $(document).ready(function(){
                     var html = '<tr>';
                     html += '<td>' + data.member_no + '<input type="hidden" name="members_no[]" value="' + data.member_no + '"></td>';
                     html += '<td>' + data.name + '</td>';
+					html += '<td><input type="text" class="form-control" name="new_names[]" value="' + (data.new_names_raw || '') + '"></td>';
                     html += '<td>' + data.birth_date + '</td>';
                     html += '<td><input type="text" class="form-control dtpckr" name="birth_dates[]" value="' + data.birth_date + '"></td>';
                     html += '<td>' + data.age + '</td>';
@@ -240,6 +249,7 @@ $(document).ready(function(){
                         var html = '<tr>';
                         html += '<td>' + data[i].member_no + '<input type="hidden" name="members_no[]" value="' + data[i].member_no + '"></td>';
                         html += '<td>' + data[i].name + '</td>';
+						html += '<td><input type="text" class="form-control" name="new_names[]" value="' + data.new_names_raw + '"></td>';
                         html += '<td>' + data[i].birth_date + '</td>';
                         html += '<td><input type="text" class="form-control dtpckr" name="birth_dates[]" value="' + data[i].birth_date + '"></td>';
                         html += '<td>' + data[i].age + '</td>';
