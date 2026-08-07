@@ -3,7 +3,7 @@ name: Deployment to production
 on:
   push:
     branches:
-      - main
+      - Best_Pro_Syariah
 jobs:
   deployment:
     runs-on: ubuntu-latest
@@ -16,9 +16,9 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY}}
           port: 22
           script: |
-            sudo git config --global --add safe.directory /opt/lampp/htdocs/BestPro-prod
-            cd /opt/lampp/htdocs/BestPro-prod
-            sudo git pull origin main
+            sudo git config --global --add safe.directory /opt/lampp/htdocs/Best_Pro_syariah
+            cd /opt/lampp/htdocs/Best_Pro_syariah
+            sudo git pull origin Best_Pro_Syariah
             sudo /usr/bin/chown -R daemon:daemon .
       - name : restart lampp service
         uses: appleboy/ssh-action@master
