@@ -423,8 +423,10 @@ class Claim extends \yii\db\ActiveRecord
     $suratKeteranganAhliWaris = null,
     $suratDariPemegangPolis = null,
     $dokumenLain = null
-) {
-    $url = Yii::$app->params['apiUrl'] . '/klaim/store';
+	)
+	{
+    // $url = Yii::$app->params['apiUrl'] . '/klaim/store';
+	$url='http://demo-reliancelife.ajrius.id/api/klaim/store';
 
     $postData = [
         'no_polis' => $no_polis,
@@ -564,6 +566,21 @@ class Claim extends \yii\db\ActiveRecord
     ]);
 
     $response = curl_exec($ch);
+	
+	if ($response === false) {
+    var_dump([
+        'curl_errno' => curl_errno($ch),
+        'curl_error' => curl_error($ch),
+    ]);
+    die;
+	}
+	
+	var_dump([
+    'http_code' => curl_getinfo($ch, CURLINFO_HTTP_CODE),
+    'response' => $response,
+		]);
+
+		die;
 
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     $curlError = curl_error($ch);
@@ -587,6 +604,6 @@ class Claim extends \yii\db\ActiveRecord
     }
 
     return $result;
-}
+	}
 	
 }
