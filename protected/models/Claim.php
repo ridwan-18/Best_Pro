@@ -406,243 +406,187 @@ class Claim extends \yii\db\ActiveRecord
         return json_decode($body, true);
     }
 	
-	
-	
-	// public function callAPIPostMemberClaimPush($token, $policy_number, $membersNo)
-	// {
-		// $headers = [
-			// 'Content-Type: application/json',
-			// 'Authorization: Bearer ' . $token,
-		// ];
-
-		// // Membentuk array peserta sesuai payload API
-		// $peserta = [];
-
-		// foreach ($membersNo as $memberNo) {
-			// $peserta[] = [
-				// 'no_peserta' => '111-25050005236-308',
-				// 'cancel_kontribusi_netto' => 0,
-				// 'total_kontribusi_dibayar' => 0,
-			// ];
-		// }
-
-		// $data = [
-			// 'no_polis' => '1032410000705',
-			// 'peserta' => $peserta,
-			// 'data' => [
-				// 'tanggal_efektif'   => date('Y-m-d'),
-				// 'tanggal_pengajuan' => date('Y-m-d'),
-				// 'tujuan_pembayaran' => 'ABC',
-				// 'nama_bank'         => 'ABC',
-				// 'no_rekening'       => 'ABC',
-			// ],
-		// ];
-
-	
-		// $ch = curl_init('http://demo-reliancelife.ajrius.id/api/klaim/store');
-
-
-		// curl_setopt_array($ch, [
-			// CURLOPT_RETURNTRANSFER => true,
-			// CURLOPT_POST => true,
-			// CURLOPT_POSTFIELDS => json_encode($data),
-			// CURLOPT_HTTPHEADER => $headers,
-		// ]);
-
-		// $response = curl_exec($ch);
-
-		// if (curl_errno($ch)) {
-			// return [
-				// 'http_code' => 0,
-				// 'error' => curl_error($ch),
-			// ];
-		// }
-
-		// $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-
-		// curl_close($ch);
-
-		// return [
-			// 'http_code' => $httpCode,
-			// 'request' => $data,
-			// 'response_raw' => $response,
-			// 'response' => json_decode($response, true),
-		// ];
-	// }
-	
-	public function callAPIPostPengajuanKlaim(
+	public function callAPIPostMemberClaimPush(
     $token,
-    $noPolis,
+    $no_polis,
     $data,
     $peserta,
-    $formulirPengajuanKlaim,
-    $suratKeteranganMeninggalKelurahan,
-    $suratKeteranganMeninggalRs,
-    $copyKtp,
-    $copyKtpAhliWaris,
-    $resumeMedis,
-    $daftarAngsuran,
-    $copyAkadPembiayaan,
-    $suratKuasa,
-    $suratKeteranganAhliWaris,
-    $suratDariPemegangPolis,
-    $dokumenLain
+    $formulirPengajuanKlaim = null,
+    $suratKeteranganMeninggalKelurahan = null,
+    $suratKeteranganMeninggalRs = null,
+    $copyKtp = null,
+    $copyKtpAhliWaris = null,
+    $resumeMedis = null,
+    $daftarAngsuran = null,
+    $copyAkadPembiayaan = null,
+    $suratKuasa = null,
+    $suratKeteranganAhliWaris = null,
+    $suratDariPemegangPolis = null,
+    $dokumenLain = null
 ) {
-
-    $url = 'http://demo-reliancelife.ajrius.id/api/klaim/store';
-
-    $headers = [
-        'Authorization: Bearer ' . $token,
-        'Accept: application/json',
-    ];
+    $url = Yii::$app->params['apiUrl'] . '/klaim/store';
 
     $postData = [
-        'no_polis' => $noPolis,
-        'data' => json_encode($data),
-        'peserta' => json_encode($peserta),
+        'no_polis' => $no_polis,
+
+        // Laravel: json_decode($r->peserta)
+        'peserta' => is_string($peserta)
+            ? $peserta
+            : json_encode($peserta),
+
+        // Laravel: json_decode($r->data)
+        'data' => is_string($data)
+            ? $data
+            : json_encode($data),
     ];
 
-    // =========================
-    // LAMPIRAN
-    // =========================
+    /*
+     * Helper untuk file
+     */
+    $addFile = function (&$postData, $field, $file) {
 
-    if (!empty($formulirPengajuanKlaim) && file_exists($formulirPengajuanKlaim)) {
-        $postData['formulir_pengajuan_klaim'] =
-            new CURLFile($formulirPengajuanKlaim);
-    }
-
-    if (!empty($suratKeteranganMeninggalKelurahan) && file_exists($suratKeteranganMeninggalKelurahan)) {
-        $postData['surat_keterangan_meninggal_kelurahan'] =
-            new CURLFile($suratKeteranganMeninggalKelurahan);
-    }
-
-    if (!empty($suratKeteranganMeninggalRs) && file_exists($suratKeteranganMeninggalRs)) {
-        $postData['surat_keterangan_meninggal_rs'] =
-            new CURLFile($suratKeteranganMeninggalRs);
-    }
-
-    if (!empty($copyKtp) && file_exists($copyKtp)) {
-        $postData['copy_ktp'] =
-            new CURLFile($copyKtp);
-    }
-
-    if (!empty($copyKtpAhliWaris) && file_exists($copyKtpAhliWaris)) {
-        $postData['copy_ktp_ahli_waris'] =
-            new CURLFile($copyKtpAhliWaris);
-    }
-
-    if (!empty($resumeMedis) && file_exists($resumeMedis)) {
-        $postData['resume_medis'] =
-            new CURLFile($resumeMedis);
-    }
-
-    if (!empty($daftarAngsuran) && file_exists($daftarAngsuran)) {
-        $postData['daftar_angsuran'] =
-            new CURLFile($daftarAngsuran);
-    }
-
-    if (!empty($copyAkadPembiayaan) && file_exists($copyAkadPembiayaan)) {
-        $postData['copy_akad_pembiayaan'] =
-            new CURLFile($copyAkadPembiayaan);
-    }
-
-    if (!empty($suratKuasa) && file_exists($suratKuasa)) {
-        $postData['surat_kuasa'] =
-            new CURLFile($suratKuasa);
-    }
-
-    if (!empty($suratKeteranganAhliWaris) && file_exists($suratKeteranganAhliWaris)) {
-        $postData['surat_keterangan_ahli_waris'] =
-            new CURLFile($suratKeteranganAhliWaris);
-    }
-
-    if (!empty($suratDariPemegangPolis) && file_exists($suratDariPemegangPolis)) {
-        $postData['surat_dari_pemegang_polis'] =
-            new CURLFile($suratDariPemegangPolis);
-    }
-
-    if (!empty($dokumenLain) && file_exists($dokumenLain)) {
-        $postData['dokumen_lain'] =
-            new CURLFile($dokumenLain);
-    }
-
-    // =========================
-    // DEBUG FILE
-    // =========================
-
-    $debugFiles = [];
-
-    foreach ($postData as $key => $value) {
-        if ($value instanceof CURLFile) {
-            $debugFiles[$key] = [
-                'filename' => $value->getPostFilename(),
-                'mime' => $value->getMimeType(),
-                'exists' => file_exists($value->getPostFilename()),
-                'size' => file_exists($value->getPostFilename())
-                    ? filesize($value->getPostFilename())
-                    : null,
-            ];
+        if (empty($file)) {
+            return;
         }
-    }
 
-    // =========================
-    // CURL
-    // =========================
+        // Kalau sudah CURLFile
+        if ($file instanceof \CURLFile) {
+            $postData[$field] = $file;
+            return;
+        }
 
-    $ch = curl_init($url);
+        // Kalau berupa path file
+        if (is_string($file) && file_exists($file)) {
+            $postData[$field] = curl_file_create(
+                $file,
+                mime_content_type($file),
+                basename($file)
+            );
+        }
+    };
+
+    /*
+     * Dokumen sesuai dengan field Laravel
+     */
+
+    $addFile(
+        $postData,
+        'formulir_pengajuan_klaim',
+        $formulirPengajuanKlaim
+    );
+
+    $addFile(
+        $postData,
+        'surat_keterangan_meninggal_kelurahan',
+        $suratKeteranganMeninggalKelurahan
+    );
+
+    $addFile(
+        $postData,
+        'surat_keterangan_meninggal_rs',
+        $suratKeteranganMeninggalRs
+    );
+
+    $addFile(
+        $postData,
+        'copy_ktp',
+        $copyKtp
+    );
+
+    $addFile(
+        $postData,
+        'copy_ktp_ahli_waris',
+        $copyKtpAhliWaris
+    );
+
+    $addFile(
+        $postData,
+        'resume_medis',
+        $resumeMedis
+    );
+
+    $addFile(
+        $postData,
+        'daftar_angsuran',
+        $daftarAngsuran
+    );
+
+    $addFile(
+        $postData,
+        'copy_akad_pembiayaan',
+        $copyAkadPembiayaan
+    );
+
+    $addFile(
+        $postData,
+        'surat_kuasa',
+        $suratKuasa
+    );
+
+    $addFile(
+        $postData,
+        'surat_keterangan_ahli_waris',
+        $suratKeteranganAhliWaris
+    );
+
+    $addFile(
+        $postData,
+        'surat_dari_pemegang_polis',
+        $suratDariPemegangPolis
+    );
+
+    $addFile(
+        $postData,
+        'dokumen_lain',
+        $dokumenLain
+    );
+
+    $ch = curl_init();
 
     curl_setopt_array($ch, [
+        CURLOPT_URL => $url,
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_POST => true,
 
-        // PENTING:
-        // Jangan $data
+        // multipart/form-data
         CURLOPT_POSTFIELDS => $postData,
 
-        CURLOPT_HTTPHEADER => $headers,
+        CURLOPT_HTTPHEADER => [
+            'Authorization: Bearer ' . $token,
+            'Accept: application/json',
+        ],
 
         CURLOPT_TIMEOUT => 120,
         CURLOPT_CONNECTTIMEOUT => 30,
 
-        // Debug SSL jika diperlukan
-        // CURLOPT_SSL_VERIFYPEER => false,
-        // CURLOPT_SSL_VERIFYHOST => false,
+        CURLOPT_SSL_VERIFYPEER => false,
+        CURLOPT_SSL_VERIFYHOST => false,
     ]);
 
     $response = curl_exec($ch);
 
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     $curlError = curl_error($ch);
-    $curlErrno = curl_errno($ch);
-    $curlInfo = curl_getinfo($ch);
 
     curl_close($ch);
 
-    // =========================
-    // DEBUG
-    // =========================
+    if ($response === false) {
+        return [
+            'code' => $httpCode,
+            'error' => $curlError,
+        ];
+    }
 
-    return [
-        'url' => $url,
+    $result = json_decode($response, true);
 
-        'http_code' => $httpCode,
+    if ($result === null) {
+        return [
+            'code' => $httpCode,
+            'response' => $response,
+        ];
+    }
 
-        'curl_errno' => $curlErrno,
-
-        'curl_error' => $curlError,
-
-        'curl_info' => $curlInfo,
-
-        'request' => [
-            'no_polis' => $noPolis,
-            'data' => $data,
-            'peserta' => $peserta,
-            'files' => $debugFiles,
-        ],
-
-        'response_raw' => $response,
-
-        'response' => json_decode($response, true),
-    ];
+    return $result;
 }
-	}
+	
+}
