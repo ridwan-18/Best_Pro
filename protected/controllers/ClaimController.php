@@ -136,10 +136,9 @@ class ClaimController extends Controller
 
 		$request = Yii::$app->request;
 
-		// ✅ WAJIB: pastikan hanya dipanggil sekali
+		
 		$dokumen_detail = dokument_claim_jatim::getAll();
 
-		// 🔒 pastikan selalu array
 		if (!is_array($dokumen_detail)) {
 			$dokumen_detail = [];
 		}
@@ -185,9 +184,7 @@ class ClaimController extends Controller
 			]);
 		}
 
-		// ======================
-		// SAVE CLAIM
-		// ======================
+	
 		 $claim = Claim::find()->orderBy(['id' => SORT_DESC])->one();
 			if ($claim != null) {
 				$newestId = $claim->id + 1;
@@ -261,45 +258,44 @@ class ClaimController extends Controller
 			}
 		}
 		
-			// $response = $model->callAPIPostMemberLogin();
+			$response = $model->callAPIPostMemberLogin();
 
-				// // if (!is_array($response)) {
-					// // echo "<pre>";
-					// // var_dump($response);
-					// // die("Login API bukan array");
-				// // }
+				// if (!is_array($response)) {
+					// echo "<pre>";
+					// var_dump($response);
+					// die("Login API bukan array");
+				// }
 
-				// // if (!isset($response['token'])) {
-					// // echo "<pre>";
-					// // var_dump($response);
-					// // die("Token tidak ditemukan");
-				// // }
+				// if (!isset($response['token'])) {
+					// echo "<pre>";
+					// var_dump($response);
+					// die("Token tidak ditemukan");
+				// }
 
-				// $token = $response['token'];
+				$token = $response['token'];
 
-				// $policy_number = $policy->policy_no;
+				$policy_number = $policy->policy_no;
 
-				// // ================= REFUND API ===================
-				// $response_member = $model->callAPIPostMemberClaimPush(
-					// $token,
-					// $policy->policy_no,
-					// $membersNo
-				// );
+				$response_member = $model->callAPIPostMemberClaimPush(
+					$token,
+					$policy->policy_no,
+					$membersNo
+				);
 
 			
 		
 
-				// // Jika response memang array
-				// if (
-					// is_array($response_member) &&
-					// isset($response_member['code']) &&
-					// $response_member['code'] != '200'
-				// ) {
-					// Yii::$app->session->setFlash(
-						// 'error',
-						// "Error while Calling API"
-					// );
-				// }
+				// Jika response memang array
+				if (
+					is_array($response_member) &&
+					isset($response_member['code']) &&
+					$response_member['code'] != '200'
+				) {
+					Yii::$app->session->setFlash(
+						'error',
+						"Error while Calling API"
+					);
+				}
 		
 
 		Yii::$app->session->setFlash('success', "Claim berhasil disimpan");

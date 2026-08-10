@@ -30,13 +30,29 @@ $config = [
         'errorHandler' => [
             'errorAction' => 'site/error',
         ],
-        'mailer' => [
-            'class' => 'yii\swiftmailer\Mailer',
-            // send all mails to a file by default. You have to set
-            // 'useFileTransport' to false and configure transport
-            // for the mailer to send real emails.
-            'useFileTransport' => true,
-        ],
+        // 'mailer' => [
+            // 'class' => 'yii\swiftmailer\Mailer',
+            // // send all mails to a file by default. You have to set
+            // // 'useFileTransport' to false and configure transport
+            // // for the mailer to send real emails.
+            // 'useFileTransport' => true,
+        // ],
+		
+		
+		 'mailer' => [
+        'class' => 'yii\swiftmailer\Mailer',
+        'viewPath' => '@app/mail',
+        'useFileTransport' => false,
+        'transport' => [
+            'class' => 'Swift_SmtpTransport',
+            'host' => 'smtp.office365.com',
+            'username' => 'rnurasyid@reliance-life.com',
+            'password' => 'Edo@180293',
+            'port' => '587',
+            'encryption' => 'tls',
+				],
+			],
+		
         'log' => [
             'traceLevel' => YII_DEBUG ? 3 : 0,
             'targets' => [

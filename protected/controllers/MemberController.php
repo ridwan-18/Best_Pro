@@ -948,13 +948,67 @@ class MemberController extends Controller
 			'created_at',
 			'created_by'
 		];
+		// $modelSave = Yii::$app->db->createCommand()
+			// ->batchInsert(Member::tableName(), $attributes, $members)
+			// ->execute();
+		// if (!$modelSave) {
+			// Yii::$app->session->setFlash('error', "Error while saving Member");
+			// return $this->redirect(['create']);
+		// }
+		
+		
+		
 		$modelSave = Yii::$app->db->createCommand()
-			->batchInsert(Member::tableName(), $attributes, $members)
-			->execute();
-		if (!$modelSave) {
-			Yii::$app->session->setFlash('error', "Error while saving Member");
-			return $this->redirect(['create']);
-		}
+				->batchInsert(Member::tableName(), $attributes, $members)
+				->execute();
+
+			if (!$modelSave) {
+				Yii::$app->session->setFlash('error', "Error while saving Member");
+				return $this->redirect(['create']);
+			}
+
+			/**
+			 * Send email
+			 */
+			try {
+				$email = Yii::$app->user->identity->email;
+
+				$sent = Yii::$app->mailer
+					->compose()
+					->setTo($email)
+					->setFrom([
+						'ridwan.nurasyid@reliance-life.com' => 'AJRI'
+					])
+					->setSubject('Upload Member Berhasil - Batch ' . $batch->batch_no)
+					->setHtmlBody(
+						'<h3>Upload Member Berhasil</h3>' .
+						'<p>Data member berhasil di-upload.</p>' .
+						'<table border="1" cellpadding="5" cellspacing="0">' .
+						'<tr><td><b>Policy No</b></td><td>: ' . $policyNo . '</td></tr>' .
+						'<tr><td><b>Batch No</b></td><td>: ' . $batch->batch_no . '</td></tr>' .
+						'<tr><td><b>Total Member</b></td><td>: ' . $totalMember . '</td></tr>' .
+						'<tr><td><b>Total UP</b></td><td>: ' . number_format($totalUp, 0, ',', '.') . '</td></tr>' .
+						'<tr><td><b>Total Nett Premium</b></td><td>: ' . number_format($totalNettPremium, 0, ',', '.') . '</td></tr>' .
+						'</table>' .
+						'<br>' .
+						'<p>Terima kasih.</p>'
+					)
+					->send();
+
+				if (!$sent) {
+					Yii::error(
+						'Email upload member gagal dikirim ke: ' . $email,
+						__METHOD__
+					);
+				}
+
+			} catch (\Throwable $e) {
+
+				Yii::error(
+					'Email upload member gagal: ' . $e->getMessage(),
+					__METHOD__
+				);
+			}
 	
 		yii::$app->session->setflash('success', "successfully uploaded");
 		return $this->redirect([
