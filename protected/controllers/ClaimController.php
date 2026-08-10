@@ -440,6 +440,29 @@ class ClaimController extends Controller
 				}
 			}
 		}
+		
+		
+		
+		echo '<pre>';
+
+foreach ($apiFiles as $key => $file) {
+    echo $key . ' => ';
+
+    if ($file) {
+        echo $file . ' | ';
+
+        echo file_exists($file)
+            ? 'EXISTS'
+            : 'NOT FOUND';
+    } else {
+        echo 'NULL';
+    }
+
+    echo PHP_EOL;
+}
+
+echo '</pre>';
+die;
 
 		$loginResponse = $claim->callAPIPostMemberLogin();
 
