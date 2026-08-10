@@ -406,9 +406,11 @@ class Claim extends \yii\db\ActiveRecord
         return json_decode($body, true);
     }
 	
+	
+	
 	public function callAPIPostMemberClaimPush(
     $token,
-    $no_polis,
+    $policyNumber,
     $data,
     $peserta,
     $formulirPengajuanKlaim = null,
@@ -423,187 +425,244 @@ class Claim extends \yii\db\ActiveRecord
     $suratKeteranganAhliWaris = null,
     $suratDariPemegangPolis = null,
     $dokumenLain = null
-	)
+	) 
 	{
-    // $url = Yii::$app->params['apiUrl'] . '/klaim/store';
-	$url='http://demo-reliancelife.ajrius.id/api/klaim/store';
+		$url='http://demo-reliancelife.ajrius.id/api/klaim/store';
 
-    $postData = [
-        'no_polis' => $no_polis,
+		/*
+		 * =========================================================
+		 * DATA UTAMA
+		 * =========================================================
+		 */
+		$postData = [
+			'no_polis' => $policyNumber,
+			'data' => is_string($data)
+				? $data
+				: json_encode($data),
+			'peserta' => is_string($peserta)
+				? $peserta
+				: json_encode($peserta),
+		];
 
-        // Laravel: json_decode($r->peserta)
-        'peserta' => is_string($peserta)
-            ? $peserta
-            : json_encode($peserta),
+		/*
+		 * =========================================================
+		 * HELPER CURL FILE
+		 * =========================================================
+		 */
+		$addFile = function ($fieldName, $filePath) use (&$postData) {
 
-        // Laravel: json_decode($r->data)
-        'data' => is_string($data)
-            ? $data
-            : json_encode($data),
-    ];
+			if (empty($filePath)) {
+				return;
+			}
 
-    /*
-     * Helper untuk file
-     */
-    $addFile = function (&$postData, $field, $file) {
+			/*
+			 * Pastikan file benar-benar ada
+			 */
+			if (!file_exists($filePath)) {
+				Yii::error([
+					'message' => 'File tidak ditemukan',
+					'field' => $fieldName,
+					'path' => $filePath,
+				]);
 
-        if (empty($file)) {
-            return;
-        }
+				return;
+			}
 
-        // Kalau sudah CURLFile
-        if ($file instanceof \CURLFile) {
-            $postData[$field] = $file;
-            return;
-        }
+			/*
+			 * Pastikan file readable
+			 */
+			if (!is_readable($filePath)) {
+				Yii::error([
+					'message' => 'File tidak dapat dibaca',
+					'field' => $fieldName,
+					'path' => $filePath,
+				]);
 
-        // Kalau berupa path file
-        if (is_string($file) && file_exists($file)) {
-            $postData[$field] = curl_file_create(
-                $file,
-                mime_content_type($file),
-                basename($file)
-            );
-        }
-    };
+				return;
+			}
 
-    /*
-     * Dokumen sesuai dengan field Laravel
-     */
+			$mimeType = mime_content_type($filePath);
 
-    $addFile(
-        $postData,
-        'formulir_pengajuan_klaim',
-        $formulirPengajuanKlaim
-    );
+			if (!$mimeType) {
+				$mimeType = 'application/octet-stream';
+			}
 
-    $addFile(
-        $postData,
-        'surat_keterangan_meninggal_kelurahan',
-        $suratKeteranganMeninggalKelurahan
-    );
+			$postData[$fieldName] = new \CURLFile(
+				$filePath,
+				$mimeType,
+				basename($filePath)
+			);
+		};
 
-    $addFile(
-        $postData,
-        'surat_keterangan_meninggal_rs',
-        $suratKeteranganMeninggalRs
-    );
+		/*
+		 * =========================================================
+		 * FILE DOCUMENT
+		 * =========================================================
+		 */
+		$addFile(
+			'formulir_pengajuan_klaim',
+			$formulirPengajuanKlaim
+		);
 
-    $addFile(
-        $postData,
-        'copy_ktp',
-        $copyKtp
-    );
+		$addFile(
+			'surat_keterangan_meninggal_kelurahan',
+			$suratKeteranganMeninggalKelurahan
+		);
 
-    $addFile(
-        $postData,
-        'copy_ktp_ahli_waris',
-        $copyKtpAhliWaris
-    );
+		$addFile(
+			'surat_keterangan_meninggal_rs',
+			$suratKeteranganMeninggalRs
+		);
 
-    $addFile(
-        $postData,
-        'resume_medis',
-        $resumeMedis
-    );
+		$addFile(
+			'copy_ktp',
+			$copyKtp
+		);
 
-    $addFile(
-        $postData,
-        'daftar_angsuran',
-        $daftarAngsuran
-    );
+		$addFile(
+			'copy_ktp_ahli_waris',
+			$copyKtpAhliWaris
+		);
 
-    $addFile(
-        $postData,
-        'copy_akad_pembiayaan',
-        $copyAkadPembiayaan
-    );
+		$addFile(
+			'resume_medis',
+			$resumeMedis
+		);
 
-    $addFile(
-        $postData,
-        'surat_kuasa',
-        $suratKuasa
-    );
+		$addFile(
+			'daftar_angsuran',
+			$daftarAngsuran
+		);
 
-    $addFile(
-        $postData,
-        'surat_keterangan_ahli_waris',
-        $suratKeteranganAhliWaris
-    );
+		$addFile(
+			'copy_akad_pembiayaan',
+			$copyAkadPembiayaan
+		);
 
-    $addFile(
-        $postData,
-        'surat_dari_pemegang_polis',
-        $suratDariPemegangPolis
-    );
+		$addFile(
+			'surat_kuasa',
+			$suratKuasa
+		);
 
-    $addFile(
-        $postData,
-        'dokumen_lain',
-        $dokumenLain
-    );
+		$addFile(
+			'surat_keterangan_ahli_waris',
+			$suratKeteranganAhliWaris
+		);
 
-    $ch = curl_init();
+		$addFile(
+			'surat_dari_pemegang_polis',
+			$suratDariPemegangPolis
+		);
 
-    curl_setopt_array($ch, [
-        CURLOPT_URL => $url,
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_POST => true,
+		$addFile(
+			'dokumen_lain',
+			$dokumenLain
+		);
 
-        // multipart/form-data
-        CURLOPT_POSTFIELDS => $postData,
+		/*
+		 * =========================================================
+		 * DEBUG FILE
+		 * =========================================================
+		 */
+		Yii::info([
+			'url' => $url,
+			'no_polis' => $policyNumber,
+			'data' => $data,
+			'peserta' => $peserta,
+			'files' => array_map(
+				function ($value) {
+					if ($value instanceof \CURLFile) {
+						return [
+							'name' => $value->getPostFilename(),
+							'mime' => $value->getMimeType(),
+						];
+					}
 
-        CURLOPT_HTTPHEADER => [
-            'Authorization: Bearer ' . $token,
-            'Accept: application/json',
-        ],
+					return $value;
+				},
+				$postData
+			),
+		], 'claim-api');
 
-        CURLOPT_TIMEOUT => 120,
-        CURLOPT_CONNECTTIMEOUT => 30,
+		/*
+		 * =========================================================
+		 * CURL
+		 * =========================================================
+		 */
+		$ch = curl_init();
 
-        CURLOPT_SSL_VERIFYPEER => false,
-        CURLOPT_SSL_VERIFYHOST => false,
-    ]);
+		curl_setopt_array($ch, [
+			CURLOPT_URL => $url,
+			CURLOPT_POST => true,
+			CURLOPT_RETURNTRANSFER => true,
+			CURLOPT_POSTFIELDS => $postData,
 
-    $response = curl_exec($ch);
-	
-	if ($response === false) {
-    var_dump([
-        'curl_errno' => curl_errno($ch),
-        'curl_error' => curl_error($ch),
-    ]);
-    die;
-	}
-	
-	var_dump([
-    'http_code' => curl_getinfo($ch, CURLINFO_HTTP_CODE),
-    'response' => $response,
+			CURLOPT_HTTPHEADER => [
+				'Authorization: Bearer ' . $token,
+				'Accept: application/json',
+			],
+
+			CURLOPT_TIMEOUT => 120,
+			CURLOPT_CONNECTTIMEOUT => 30,
+			CURLOPT_SSL_VERIFYPEER => false,
+			CURLOPT_SSL_VERIFYHOST => false,
 		]);
 
-		die;
+		$response = curl_exec($ch);
 
-    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    $curlError = curl_error($ch);
+		$httpCode = curl_getinfo(
+			$ch,
+			CURLINFO_HTTP_CODE
+		);
 
-    curl_close($ch);
+		$curlError = curl_error($ch);
+		$curlErrno = curl_errno($ch);
 
-    if ($response === false) {
-        return [
-            'code' => $httpCode,
-            'error' => $curlError,
-        ];
-    }
+		curl_close($ch);
 
-    $result = json_decode($response, true);
+		/*
+		 * =========================================================
+		 * CURL ERROR
+		 * =========================================================
+		 */
+		if ($response === false) {
 
-    if ($result === null) {
-        return [
-            'code' => $httpCode,
-            'response' => $response,
-        ];
-    }
+			Yii::error([
+				'http_code' => $httpCode,
+				'curl_errno' => $curlErrno,
+				'curl_error' => $curlError,
+			], 'claim-api');
 
-    return $result;
+			return [
+				'code' => $httpCode,
+				'error' => $curlError,
+				'curl_errno' => $curlErrno,
+			];
+		}
+
+		/*
+		 * =========================================================
+		 * RESPONSE
+		 * =========================================================
+		 */
+		$result = json_decode(
+			$response,
+			true
+		);
+
+		Yii::info([
+			'http_code' => $httpCode,
+			'response' => $response,
+		], 'claim-api');
+
+		if (!is_array($result)) {
+			return [
+				'code' => $httpCode,
+				'response' => $response,
+			];
+		}
+
+		return $result;
 	}
 	
 }
