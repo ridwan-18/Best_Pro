@@ -115,6 +115,7 @@ class Billing extends \yii\db\ActiveRecord
             'created_by' => 'Created By',
             'updated_at' => 'Updated At',
             'updated_by' => 'Updated By',
+			'billing_picture'=> 'billing_picture By',
         ];
     }
 
@@ -135,6 +136,7 @@ class Billing extends \yii\db\ActiveRecord
                 self::tableName() . '.remarks',
                 self::tableName() . '.status',
                 Partner::tableName() . '.name AS partner',
+				self::tableName() . '.billing_picture',
             ])
             ->asArray()
             ->innerJoin(Policy::tableName(), Policy::tableName() . '.policy_no = ' . self::tableName() . '.policy_no')

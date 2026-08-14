@@ -265,20 +265,20 @@ class BatchByPeserta extends \yii\db\ActiveRecord
 				self::tableName() . '.sum_insured',
 				USER::tableName() . '.username',
 				self::tableName() . '.gross_premium',
-				
+				self::tableName() . '.id_loan',
             ])
           
 			 ->innerJoin(Personal::tableName(), Personal::tableName() . '.personal_no = ' . self::tableName() . '.personal_no')
 			 ->innerJoin(USER::tableName(), USER::tableName() . '.id = ' . self::tableName() . '.created_by')
 			   ->asArray();
 		
-			if (!Yii::$app->user->isGuest) {
+		if (!Yii::$app->user->isGuest) {
 			if (Yii::$app->user->identity->role == User::ROLE_UW) {
 				$query->andWhere(['=', self::tableName() . '.created_by', Yii::$app->user->identity->id]);
 			}
 		}
 		
-       if (isset($paramsGetAllProduksi['status']) && $paramsGetAllProduksi['status'] != null) {
+		if (isset($paramsGetAllProduksi['status']) && $paramsGetAllProduksi['status'] != null) {
             $query->andFilterWhere(['=', self::tableName() . '.status', $paramsGetAllProduksi['status']]);
         }
 		
@@ -312,7 +312,7 @@ class BatchByPeserta extends \yii\db\ActiveRecord
         }
 		
          // $query->groupBy(['policy_no', 'batch_no']);
-        // $query->orderBy(['id' => $params['sort']]);
+       $query->orderBy(['id' => SORT_DESC]);
 		// echo $query;
         return $query->all();
 		

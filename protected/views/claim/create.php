@@ -18,10 +18,6 @@ use app\models\PlaceOfDeath;
 use app\models\Component;
 use app\models\Document;
 
-$this->registerJsFile(
-    '@web/theme/assets/js/easy-number-separator.js',
-    ['depends' => [\yii\web\JqueryAsset::class]]
-);
 
 $members = Member::find()
     ->asArray()
@@ -53,324 +49,166 @@ $diseases = ArrayHelper::map($diseases, 'name', 'name');
 $placeOfDeaths = PlaceOfDeath::getAll();
 $placeOfDeaths = ArrayHelper::map($placeOfDeaths, 'name', 'name');
 
-$documents = Document::getAll();
-
-$this->title = 'Create Claim - ' . Yii::$app->name;
 ?>
-
 <div class="alteration-cancel-create">
-    <div class="row mb-4">
+
+    <?= Html::beginForm(['claim/create'], 'post', [
+        'id' => 'main-form',
+        'enctype' => 'multipart/form-data'
+    ]) ?>
+
+    <!-- HEADER -->
+    <div class="row mb-4 align-items-center">
         <div class="col-md-6">
-            <h2 class="p-0 m-0">Create Claim</h2>
+            <h3 class="mb-0">Create Claim</h3>
         </div>
-        <div class="col-md-6 my-auto">
-            <?= Html::beginForm(['claim/create'], 'post', ['id' => 'claim-form', 'class' => 'form-inline']) ?>
-            <?= Html::dropDownList('member_no', Yii::$app->request->post('member_no'), $members, [
+        <div class="col-md-6">
+            <?= Html::dropDownList('member_no', $selectedMemberNo, $members, [
                 'prompt' => '- Select Member -',
-                'id' => 'member_no',
-                'class' => 'form-control slct2',
-                'required' => 'required',
-                'onchange' => 'submit()',
+                'class' => 'form-control',
+                'onchange' => 'this.form.submit()'
             ]) ?>
-            <?= Html::endForm() ?>
         </div>
     </div>
-    <?= Alert::widget() ?>
-    <?php
-    if (Yii::$app->request->post('member_no') != '') :
-        $member = Member::findOne(['member_no' => Yii::$app->request->post('member_no')]);
-        $personal = Personal::findOne(['personal_no' => $member->personal_no]);
-        $policy = Policy::findOne(['policy_no' => $member->policy_no]);
-        $partner = Partner::findOne(['id' => $policy->partner_id]);
-        $quotationProduct = QuotationProduct::findOne(['quotation_id' => $policy->quotation_id]);
-        $product = Product::findOne(['id' => $quotationProduct->product_id]);
-        $component = Component::findOne(['product_id' => $product->id]);
-    ?>
-        <?= Html::beginForm(['claim/create'], 'post', ['id' => 'claim-form']) ?>
-        <?= Html::input('hidden', 'member_no', $member->member_no) ?>
-        <?= Html::input('hidden', 'policy_no', $member->policy_no) ?>
-        <div class="card-box">
+
+    <?php if (!empty($selectedMemberNo)): ?>
+
+        <?= Html::hiddenInput('submit_claim', 1) ?>
+
+        <!-- MEMBER INFO -->
+        <div class="card-box mb-4 p-3 border rounded">
             <div class="row">
                 <div class="col-md-6">
-                    <table class="table">
-                        <tr>
-                            <td width="200">Policy No</td>
-                            <td><?= $policy->policy_no; ?></td>
-                        </tr>
-                        <tr>
-                            <td>Policy Holder</td>
-                            <td><?= $partner->name; ?></td>
-                        </tr>
-                        <tr>
-                            <td>Product</td>
-                            <td><?= $product->name; ?></td>
-                        </tr>
-                    </table>
+                    <p><b>Policy:</b> <?= $policy->policy_no ?></p>
+                    <p><b>Policy Holder:</b> <?= $partner->name ?></p>
+                    <p><b>Product:</b> <?= $product->name ?></p>
                 </div>
                 <div class="col-md-6">
-                    <table class="table">
-                        <tr>
-                            <td width="200">Member No</td>
-                            <td><?= $member->member_no; ?></td>
-                        </tr>
-                        <tr>
-                            <td>Member Name</td>
-                            <td><?= $personal->name; ?></td>
-                        </tr>
-                        <tr>
-                            <td>Date of Birth</td>
-                            <td><?= Utils::convertDateTodMy($personal->birth_date); ?></td>
-                        </tr>
-                        <tr>
-                            <td>Entry Age</td>
-                            <td><?= $member->age; ?></td>
-                        </tr>
-                        <tr>
-                            <td>Effective Date</td>
-                            <td><?= Utils::convertDateTodMy($member->start_date); ?> <br> <?= Utils::convertDateTodMy($member->end_date); ?></td>
-                        </tr>
-                        <tr>
-                            <td>Sum Insured</td>
-                            <td><?= number_format($member->sum_insured); ?></td>
-                        </tr>
-                        <tr>
-                            <td>Premium</td>
-                            <td><?= number_format($member->total_premium); ?></td>
-                        </tr>
-                    </table>
+                    <p><b>Member No:</b> <?= $get_member->member_no ?></p>
+                    <p><b>Name:</b> <?= $personal->name ?></p>
+                    <p><b>DOB:</b> <?= $personal->birth_date ?></p>
+                    <p><b>Age:</b> <?= $get_member->age ?></p>
                 </div>
             </div>
         </div>
-        <div class="card-box">
+
+        <!-- CLAIM INFO -->
+        <div class="card-box mb-4 p-3 border rounded">
+            <h5 class="mb-3">Claim Info</h5>
+
             <div class="row">
-                <div class="col-md-4">
-                    <ul class="nav nav-pills navtab-bg nav-justified pull-in">
-                        <li class="nav-item">
-                            <a href="#claim-info" data-toggle="tab" aria-expanded="tru" class="nav-link active">
-                                Claim Info
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="#claim-document" data-toggle="tab" aria-expanded="false" class="nav-link">
-                                Claim Document
-                            </a>
-                        </li>
-                    </ul>
+                <div class="col-md-6 mb-3">
+                    <label>Incident Date</label>
+                    <?= Html::textInput('incident_date', null, [
+                        'class' => 'form-control',
+                        'required' => true
+                    ]) ?>
                 </div>
-            </div>
-            <div class="tab-content">
-                <div class="tab-pane show active" id="claim-info">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <table class="table">
-                                <tr>
-                                    <td width="200">Benefit</td>
-                                    <td><?= $component->name; ?></td>
-                                </tr>
-                                <tr>
-                                    <td>Estimated Amount</td>
-                                    <td>
-                                        <?= Html::input('text', null, null, [
-                                            'class' => 'form-control',
-                                            'id' => 'estimated-amount',
-                                            'step' => 'any',
-                                            'required' => 'required',
-                                        ]) ?>
-                                        <?= Html::input('hidden', 'estimated_amount', null, [
-                                            'id' => 'estimated-amount-result',
-                                            'required' => 'required',
-                                        ]) ?>
-                                    </td>
-                                </tr>
-                            </table>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="incident_date">Incident Date</label>
-                                <?= Html::input('text', 'incident_date', null, [
-                                    'class' => 'form-control dtpckr',
-                                    'id' => 'incident_date',
-                                    'required' => 'required',
-                                ]) ?>
-                            </div>
-                            <div class="form-group">
-                                <label for="claim_reason">Claim Reason</label>
-                                <?= Html::dropDownList('claim_reason', null, $claimReasons, [
-                                    'prompt' => '- Select Claim Reason -',
-                                    'id' => 'claim_reason',
-                                    'class' => 'form-control',
-                                    'required' => 'required',
-                                ]) ?>
-                            </div>
-                            <div class="form-group">
-                                <label for="disease">Disease</label>
-                                <?= Html::dropDownList('disease', null, $diseases, [
-                                    'prompt' => '- Select Disease -',
-                                    'id' => 'disease',
-                                    'class' => 'form-control',
-                                    'required' => 'required',
-                                ]) ?>
-                            </div>
-                            <div class="form-group">
-                                <label for="place_of_death">Place of Death</label>
-                                <?= Html::dropDownList('place_of_death', null, $placeOfDeaths, [
-                                    'prompt' => '- Select Place of Death -',
-                                    'id' => 'place_of_death',
-                                    'class' => 'form-control',
-                                    'required' => 'required',
-                                ]) ?>
-                            </div>
-                        </div>
-                    </div>
+
+                <div class="col-md-6 mb-3">
+                    <label>Claim Reason</label>
+                    <?= Html::dropDownList('claim_reason', null, $claimReasons, [
+                        'class' => 'form-control',
+                        'prompt' => 'Select Claim Reason',
+                        'required' => true
+                    ]) ?>
                 </div>
-                <div class="tab-pane" id="claim-document">
-                    <div class="row">
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label for="doc_pre_received_date">Pre Received Date</label>
-                                <?= Html::input('text', 'doc_pre_received_date', null, [
-                                    'class' => 'form-control dtpckr',
-                                    'id' => 'doc_pre_received_date',
-                                ]) ?>
-                            </div>
-                            <div class="form-group">
-                                <label for="doc_received_date">Document Received Date</label>
-                                <?= Html::input('text', 'doc_received_date', null, [
-                                    'class' => 'form-control dtpckr',
-                                    'id' => 'doc_received_date',
-                                ]) ?>
-                            </div>
-                            <div class="form-group">
-                                <label for="doc_status">Status</label>
-                                <div class="row">
-                                    <div class="col-md-12">
-                                        <?= Html::radio('doc_status', true, [
-                                            'label' => Claim::DOC_STATUS_PENDING,
-                                            'value' => Claim::DOC_STATUS_PENDING
-                                        ]) ?>
-                                        <?= Html::radio('doc_status', false, [
-                                            'label' => Claim::DOC_STATUS_COMPLETE,
-                                            'value' => Claim::DOC_STATUS_COMPLETE
-                                        ]) ?>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <label for="doc_complete_date">Complete Date</label>
-                                <?= Html::input('text', 'doc_complete_date', null, [
-                                    'class' => 'form-control dtpckr',
-                                    'id' => 'doc_complete_date',
-                                ]) ?>
-                            </div>
-                            <div class="form-group">
-                                <label for="doc_notes">Notes</label>
-                                <?= Html::textarea('doc_notes', null, [
-                                    'class' => 'form-control',
-                                    'id' => 'doc_notes',
-                                ]) ?>
-                            </div>
-                        </div>
-                        <div class="col-md-8">
-                            <div class="table-responsive">
-                                <table class="table table-hover nowrap m-0">
-                                    <thead>
-                                        <tr>
-                                            <th class="text-center">
-                                                Claim Item <br><br>
-                                                <?= Html::checkbox(null, false, ['id' => 'bulk-checked']) ?>
-                                            </th>
-                                            <th class="text-center">
-                                                Mandatory <br><br>
-                                                <?= Html::checkbox(null, false, ['id' => 'bulk-mandatory']) ?>
-                                            </th>
-                                            <th class="text-center">Document <br><br></th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <?php
-                                        foreach ($documents as $document) :
-                                        ?>
-                                            <?= Html::input('hidden', 'document_ids[]', $document['id']) ?>
-                                            <tr>
-                                                <td class="text-center">
-                                                    <?= Html::checkbox(
-                                                        'is_checkeds[]',
-                                                        $document['id'],
-                                                        [
-                                                            'class' => 'checked',
-                                                            'checked' => false,
-                                                            'value' => $document['id']
-                                                        ]
-                                                    ) ?>
-                                                </td>
-                                                <td class="text-center">
-                                                    <?= Html::checkbox(
-                                                        'is_mandatories[]',
-                                                        $document['id'],
-                                                        [
-                                                            'class' => 'mandatory',
-                                                            'checked' => false,
-                                                            'value' => $document['id']
-                                                        ]
-                                                    ) ?>
-                                                </td>
-                                                <td><?= $document['name']; ?></td>
-                                            </tr>
-                                        <?php
-                                        endforeach;
-                                        ?>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
+
+                <div class="col-md-6 mb-3">
+                    <label>Disease</label>
+                    <?= Html::dropDownList('disease', null, $diseases, [
+                        'class' => 'form-control',
+                        'prompt' => 'Select Disease',
+                        'required' => true
+                    ]) ?>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label>Place of Death</label>
+                    <?= Html::dropDownList('place_of_death', null, $placeOfDeaths, [
+                        'class' => 'form-control',
+                        'prompt' => 'Select Place',
+                        'required' => true
+                    ]) ?>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label>Estimated Amount</label>
+                    <?= Html::textInput('estimated_amount', null, [
+                        'class' => 'form-control',
+                        'id' => 'estimated-amount',
+                        'placeholder' => '0'
+                    ]) ?>
                 </div>
             </div>
         </div>
-        <div class="row mb-4">
-            <div class="col-md-12 text-right">
-                <?= Html::submitButton('<i class="fa fa-save"></i> Save', ['class' => 'btn btn-success btn-lg waves-effect waves-light']) ?>
+
+        <!-- DOCUMENT -->
+        <div class="card-box mb-4 p-3 border rounded">
+            <h5 class="mb-3">Documents</h5>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label>Status</label>
+                    <?= Html::dropDownList('doc_status', null, [
+                        0 => 'Pending',
+                        1 => 'Complete'
+                    ], ['class' => 'form-control']) ?>
+                </div>
+
+                <div class="col-md-12 mb-3">
+                    <label>Notes</label>
+                    <?= Html::textarea('doc_notes', null, [
+                        'class' => 'form-control',
+                        'rows' => 3
+                    ]) ?>
+                </div>
             </div>
+
+            <table class="table table-bordered mt-3">
+                <thead class="thead-light">
+                    <tr>
+                        <th style="width:50px;">No</th>
+                        <th>Document</th>
+                        <th>Upload</th>
+                    </tr>
+                </thead>
+                <tbody>
+                <?php if (!empty($dokumen_detail)): ?>
+                    <?php foreach ($dokumen_detail as $i => $dd): ?>
+                        <tr>
+                            <td><?= $i + 1 ?></td>
+                            <td><?= $dd['nama_dokument'] ?></td>
+                            <td>
+                                <?= Html::hiddenInput('doc_ids[]', $dd['id']) ?>
+                                <?= Html::fileInput('documents[]', null, [
+                                    'class' => 'form-control'
+                                ]) ?>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+                </tbody>
+            </table>
         </div>
-        <?= Html::endForm() ?>
-    <?php
-    endif;
-    ?>
+
+        <!-- SUBMIT -->
+        <div class="text-end">
+            <?= Html::submitButton('Save Claim', [
+                'class' => 'btn btn-success btn-lg'
+            ]) ?>
+        </div>
+
+    <?php endif; ?>
+
+    <?= Html::endForm() ?>
 </div>
 
 <?php
-$script = <<< JS
+$this->registerJs("
     easyNumberSeparator({
-      selector: '#estimated-amount',
-      separator: ',',
-      resultInput: '#estimated-amount-result',
-    })
-
-    // Bulk Checked
-    $("#bulk-checked").change(function(){ 
-        $(".checked").prop('checked', $(this).prop("checked"));
+        selector: '#estimated-amount',
+        separator: ','
     });
-    $('.checked').change(function(){ 
-        if(false == $(this).prop("checked")){
-            $("#bulk-checked").prop('checked', false);
-        }
-        if ($('.checked:checked').length == $('.checked').length ){
-            $("#bulk-checked").prop('checked', true);
-        }
-    });
-
-    // Bulk Mandatory
-    $("#bulk-mandatory").change(function(){ 
-        $(".mandatory").prop('checked', $(this).prop("checked"));
-    });
-    $('.mandatory').change(function(){ 
-        if(false == $(this).prop("checked")){
-            $("#bulk-mandatory").prop('checked', false);
-        }
-        if ($('.mandatory:checked').length == $('.mandatory').length ){
-            $("#bulk-mandatory").prop('checked', true);
-        }
-    });
-JS;
-$this->registerJs($script);
+");
 ?>

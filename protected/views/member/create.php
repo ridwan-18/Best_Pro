@@ -5,7 +5,10 @@ use yii\helpers\Html;
 use app\widgets\Alert;
 use app\models\Policy;
 use app\models\Partner;
+use app\models\User;
 
+$createdBy = Yii::$app->user->identity->id;
+$user = user::findOne(['id' => $createdBy]);
 $policies = Policy::find()
     ->asArray()
     ->select([
@@ -13,6 +16,10 @@ $policies = Policy::find()
         Partner::tableName() . '.name AS partner'
     ])
     ->innerJoin(Partner::tableName(), Partner::tableName() . '.id = ' .  Policy::tableName() . '.partner_id')
+	->innerJoin(User::tableName(), Partner::tableName() . '.id = ' .  User::tableName() . '.partner_id')
+	->where([
+						User::tableName() . '.partner_id' => $user->partner_id
+					])
     ->orderBy([Policy::tableName() . '.id' => SORT_ASC])
     ->all();
 

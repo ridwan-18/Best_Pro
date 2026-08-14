@@ -62,6 +62,13 @@ class claim_bank_jatim_detail extends \yii\db\ActiveRecord
     const EM_FROM_PRODUCT = 2;
 
     const PAGE_SIZE = 20;
+	
+	const PICTURE_PATH = '/images/post_images/';
+    const PICTURE_MAX_WIDTH = 300;
+    const PICTURE_MAX_HEIGHT = 300;
+	
+	public $file_upload;
+	public $imageFile;
 
     /**
      * {@inheritdoc}
@@ -77,14 +84,9 @@ class claim_bank_jatim_detail extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['policy_no', 'batch_no', 'personal_no', 'term', 'start_date', 'end_date', 'sum_insured'], 'required'],
-            [['age', 'term', 'em_type', 'created_by', 'updated_by'], 'integer'],
-            [['start_date', 'end_date', 'stnc_date', 'created_at', 'updated_at'], 'safe'],
-            [['sum_insured', 'total_si', 'total_premium', 'rate_premi', 'rate_saving', 'gross_premium', 'basic_premium', 'saving_premium', 'percentage_discount', 'discount_premium', 'nett_premium', 'percentage_extra_premium', 'extra_premium', 'percentage_em', 'rate_em', 'em_premium'], 'number'],
-            [['policy_no', 'batch_no', 'medical_code'], 'string', 'max' => 50],
-            [['member_no'], 'string', 'max' => 100],
-            [['personal_no', 'branch', 'branch_code', 'account_no', 'bank_branch', 'status_reason', 'stnc_status', 'stnc_reason', 'acc_status', 'em_notes', 'uw_notes'], 'string', 'max' => 255],
-            [['status', 'member_status', 'reas_status'], 'string', 'max' => 20],
+            [['kode_dokumen', 'files',], 'string', 'max' => 500],
+			       [['id_loan'], 'integer'],
+			 [['tgl_upload'], 'safe'],
         ];
     }
 
@@ -94,10 +96,10 @@ class claim_bank_jatim_detail extends \yii\db\ActiveRecord
     public function attributeLabels()
     {
         return [
-            'id' => 'ID',
-            'id_claim' => 'id_claim',
+            'id_loan' => 'ID',
+            'kode_dokumen' => 'kode_dokumen',
             'files' => 'files',
-            'status' => 'status',
+            'tgl_upload' => 'tgl_upload',
       
         ];
     }
@@ -149,52 +151,7 @@ class claim_bank_jatim_detail extends \yii\db\ActiveRecord
             ])
             ->asArray();
 
-        // if (isset($params['member_id']) && $params['member_id'] != null) {
-            // $query->andFilterWhere(['=', self::tableName() . '.id', $params['member_id']]);
-        // }
-
-        // if (isset($params['policy_no']) && $params['policy_no'] != null) {
-            // $query->andFilterWhere(['=', self::tableName() . '.policy_no', $params['policy_no']]);
-        // }
-
-        // if (isset($params['batch_no']) && $params['batch_no'] != null) {
-            // $query->andFilterWhere(['=', self::tableName() . '.batch_no', $params['batch_no']]);
-        // }
-
-        // if (
-            // isset($params['start_date'])
-            // && $params['start_date'] != null
-            // && isset($params['end_date'])
-            // && $params['end_date'] != null
-        // ) {
-            // $query->andFilterWhere(['>=', self::tableName() . '.start_date', $params['start_date']]);
-            // $query->andFilterWhere(['<=', self::tableName() . '.end_date', $params['end_date']]);
-        // }
-
-        // if (isset($params['status']) && $params['status'] != null) {
-            // $query->andFilterWhere(['=', self::tableName() . '.status', $params['status']]);
-        // }
-
-        // if (isset($params['member_status']) && $params['member_status'] != null) {
-            // $query->andFilterWhere(['=', self::tableName() . '.member_status', $params['member_status']]);
-        // }
-
-        // if (isset($params['reas_status']) && $params['reas_status'] != null) {
-            // $query->andFilterWhere(['=', self::tableName() . '.reas_status', $params['reas_status']]);
-        // }
-
-        // if (isset($params['is_accumulated']) && $params['is_accumulated'] == 1) {
-            // $query->andFilterWhere(['like', self::tableName() . '.acc_status', 'Accumulated']);
-        // }
-
-        // if (isset($params['offset']) && $params['offset'] != null) {
-            // $query->offset($params['offset']);
-        // }
-
-        // if (isset($params['limit']) && $params['limit'] != null) {
-            // $query->limit($params['limit']);
-        // }
-
+      
         $query->groupBy([self::tableName() . '.id', self::tableName() . '.personal_no']);
         $query->orderBy([self::tableName() . '.id' => $params['sort']]);
 
@@ -202,6 +159,35 @@ class claim_bank_jatim_detail extends \yii\db\ActiveRecord
     }
 	
 	
+	public function upload()
+    {
+        $filename = $this->id_loan;
+        $extension = $this->file_upload->extension;
+
+        $path = \Yii::getAlias('@webroot') . self::PICTURE_PATH . $filename . '.' . $extension;
+        $this->file_upload->saveAs($path);
+
+
+        $this->file_upload = null;
+        $this->file_medis = $filename . '.' . $extension;
+        return true;
+		
+    }
 	
+	public function uploadclaim()
+    {
+        $filename = $this->id;
+		$filenamepersonal = $this->personal_no;
+        $extension = $this->file_upload->extension;
+
+        $path = \Yii::getAlias('@webroot') . self::PICTURE_PATH . $filename . '-' . $filenamepersonal . '.' . $extension;
+        $this->file_upload->saveAs($path);
+
+
+        $this->file_upload = null;
+        $this->file_medis = $filename . '-' . $filenamepersonal . '.' . $extension;
+        return true;
+		
+    }
 	
 }

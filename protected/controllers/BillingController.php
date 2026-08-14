@@ -20,6 +20,7 @@ use yii\filters\VerbFilter;
 use yii\data\Pagination;
 use Da\QrCode\QrCode;
 use yii\helpers\Url;
+use yii\web\UploadedFile;
 
 /**
  * BillingController implements the CRUD actions for Billing model.
@@ -75,12 +76,15 @@ class BillingController extends Controller
             'limit' => $pagination->limit,
             'sort' => SORT_DESC,
         ]);
+		
+		// $formModel->claim_picture_file = UploadedFile::getInstance($formModel, 'claim_picture_file');
 
         $models = Billing::getAll($params);
 
         return $this->render('index', [
             'models' => $models,
             'pagination' => $pagination,
+			'formModel' => $formModel,
         ]);
     }
 

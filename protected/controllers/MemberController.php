@@ -91,13 +91,8 @@ class MemberController extends Controller
 		]);
 
 		 $models = Batch::getAll($params);
-		// $user = $app->user->identity->id;
-		// $models = Batch::getAll($params, [
-			// 'created_by' => $user,
-			
-		// ]);
 		
-		// var_dump($models);
+		 // var_dump($models);
 		
 		$members = Member::getAll([
 			'policy_no' => $models->policy_no,
@@ -181,9 +176,15 @@ class MemberController extends Controller
 		}
 
 		$this->layout = '/print';
-
-		$memberStatus = Yii::$app->request->get('member_status');
-
+		$idLoan = Yii::$app->request->get('id');
+		// $memberStatus = Yii::$app->request->get('member_status');
+		
+		$member = Member::findOne(['id' => $id]);
+		$personal_no= $member->personal_no;
+		
+		$personal = personal::findOne(['personal_no' => $personal_no]);
+		// var_dump($personal);
+		
 		$batch = Batch::findOne(['id' => $id]);
 		$policy = Policy::findOne(['policy_no' => $batch->policy_no]);
 		$quotation = Quotation::findOne(['id' => $policy->quotation_id]);
@@ -194,7 +195,7 @@ class MemberController extends Controller
 		$members = Member::getAll([
 			'policy_no' => $batch->policy_no,
 			'batch_no' => $batch->batch_no,
-			'member_status' => $memberStatus,
+			// 'member_status' => $memberStatus,
 		]);
 
 		$totalMember = Member::countAll([
@@ -212,7 +213,8 @@ class MemberController extends Controller
 		$qrCode->writeFile(\Yii::getAlias('@webroot') . '/uploads/signature/' . $qrCodeFilename);
 		$qrCodeUrl = Url::base() . Signature::PICTURE_PATH . $qrCodeFilename;
 
-		$page = 'print-pending';
+		// $page = 'print-pending';
+		$page = 'print';
 		if (Yii::$app->request->get('member_status') == Member::MEMBER_STATUS_INFORCE) {
 			$page = 'print-inforce';
 		} else if (Yii::$app->request->get('member_status') == Member::MEMBER_STATUS_DECLINED) {
@@ -229,6 +231,8 @@ class MemberController extends Controller
 			'memberStatus' => $memberStatus,
 			'signature' => $signature,
 			'qrCodeUrl' => $qrCodeUrl,
+			'member' => $member,
+			'personal' => $personal,
 		]);
 	}
 
@@ -655,9 +659,15 @@ class MemberController extends Controller
 			$personal->address = $sheetData[$baseRow]['T'];
 			$personal->province = $sheetData[$baseRow]['V'];
 			$personal->city = $sheetData[$baseRow]['U'];
+			
+			
+			
 			if ($personal->save(false)) {
 				$startDate = Utils::convertDateToYmd($sheetData[$baseRow]['J']);
 				$endDate = Utils::convertDateToYmd($sheetData[$baseRow]['K']);
+				
+				
+				
 
 				$age = Member::getAge($quotation->age_calculate, $birthDate, $startDate);
 				$term = Member::getTerm($quotation->rate_type, $startDate, $endDate);
@@ -747,6 +757,46 @@ class MemberController extends Controller
 				// if ($accStatus != '' || $statusReason != '') {
 					// $status = Member::MEMBER_STATUS_PENDING;
 				// }
+				
+				// send data api
+				$name = $sheetData[$baseRow]['D'];
+				$dob = $birthDate;
+				$tgl_mulai = Utils::convertDateToYmd($sheetData[$baseRow]['J']);
+				$tgl_selesai = Utils::convertDateToYmd($sheetData[$baseRow]['K']);
+				$jenis_kelamin = '-';
+				$Up = $sumInsured;
+				$premi = $totalPremium;
+				$rate = $quotationRate->rate;
+				$personal_number = $personal->personal_no;
+				$ktp = $personal->id_card_no;
+				
+				
+				
+				// $model = new Member();
+				// $response = $model->callAPIPostMemberLogin();
+				// $token = $response['token'];
+				// $policy_number = $batch->policy_no = $policyNo;;
+				// // var_dump($token);
+						
+				// // $model_member = new Member();
+				// $response_member = $model->callAPIPostMemberPush($token,$policy_number,$name,$dob,$tgl_mulai,$tgl_selesai,$sumInsured,$premi,$rate,$uw,$personal_number,$ktp);
+						
+						 // // var_dump($response_member);
+						
+					// if (!empty($response_member) && $response_member['code'] !== '200') {
+						// // var_dump($response_member);
+						// die;
+						// Yii::$app->session->setFlash('error', "Error while Calling API, " . ($response_member['batch_id'] ?? '')
+						// );
+
+						// return $this->redirect([
+							// 'view',
+							// 'id' => Yii::$app->request->post('batch_id'),
+						// ]);
+					// }
+				
+				
+				
 
 				$members[] = [
 					'member_no' => $sheetData[$baseRow]['E'],
@@ -790,6 +840,8 @@ class MemberController extends Controller
 
 			$baseRow++;
 		}
+		
+		// var_dump($members);
 
 		if (count($members) == 0) {
 			Yii::$app->session->setFlash('error', "Member was empty");
@@ -816,15 +868,7 @@ class MemberController extends Controller
 			return $this->redirect(['create']);
 		}
 		
-		// Call API post data Peserta		
-		$response = $model->callAPIPostMember();
-		if ($response['Status'] == '01') {
-            Yii::$app->session->setFlash('error', "Error while Calling API, " . $response['id_loan']);
-			return $this->redirect([
-				'view',
-				'id' => Yii::$app->request->post('batch_id'),
-			]);
-        }
+		
 		
 		$attributes = [
 			'member_no',
@@ -863,8 +907,8 @@ class MemberController extends Controller
 			Yii::$app->session->setFlash('error', "Error while saving Member");
 			return $this->redirect(['create']);
 		}
-
-		Yii::$app->session->setFlash('success', "Successfully uploaded");
+	
+		yii::$app->session->setflash('success', "successfully uploaded");
 		return $this->redirect([
 			'view',
 			'id' => $batch->id
@@ -884,15 +928,6 @@ class MemberController extends Controller
 		$policyNo = Yii::$app->request->post('policy_no');
 		
 		$model = Member::findOne(['id' => Yii::$app->request->post('id')]);
-		// $$batchId = Yii::$app->request->post('id'); = Member::findOne(['batch_no' => $batchNo, 'policy_no' => $policyNo]);
-		
-		
-		// $batchNo = batch::findOne(['batch_no' => $model->batch_no, 'policy_no' => $model->policy_no]);
-		
-		// var_dump($batchNo);
-		// $batchId = batch::findOne(['id' => $batchNo->id]);
-		
-		
 		
         $model->file_upload = UploadedFile::getInstanceByName('files_medis');
      
@@ -1252,12 +1287,19 @@ class MemberController extends Controller
 			$runningNo = $existingMemberTotal + 1;
 		}
 		foreach ($members as $member) {
+			
+			$id= $member->id;
+			// $url = 'http://localhost/BestPro/member/print?id=$id';
+			$url = "http://localhost/BestPro/member/print?id=$id";
+			var_dump($url);
+			
 			$stncDate = Member::getStnc($member->start_date, $tc->retroactive);
 
 			$member->member_no = Member::generateMemberNo($runningNo, $batch->policy_no);
 			$member->status = Member::STATUS_INFORCE;
 			$member->stnc_date = $stncDate;
 			$member->member_status = Member::MEMBER_STATUS_INFORCE;
+			$member->e_certifikat=$url;
 			$member->save(false);
 			$totalAccepted++;
 			$totalUp += $member->sum_insured;

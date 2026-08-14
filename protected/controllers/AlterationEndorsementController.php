@@ -16,7 +16,18 @@ use app\models\QuotationRate;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
+use app\models\Billing;
+use app\models\QuotationCommission;
+use app\models\QuotationProduct;
+use app\models\ProductEm;
+use app\models\Product;
+use app\models\PeriodType;
+use app\models\Utils;
+use app\models\Signature;
 use yii\data\Pagination;
+use yii\web\UploadedFile;
+use Da\QrCode\QrCode;
+use yii\helpers\Url;
 
 /**
  * AlterationEndorsementController implements the CRUD actions for AlterationEndorsement model.
@@ -84,7 +95,7 @@ class AlterationEndorsementController extends Controller
     public function actionGetMemberData()
     {
         $member = Member::findOne(['member_no' => Yii::$app->request->post('member_no')]);
-        $personal = Personal::findOne(['id' => $member->personal_id]);
+        $personal = Personal::findOne(['personal_no' => $member->personal_no]);
         $data = [];
         $data['member_no'] = $member->member_no;
         $data['name'] = $personal->name;
@@ -187,6 +198,7 @@ class AlterationEndorsementController extends Controller
         $startDates = Yii::$app->request->post('start_dates');
         $endDates = Yii::$app->request->post('end_dates');
         $sumInsureds = Yii::$app->request->post('sum_insureds');
+		$new_names = Yii::$app->request->post('new_names');
         $policy = Policy::findOne(['policy_no' => Yii::$app->request->post('policy_no')]);
         if ($policy == null) {
             Yii::$app->session->setFlash('error', "Policy not found");
@@ -233,7 +245,7 @@ class AlterationEndorsementController extends Controller
         $newTotalPremium = 0;
         foreach ($membersNo as $key => $value) {
             $member = Member::findOne(['member_no' => $value]);
-            $personal = Personal::findOne(['id' => $member->personal_id]);
+            $personal = Personal::findOne(['personal_no' => $member->personal_no]);
 
             $newAge = Member::getAge($quotation->age_calculate, $birthDates[$key], $startDates[$key]);
 
@@ -245,7 +257,7 @@ class AlterationEndorsementController extends Controller
                 'term' => $termYear
             ]);
 
-            $newPremi = $sumInsureds[$key] * $quotationRate->rate / 1000;
+          $newPremi = (float)$sumInsureds[$key] * (float)$quotationRate->rate / 1000;
 
             $members[] = [
                 'alteration_no' => $model->alteration_no,
@@ -265,11 +277,12 @@ class AlterationEndorsementController extends Controller
                 'new_sum_insured' => $sumInsureds[$key],
                 'premi' => $member->total_premium,
                 'new_premi' => $newPremi,
-                'extra_premi' => $member->extra_premium
+                'extra_premi' => $member->extra_premium,
+				'new_name' => $new_names[$key]
             ];
 
             $totalSi += $member->sum_insured;
-            $newTotalSi += $sumInsureds[$key];
+            $newTotalSi += (float)$sumInsureds[$key];
             $totalPremium += $member->total_premium;
             $newTotalPremium += $newPremi;
         }
@@ -307,6 +320,7 @@ class AlterationEndorsementController extends Controller
             'premi',
             'new_premi',
             'extra_premi',
+			'new_name',
         ];
         $modelSave = Yii::$app->db->createCommand()
             ->batchInsert(AlterationEndorsementMember::tableName(), $attributes, $members)
@@ -315,9 +329,51 @@ class AlterationEndorsementController extends Controller
             Yii::$app->session->setFlash('error', "Error while saving Member");
             return $this->redirect(['create']);
         }
+		
+		$response = $model->callAPIPostMemberLogin();
 
-        Yii::$app->session->setFlash('success', "Successfully saved");
-        return $this->redirect(['index']);
+				// if (!is_array($response)) {
+					// echo "<pre>";
+					// var_dump($response);
+					// die("Login API bukan array");
+				// }
+
+				// if (!isset($response['token'])) {
+					// echo "<pre>";
+					// var_dump($response);
+					// die("Token tidak ditemukan");
+				// }
+
+				$token = $response['token'];
+
+				$policy_number = $policy->policy_no;
+
+				// ================= REFUND API ===================
+				$response_member = $model->callAPIPostMemberEndorsementPush(
+					$token,
+					$policy->policy_no,
+					$membersNo
+				);
+				var_dump($response_member);
+
+				// Jika response memang array
+				if (
+					is_array($response_member) &&
+					isset($response_member['code']) &&
+					$response_member['code'] != '200'
+				) {
+					Yii::$app->session->setFlash(
+						'error',
+						"Error while Calling API"
+					);
+				}
+		
+		
+		
+		
+
+        // Yii::$app->session->setFlash('success', "Successfully saved");
+        // return $this->redirect(['index']);
     }
 
     /**
@@ -388,6 +444,97 @@ class AlterationEndorsementController extends Controller
             Yii::$app->session->setFlash('error', "Error while saving");
             return $this->redirect(['view', 'id' => $id]);
         }
+		
+		
+		// INSERT INTO INVOICE
+		$policy = Policy::findOne(['policy_no' => $batch->policy_no]);
+		if ($policy == null) {
+			Yii::$app->session->setFlash('error', "Policy not found");
+			return $this->redirect(['index']);
+		}
+
+		$quotation = Quotation::findOne(['id' => $policy->quotation_id]);
+		if ($quotation == null) {
+			Yii::$app->session->setFlash('error', "Quotation not found");
+			return $this->redirect(['index']);
+		}
+
+		// $tc = QuotationTc::findOne(['quotation_id' => $policy->quotation_id]);
+		// if ($tc == null) {
+			// Yii::$app->session->setFlash('error', "TC not found");
+			// return $this->redirect(['index']);
+		// }
+
+		// $commission = QuotationCommission::findOne(['quotation_id' => $policy->quotation_id]);
+		// if ($commission == null) {
+			// Yii::$app->session->setFlash('error', "Commission not found");
+			// return $this->redirect(['index']);
+		// }
+		
+		
+		$regNoParams = [
+			'id' => $newestId,
+			'policy_no' => $batch->policy_no,
+			'month' => date("n")
+		];
+
+		$invoiceNoParams = [
+			'id' => $billingCount + 1,
+			'policy_no' => $batch->policy_no,
+			'month' => date("n")
+		];
+		
+		
+		$billing = new Billing();
+		
+		// $billing->created_by = Yii::$app->user->identity->id;
+		$billing->created_by = $batch->created_by;
+		$billing->policy_no = $batch->policy_no;
+		$billing->batch_no = $batch->batch_no;
+		$billing->reg_no = Billing::generateRegNo($regNoParams);
+		$billing->invoice_no = Billing::generateInvoiceNo($invoiceNoParams);
+		$billing->invoice_date = date("Y-m-d");
+		// $billing->due_date = Billing::getDueDate($tc->grace_period);
+		$billing->accept_date = date("Y-m-d");
+		$billing->remarks = "Endorsment";
+		$billing->total_member = $batch->total_member;
+		$billing->gross_premium = $batch->total_gross_premium;
+		$billing->extra_premium = $batch->total_extra_premium;
+		$billing->discount = $batch->total_gross_premium * $commission->discount / 100;
+		$billing->nett_premium = $batch->total_nett_premium;
+		$billing->handling_fee = $batch->total_gross_premium * $commission->handling_fee / 100;
+		if (
+			$batch->policy_no == '1032301000471'
+			|| $batch->policy_no == '1032211000456'
+		) {
+			$billing->pph = $billing->handling_fee * $commission->pph / 100;
+		} else {
+			$billing->pph = ($billing->discount * $commission->pph / 100) + ($billing->handling_fee * $commission->pph / 100);
+		}
+		// $billing->ppn = ($billing->discount * $commission->ppn / 100) + ($billing->handling_fee * $commission->ppn / 100);
+		// $billing->admin_cost = $administrationCost;
+		// $billing->policy_cost = $policyCost;
+		// $billing->member_card_cost = $memberCardCost;
+		// $billing->certificate_cost = $certificateCost;
+		// $billing->stamp_cost = $stampCost;
+		$billing->total_billing = $billing->gross_premium -
+			$billing->discount -
+			$billing->handling_fee +
+			$billing->pph -
+			$billing->ppn +
+			$billing->admin_cost +
+			$billing->policy_cost +
+			$billing->member_card_cost +
+			$billing->certificate_cost +
+			$billing->stamp_cost;
+		$billing->status = Billing::STATUS_UNVERIFIED;
+		if (!$billing->save(false)) {
+			Yii::$app->session->setFlash('error', "Error while saving billing");
+			return $this->redirect(['view', 'id' => $id]);
+		}
+		
+		// INSERT INTO INVOICE
+		
 
         Yii::$app->session->setFlash('success', "Successfully issued");
         return $this->redirect(['index']);
@@ -422,4 +569,66 @@ class AlterationEndorsementController extends Controller
 
         throw new NotFoundHttpException('The requested page does not exist.');
     }
+	
+	
+	public function actionPrint($id)
+	{
+		if (
+			Yii::$app->user->isGuest
+			|| !User::findIdentityByAccessToken(Yii::$app->user->identity->access_token)
+		) {
+			return $this->goHome();
+		}
+
+		$this->layout = '/print';
+
+		$memberStatus = Yii::$app->request->get('member_status');
+
+		$batch = Batch::findOne(['id' => $id]);
+		$policy = Policy::findOne(['policy_no' => $batch->policy_no]);
+		$quotation = Quotation::findOne(['id' => $policy->quotation_id]);
+		$partner = Partner::findOne(['id' => $quotation->partner_id]);
+		$quotationProduct = QuotationProduct::findOne(['quotation_id' => $policy->quotation_id]);
+		$product = Product::findOne(['id' => $quotationProduct->product_id]);
+
+		$members = Member::getAll([
+			'policy_no' => $batch->policy_no,
+			'batch_no' => $batch->batch_no,
+			'member_status' => $memberStatus,
+		]);
+
+		$totalMember = Member::countAll([
+			'policy_no' => $batch->policy_no,
+			'batch_no' => $batch->batch_no,
+			'member_status' => $memberStatus,
+		]);
+
+		$signature = Signature::findOne(['id' => 1]);
+
+		$qrCodeFilename = 'policy-' . $id . '.png';
+		$qrCode = (new QrCode(Url::base(true) . '/member/print-signature/?id=' . $id . '&member_status=' . $memberStatus))
+			->setSize(75)
+			->setMargin(5);
+		$qrCode->writeFile(\Yii::getAlias('@webroot') . '/uploads/signature/' . $qrCodeFilename);
+		$qrCodeUrl = Url::base() . Signature::PICTURE_PATH . $qrCodeFilename;
+
+		$page = 'print-pending';
+		if (Yii::$app->request->get('member_status') == Member::MEMBER_STATUS_INFORCE) {
+			$page = 'print-inforce';
+		} else if (Yii::$app->request->get('member_status') == Member::MEMBER_STATUS_DECLINED) {
+			$page = 'print-declined';
+		}
+
+		return $this->render($page, [
+			'batch' => $batch,
+			'partner' => $partner,
+			'product' => $product,
+			'quotation' => $quotation,
+			'members' => $members,
+			'totalMember' => $totalMember,
+			'memberStatus' => $memberStatus,
+			'signature' => $signature,
+			'qrCodeUrl' => $qrCodeUrl,
+		]);
+	}
 }

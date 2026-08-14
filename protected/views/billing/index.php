@@ -4,6 +4,8 @@ use yii\helpers\Html;
 use app\widgets\Alert;
 use yii\widgets\LinkPager;
 use app\models\Utils;
+use yii\widgets\ActiveForm;
+use app\models\billing;
 
 $this->title = 'Billing - ' . Yii::$app->name;
 ?>
@@ -74,6 +76,7 @@ $this->title = 'Billing - ' . Yii::$app->name;
                                 <th>Status</th>
                                 <th>Memo Date</th>
                                 <th>Remarks</th>
+								<th>Upload Bukti Bayar</th>
                                 <th width="1">Action</th>
                             </tr>
                         </thead>
@@ -100,6 +103,12 @@ $this->title = 'Billing - ' . Yii::$app->name;
                                         <td><?= $model['status']; ?></td>
                                         <td><?= Utils::convertDateTodMy($model['memo_date']); ?></td>
                                         <td><?= $model['remarks']; ?></td>
+										 <td>
+				
+
+										
+										 
+										 </td>
                                         <td>
                                             <div class="btn-group mb-2">
                                                 <?= Html::a(

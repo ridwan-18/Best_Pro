@@ -278,16 +278,18 @@ class ClaimController extends Controller
 				$token = $response['token'];
 
 				$policy_number = $policy->policy_no;
+				$claimId = $model->id;
 
 				// ================= REFUND API ===================
-				$response_member = $model->callAPIPostMemberClaimPush(
+				$response_member = $model->callAPIPostPengajuanKlaim(
 					$token,
-					$policy->policy_no,
-					$membersNo
+					$policy_number,
+					$claimId
 				);
 
-			
-		
+					// var_dump($response_member);
+					// die;
+							
 
 				// Jika response memang array
 				if (

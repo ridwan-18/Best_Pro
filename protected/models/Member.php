@@ -8,7 +8,7 @@ use yii\web\UploadedFile;
 use yii\image\drivers\Image;
 
 /**
- * This is the model class for table "member".
+ * This is the model class for table 'member'.
  *
  * @property int $id
  * @property string $policy_no
@@ -117,7 +117,11 @@ class Member extends \yii\db\ActiveRecord
 			'string', 'max' => 255],
             [['status', 'member_status', 'reas_status'], 'string', 'max' => 20],
 			
-			 [['imageFile'], 'file', 'skipOnEmpty' => false, 'extensions' => 'png, jpg','pdf'],
+			 // [['imageFile'], 'file', 'skipOnEmpty' => false, 'extensions' => 'png, jpg','pdf'],
+			 // [['imageFile'], 'file', 'skipOnEmpty' => false, 'extensions' => 'png, jpg, pdf'],
+			 [['imageFile'], 'file', 'skipOnEmpty' => true, 'extensions' => 'png, jpg, pdf'],
+			   [['tinggi_badan', 'berat_badan', 'bmi'], 'number'],
+				[['bmi_kategori'], 'string'],
         ];
     }
 
@@ -172,11 +176,16 @@ class Member extends \yii\db\ActiveRecord
             'created_by' => 'Created By',
             'updated_at' => 'Updated At',
             'updated_by' => 'Updated By',
-			'id_loan' => 'id_loan',
+			'id_loan' => 'Id Loan',
 			 'files_medis' => 'files_medis',
             'file_upload' => 'file_upload',
 			'link_e_polis' => 'link_e_polis',
-			'status_em' => 'status_em,'
+			'status_em' => 'status_em,',
+			'tinggi_badan' => 'tinggi_badan',
+			'berat_badan' => 'berat_badan',
+			'bmi' => 'bmi',
+			'bmi_kategori' => 'bmi_kategori'
+			
         ];
     }
 
@@ -222,6 +231,7 @@ class Member extends \yii\db\ActiveRecord
                 self::tableName() . '.uw_notes',
 				self::tableName() . '.status_em',
 				self::tableName() . '.id_loan',
+				self::tableName() . '.file_medis',
                 '(SELECT ' . Personal::tableName() . '.name' .  ' FROM ' . Personal::tableName() . ' WHERE ' . Personal::tableName() . '.personal_no = ' . self::tableName() . '.personal_no GROUP BY ' . self::tableName() . '.personal_no) AS name',
                 '(SELECT ' . Personal::tableName() . '.birth_date' .  ' FROM ' . Personal::tableName() . ' WHERE ' . Personal::tableName() . '.personal_no = ' . self::tableName() . '.personal_no GROUP BY ' . self::tableName() . '.personal_no) AS birth_date',
                 '(SELECT ' . Personal::tableName() . '.gender' .  ' FROM ' . Personal::tableName() . ' WHERE ' . Personal::tableName() . '.personal_no = ' . self::tableName() . '.personal_no GROUP BY ' . self::tableName() . '.personal_no) AS gender',
@@ -491,8 +501,8 @@ class Member extends \yii\db\ActiveRecord
 
     public static function getStnc($startDate, $retroactive)
     {
-        $currentDate = date("Y-m-d");
-        $validDate = date("Y-m-d", strtotime("+" . $retroactive . " day", strtotime($startDate)));
+        $currentDate = date('Y-m-d');
+        $validDate = date('Y-m-d', strtotime('+' . $retroactive . ' day', strtotime($startDate)));
         if ($currentDate > $validDate) {
             return $currentDate;
         }
@@ -503,7 +513,7 @@ class Member extends \yii\db\ActiveRecord
     {
         $prefix = substr($policyNo, 0, 3);
         $suffix = substr($policyNo, -3, 3);
-        return $prefix . '-' . date("ym") . str_pad($id, 7, '0', STR_PAD_LEFT) . '-' . $suffix;
+        return $prefix . '-' . date('ym') . str_pad($id, 7, '0', STR_PAD_LEFT) . '-' . $suffix;
     }
 	
 	  public static function getAllParticipantjatim($params = [])
@@ -552,51 +562,7 @@ class Member extends \yii\db\ActiveRecord
             ])
             ->asArray();
 
-        // if (isset($params['member_id']) && $params['member_id'] != null) {
-            // $query->andFilterWhere(['=', self::tableName() . '.id', $params['member_id']]);
-        // }
-
-        // if (isset($params['policy_no']) && $params['policy_no'] != null) {
-            // $query->andFilterWhere(['=', self::tableName() . '.policy_no', $params['policy_no']]);
-        // }
-
-        // if (isset($params['batch_no']) && $params['batch_no'] != null) {
-            // $query->andFilterWhere(['=', self::tableName() . '.batch_no', $params['batch_no']]);
-        // }
-
-        // if (
-            // isset($params['start_date'])
-            // && $params['start_date'] != null
-            // && isset($params['end_date'])
-            // && $params['end_date'] != null
-        // ) {
-            // $query->andFilterWhere(['>=', self::tableName() . '.start_date', $params['start_date']]);
-            // $query->andFilterWhere(['<=', self::tableName() . '.end_date', $params['end_date']]);
-        // }
-
-        // if (isset($params['status']) && $params['status'] != null) {
-            // $query->andFilterWhere(['=', self::tableName() . '.status', $params['status']]);
-        // }
-
-        // if (isset($params['member_status']) && $params['member_status'] != null) {
-            // $query->andFilterWhere(['=', self::tableName() . '.member_status', $params['member_status']]);
-        // }
-
-        // if (isset($params['reas_status']) && $params['reas_status'] != null) {
-            // $query->andFilterWhere(['=', self::tableName() . '.reas_status', $params['reas_status']]);
-        // }
-
-        // if (isset($params['is_accumulated']) && $params['is_accumulated'] == 1) {
-            // $query->andFilterWhere(['like', self::tableName() . '.acc_status', 'Accumulated']);
-        // }
-
-        // if (isset($params['offset']) && $params['offset'] != null) {
-            // $query->offset($params['offset']);
-        // }
-
-        // if (isset($params['limit']) && $params['limit'] != null) {
-            // $query->limit($params['limit']);
-        // }
+       
 
         $query->groupBy([self::tableName() . '.id', self::tableName() . '.personal_no']);
         $query->orderBy([self::tableName() . '.id' => $params['sort']]);
@@ -648,12 +614,28 @@ class Member extends \yii\db\ActiveRecord
         $filename = $this->id_loan;
         $extension = $this->file_upload->extension;
 
-        $path = \Yii::getAlias('@webroot') . self::PICTURE_PATH . $filename . "." . $extension;
+        $path = \Yii::getAlias('@webroot') . self::PICTURE_PATH . $filename . '.' . $extension;
         $this->file_upload->saveAs($path);
 
 
         $this->file_upload = null;
-        $this->file_medis = $filename . "." . $extension;
+        $this->file_medis = $filename . '.' . $extension;
+        return true;
+		
+    }
+	
+	public function uploadspk()
+    {
+        $filename = $this->id;
+		$filenamepersonal = $this->personal_no;
+        $extension = $this->file_upload->extension;
+
+        $path = \Yii::getAlias('@webroot') . self::PICTURE_PATH . $filename . '-' . $filenamepersonal . '.' . $extension;
+        $this->file_upload->saveAs($path);
+
+
+        $this->file_upload = null;
+        $this->file_medis = $filename . '-' . $filenamepersonal . '.' . $extension;
         return true;
 		
     }
@@ -764,15 +746,247 @@ class Member extends \yii\db\ActiveRecord
 		$filename = $this->id_loan;
         $extension = $this->file_upload->extension;
 
-        $path = \Yii::getAlias('@webroot') . self::PICTURE_PATH . $filename . "." . $extension;
+        $path = \Yii::getAlias('@webroot') . self::PICTURE_PATH . $filename . '.' . $extension;
         $this->file_upload->saveAs($path);
 
 
         $this->file_upload = null;
-        $this->bukti_bayar_refund = $filename . "." . $extension;
+        $this->bukti_bayar_refund = $filename . '.' . $extension;
         return true;
 		
 		
     }
+	
+	public function callAPIPostMember()
+    {
+        // $url = 'http://45.64.1.151/api/akseptasi/bankjatim/post-status-pertanggungan-cbc';
+		$url = 'https://ws2u.winserver.aapialang.co.id/prod/akseptasi/bankjatim/post-status-pertanggungan-cbc';
+		// https://ws2u.winserver.aapialang.co.id/prod/akseptasi/bankjatim/post-status-pertanggungan-cbc
+		// $url = 'https://ws2u.winserver.aapialang.co.id/dev/pembatalan/bankjatim/post-pembayaran';
+        $headers = [
+            'Content-Type: application/json',
+            'Authorization: Basic ' . base64_encode('bjtm:bjtm!@##@!')
+        ];
+		
+		$fileName = $this->id_loan . '.pdf';
+		
+		$data = json_encode([
+            'ID_Loan' => $this->id_loan,
+            'Extra_Premi' => $this->em_premium,
+            'Status' => $this->uw_notes,
+			'Link_E_Polis' => 'https://h2h-ajri.reli.id/images/e_policy/' .$fileName,
+			'Nomor_Polis' => $this->policy_no,
+			'Keterangan' => $this->em_notes,
+			'Asuransi' => '1',
+			
+        ]);
+		
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($ch, CURLOPT_HEADER, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+        $response = curl_exec($ch);
+        $body = substr($response, curl_getinfo($ch, CURLINFO_HEADER_SIZE));
+
+        curl_close($ch);
+
+        return json_decode($body, true);
+    }
+	
+	
+	public function callAPIPostMemberLogin()
+    {
+		
+		$url='http://demo-reliancelife.ajrius.id/api/login';
+        $headers = [
+            'Content-Type: application/json',
+        ];
+		$data = json_encode([
+			'email' => 'api@gmail.com',
+            'password' => '12345678',
+			
+			
+        ]);
+		
+         $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($ch, CURLOPT_HEADER, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+        $response = curl_exec($ch);
+        $body = substr($response, curl_getinfo($ch, CURLINFO_HEADER_SIZE));
+
+        curl_close($ch);
+
+        return json_decode($body, true);
+    }
+	
+	public function callAPIPostMemberPush($token,$policy_number,$name,$dob,$tgl_mulai,$tgl_selesai,$sumInsured,$premi,$rate)
+    {
+		$member = $sheetData;
+		// var_dump($member);
+		$headers = [
+		   'Authorization: Bearer ' . $token
+        ];
+		 
+		$peserta =[
+			[
+			
+        'nama' => $name,
+        'tanggal_lahir' => $dob,
+        'tanggal_mulai' => $tgl_mulai,
+        'tanggal_akhir' => $tgl_selesai,
+        'id_loan' => '-',
+        'basic' => $sumInsured,
+        'kontribusi' => $premi,
+        'rate' => $rate,
+        'jenis_kelamin' => 'L',
+        'no_ktp' => '444442224',
+        'alamat' => 'tes',
+        'tinggi_badan' => '166'
+			]
+		];	 
+		
+		$data = [
+			'no_polis' => '	1032410000705',
+			// 'no_polis' => $policy_number,
+		];
+		
+		foreach ($peserta as $p) {
+		$data['peserta[]'] = json_encode($p);
+		}
+			$ch = curl_init ('http://demo-reliancelife.ajrius.id/api/pengajuan-v2/store');
+			   // "url": {
+              // "raw": "{{url}}pengajuan-v2/store",
+              // "host": [
+                // "{{url}}pengajuan-v2"
+
+			curl_setopt_array($ch, [
+				CURLOPT_RETURNTRANSFER => true,
+				CURLOPT_POST => true,
+				CURLOPT_POSTFIELDS => $data,
+				CURLOPT_HTTPHEADER => $headers
+			]);
+			$response = curl_exec($ch);
+			curl_close($ch);
+			 // var_dump($peserta);
+			// var_dump($response);
+		
+    }
+	
+	
+	 public static function getJamkrida($params = [])
+    {
+        $query = self::find()
+            ->select([
+                self::tableName() . '.policy_no',
+                self::tableName() . '.batch_no',
+                self::tableName() . '.member_no',
+                Personal::tableName() . '.name',
+                Personal::tableName() . '.birth_date',
+                self::tableName() . '.age',
+                self::tableName() . '.start_date',
+                self::tableName() . '.end_date',
+                self::tableName() . '.term',
+                self::tableName() . '.sum_insured',
+                self::tableName() . '.gross_premium',
+                self::tableName() . '.nett_premium',
+                self::tableName() . '.em_premium',
+				self::tableName() . '.e_certifikat',
+				self::tableName() . '.member_status',
+            ])
+            ->asArray()
+            ->innerJoin(Personal::tableName(), Personal::tableName() . '.personal_no = ' . self::tableName() . '.personal_no');
+
+        if (isset($params['policy_no']) && $params['policy_no'] != null) {
+            $query->andFilterWhere(['=', self::tableName() . '.policy_no', $params['policy_no']]);
+        }
+		
+		
+		 if (isset($params['batch_no']) && $params['batch_no'] != null) {
+            $query->andFilterWhere(['=', self::tableName() . '.batch_no', $params['batch_no']]);
+        }
+
+        $query->groupBy([self::tableName() . '.id', self::tableName() . '.personal_no']);
+        $query->orderBy([self::tableName() . '.id' => $params['sort']]);
+
+        return $query->all();
+    }
+	
+	public static function countAllJamkrida($params = [])
+    {
+        $query = self::find();
+
+        if (isset($params['member_id']) && $params['member_id'] != null) {
+            $query->andFilterWhere(['=', self::tableName() . '.id', $params['member_id']]);
+        }
+
+        if (isset($params['policy_no']) && $params['policy_no'] != null) {
+            $query->andFilterWhere(['=', self::tableName() . '.policy_no', $params['policy_no']]);
+        }
+
+        if (isset($params['batch_no']) && $params['batch_no'] != null) {
+            $query->andFilterWhere(['=', self::tableName() . '.batch_no', $params['batch_no']]);
+        }
+
+        if (
+            isset($params['start_date'])
+            && $params['start_date'] != null
+            && isset($params['end_date'])
+            && $params['end_date'] != null
+        ) {
+            $query->andFilterWhere(['>=', self::tableName() . '.start_date', $params['start_date']]);
+            $query->andFilterWhere(['<=', self::tableName() . '.end_date', $params['end_date']]);
+        }
+
+        if (isset($params['status']) && $params['status'] != null) {
+            $query->andFilterWhere(['=', self::tableName() . '.status', $params['status']]);
+        }
+
+        if (isset($params['member_status']) && $params['member_status'] != null) {
+            $query->andFilterWhere(['=', self::tableName() . '.member_status', $params['member_status']]);
+        }
+
+        if (isset($params['reas_status']) && $params['reas_status'] != null) {
+            $query->andFilterWhere(['=', self::tableName() . '.reas_status', $params['reas_status']]);
+        }
+
+        $query->groupBy([self::tableName() . '.id', self::tableName() . '.personal_no']);
+
+        return $query->count();
+    }
+	
+	public static function dobDate()
+    {
+        return date("Y-m-d");
+    }
+	
+	public static function startDate()
+    {
+        return date("Y-m-d");
+    }
+	
+	public static function endDate()
+    {
+        return date("Y-m-d");
+    }
+	
+	public static function getdatacoresystem($policy_no,$id)
+	{
+			$query = self::find()
+				->innerJoin(
+					Personal::tableName(),
+					Personal::tableName() . '.personal_no = ' . self::tableName() . '.personal_no'
+				)
+				 ->where([self::tableName() . '.policy_no' => $policy_no])
+					->andWhere([self::tableName() . '.personal_no' => $id]);
+		
+			return $query->all(); 
+	}
 
 }

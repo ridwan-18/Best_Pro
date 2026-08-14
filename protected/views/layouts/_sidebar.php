@@ -66,6 +66,7 @@ use app\models\User;
                             <li><a href="<?= Url::base() . '/policy'; ?>">Policy</a></li>
                             <li><a href="<?= Url::base() . '/member'; ?>">Member</a></li>
                             <li><a href="<?= Url::base() . '/billing'; ?>">Blling</a></li>
+							 <li><a href="<?= Url::base() . '/create-member'; ?>">Add Member</a></li>
 							<!-- update edo 14-08-2023  -->
 							<!-- batas update edo 14-08-2023  -->
                         </ul>
@@ -127,6 +128,9 @@ use app\models\User;
                             <li><a href="<?= Url::base() . '/billing'; ?>">Blling</a></li>
                         </ul>
                     </li>
+					
+					<!-- 
+					
                     <li>
                         <a href="javascript: void(0);"><i class="fa fa-pencil"></i> <span> Alteration </span> <span class="menu-arrow"></span></a>
                         <ul class="nav-second-level" aria-expanded="false">
@@ -135,12 +139,15 @@ use app\models\User;
                             <li><a href="<?= Url::base() . '/alteration-cancel'; ?>">Cancel</a></li>
                         </ul>
                     </li>
+					-->
 					
+					<!-- 
 					<li>
                         <a href="<?= Url::base() . '/claim'; ?>">
                             <i class="fa fa-dropbox"></i> <span> Claim </span>
                         </a>
                     </li>
+					-->
 					
                     <li>
                         <a href="javascript: void(0);"><i class="fa fa-book"></i> <span> Report </span> <span class="menu-arrow"></span></a>
@@ -185,6 +192,8 @@ use app\models\User;
                             <li><a href="<?= Url::base() . '/billing'; ?>">Blling</a></li>
                         </ul>
                     </li>
+					
+					<!-- 
                     <li>
                         <a href="javascript: void(0);"><i class="fa fa-pencil"></i> <span> Alteration </span> <span class="menu-arrow"></span></a>
                         <ul class="nav-second-level" aria-expanded="false">
@@ -193,12 +202,15 @@ use app\models\User;
                             <li><a href="<?= Url::base() . '/alteration-cancel'; ?>">Cancel</a></li>
                         </ul>
                     </li>
+					-->
 					
+					<!--
 					<li>
                         <a href="<?= Url::base() . '/claim'; ?>">
                             <i class="fa fa-dropbox"></i> <span> Claim </span>
                         </a>
                     </li>
+					-->
 					
                     <li>
                         <a href="javascript: void(0);"><i class="fa fa-book"></i> <span> Report </span> <span class="menu-arrow"></span></a>

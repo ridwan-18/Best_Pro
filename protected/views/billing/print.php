@@ -212,12 +212,12 @@ $this->title = 'Print Billing';
             <tr>
                 <td width="100">Bank</td>
                 <td width="5">:</td>
-                <td><b>Bank Central Asia</b></td>
+                <td><b>BANK SHINHAN INDONESIA</b></td>
             </tr>
             <tr>
                 <td>No Rekening</td>
                 <td>:</td>
-                <td><b>5460316199</b></td>
+                <td><b>701000074279</b></td>
             </tr>
             <tr>
                 <td>Nama Rekening</td>

@@ -467,106 +467,186 @@ class Claim extends \yii\db\ActiveRecord
 		];
 	}
 	
-	public function callAPIPostPengajuanKlaim(
-    $token,
-    $noPolis,
-    $data,
-    $peserta,
-    $formulirPengajuanKlaim,
-    $suratKeteranganMeninggalKelurahan,
-    $suratKeteranganMeninggalRs,
-    $copyKtp,
-    $copyKtpAhliWaris,
-    $resumeMedis,
-    $daftarAngsuran,
-    $copyAkadPembiayaan,
-    $suratKuasa,
-    $suratKeteranganAhliWaris,
-    $suratDariPemegangPolis,
-    $dokumenLain
-	) 
+	public function callAPIPostPengajuanKlaim($token, $policy_number, $claimId)
 	{
+		$claim = Claim::findOne($claimId);
+
+		if (!$claim) {
+			return [
+				'code' => 404,
+				'message' => 'Claim tidak ditemukan'
+			];
+		}
+
+		$member = Member::findOne([
+			'member_no' => $claim->member_no
+		]);
+
+		$personal = Personal::findOne([
+			'personal_no' => $member->personal_no
+		]);
+
+		// URL endpoint
+		
+		$url = 'http://127.0.0.1:8000/api/klaim/store';
 
 		$headers = [
-			'Authorization: Bearer ' . $token
+			'Authorization: Bearer ' . $token,
+			'Accept: application/json'
+			// Jangan tambahkan Content-Type
+			// CURL akan otomatis membuat multipart/form-data
+		];
+
+		// field peserta
+		$peserta = [
+			'no_peserta' =>'111-25050005236-308'
+		];
+
+		// field data
+		$data = [
+			'kepesertaan_id'           => '15',
+			'tanggal_meninggal'        => $claim->incident_date,
+			'nilai_klaim'              => $claim->estimated_amount,
+			'jenis_klaim'              => $claim->claim_reason,
+			'tempat_dan_sebab'         => $claim->place_of_death,
+			'kadaluarsa_klaim_hari'    => '',
+			'provinsi_id'              => '',
+			'kabupaten_id'             => '',
+			'nilai_klaim_or'           => '',
+			'nilai_klaim_reas'         => '',
+			'sebab'                    => $claim->disease,
+			'organ_yang_mencakup'      => '',
+			'kategori_penyakit'        => '',
+			'bank_nomor_rekening'      => '',
+			'bank_cabang'              => '',
+			'bank_atas_nama'           => '',
+			'bank_mata_uang'           => '',
+			'max_or'                   => '',
+			'share_or'                 => '',
+			'share_reas'               => '',
+			'manfaat'                  => '',
+			'alamat_tertanggung'       => '',
+			'tanggal_surat'            => '',
+			'id'                       => $claim->id
 		];
 
 		$postData = [
-			'no_polis' => $noPolis,
-			'data' => json_encode($data),
-			'peserta' => json_encode($peserta),
+			'no_polis' => '1032301000472',
+			'peserta'  => json_encode($peserta),
+			'data'     => json_encode($data)
 		];
 
-		// Lampiran
-		if (!empty($formulirPengajuanKlaim) && file_exists($formulirPengajuanKlaim)) {
-			$postData['formulir_pengajuan_klaim'] = new CURLFile($formulirPengajuanKlaim);
-		}
+		// Ambil seluruh dokumen claim
+		$documents = claim_bank_jatim_detail::find()
+			->where(['id_loan' => $claimId])
+			->all();
 
-		if (!empty($suratKeteranganMeninggalKelurahan) && file_exists($suratKeteranganMeninggalKelurahan)) {
-			$postData['surat_keterangan_meninggal_kelurahan'] = new CURLFile($suratKeteranganMeninggalKelurahan);
-		}
+		foreach ($documents as $doc) {
 
-		if (!empty($suratKeteranganMeninggalRs) && file_exists($suratKeteranganMeninggalRs)) {
-			$postData['surat_keterangan_meninggal_rs'] = new CURLFile($suratKeteranganMeninggalRs);
-		}
+			// lokasi file di server
+			$filePath = Yii::getAlias('@webroot/') . $doc->files;
 
-		if (!empty($copyKtp) && file_exists($copyKtp)) {
-			$postData['copy_ktp'] = new CURLFile($copyKtp);
-		}
+			if (!file_exists($filePath)) {
+				continue;
+			}
 
-		if (!empty($copyKtpAhliWaris) && file_exists($copyKtpAhliWaris)) {
-			$postData['copy_ktp_ahli_waris'] = new CURLFile($copyKtpAhliWaris);
-		}
+			switch ($doc->kode_dokumen) {
 
-		if (!empty($resumeMedis) && file_exists($resumeMedis)) {
-			$postData['resume_medis'] = new CURLFile($resumeMedis);
-		}
+				case 'FORM_KLAIM':
+					$postData['formulir_pengajuan_klaim'] = new CURLFile($filePath);
+					break;
 
-		if (!empty($daftarAngsuran) && file_exists($daftarAngsuran)) {
-			$postData['daftar_angsuran'] = new CURLFile($daftarAngsuran);
-		}
+				case 'SK_MENINGGAL_KELURAHAN':
+					$postData['surat_keterangan_meninggal_kelurahan'] = new CURLFile($filePath);
+					break;
 
-		if (!empty($copyAkadPembiayaan) && file_exists($copyAkadPembiayaan)) {
-			$postData['copy_akad_pembiayaan'] = new CURLFile($copyAkadPembiayaan);
-		}
+				case 'SK_MENINGGAL_RS':
+					$postData['surat_keterangan_meninggal_rs'] = new CURLFile($filePath);
+					break;
 
-		if (!empty($suratKuasa) && file_exists($suratKuasa)) {
-			$postData['surat_kuasa'] = new CURLFile($suratKuasa);
-		}
+				case 'KTP':
+					$postData['copy_ktp'] = new CURLFile($filePath);
+					break;
 
-		if (!empty($suratKeteranganAhliWaris) && file_exists($suratKeteranganAhliWaris)) {
-			$postData['surat_keterangan_ahli_waris'] = new CURLFile($suratKeteranganAhliWaris);
-		}
+				case 'KTP_AHLI_WARIS':
+					$postData['copy_ktp_ahli_waris'] = new CURLFile($filePath);
+					break;
 
-		if (!empty($suratDariPemegangPolis) && file_exists($suratDariPemegangPolis)) {
-			$postData['surat_dari_pemegang_polis'] = new CURLFile($suratDariPemegangPolis);
-		}
+				case 'RESUME_MEDIS':
+					$postData['resume_medis'] = new CURLFile($filePath);
+					break;
 
-		if (!empty($dokumenLain) && file_exists($dokumenLain)) {
-			$postData['dokumen_lain'] = new CURLFile($dokumenLain);
+				case 'DAFTAR_ANGSURAN':
+					$postData['daftar_angsuran'] = new CURLFile($filePath);
+					break;
+
+				case 'AKAD':
+					$postData['copy_akad_pembiayaan'] = new CURLFile($filePath);
+					break;
+
+				case 'SURAT_KUASA':
+					$postData['surat_kuasa'] = new CURLFile($filePath);
+					break;
+
+				case 'AHLI_WARIS':
+					$postData['surat_keterangan_ahli_waris'] = new CURLFile($filePath);
+					break;
+
+				case 'SURAT_PEMEGANG_POLIS':
+					$postData['surat_dari_pemegang_polis'] = new CURLFile($filePath);
+					break;
+
+				case 'KEPOLISIAN':
+					$postData['surat_keterangan_kepolisian'] = new CURLFile($filePath);
+					break;
+
+				case 'PERNYATAAN_KESEHATAN':
+					$postData['surat_pernyataan_kesehatan'] = new CURLFile($filePath);
+					break;
+
+				case 'VISUM':
+					$postData['surat_hasil_otopsi_atau_visum'] = new CURLFile($filePath);
+					break;
+
+				default:
+					$postData['dokumen_lain'] = new CURLFile($filePath);
+					break;
+			}
 		}
 
 		$curl = curl_init();
 
 		curl_setopt_array($curl, [
-			CURLOPT_URL => Yii::$app->params['apiUrl'] . '/klaim/pengajuan',
+			CURLOPT_URL => $url,
 			CURLOPT_RETURNTRANSFER => true,
 			CURLOPT_POST => true,
 			CURLOPT_HTTPHEADER => $headers,
 			CURLOPT_POSTFIELDS => $postData,
-			CURLOPT_TIMEOUT => 60,
+			CURLOPT_SSL_VERIFYPEER => false,
+			CURLOPT_SSL_VERIFYHOST => false,
 		]);
 
 		$response = curl_exec($curl);
+
 		$httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-		$error = curl_error($curl);
+
+		if (curl_errno($curl)) {
+			$error = curl_error($curl);
+			curl_close($curl);
+
+			return [
+				'code' => 500,
+				'message' => $error
+			];
+		}
 
 		curl_close($curl);
 
 		return [
-			'http_code' => $httpCode,
+			'code' => $httpCode,
 			'response' => json_decode($response, true),
-			'error' => $error
+			 'raw_response' => $response,
+    'response' => json_decode($response, true)
 		];
 	}
 }

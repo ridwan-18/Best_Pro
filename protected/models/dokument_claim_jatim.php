@@ -103,28 +103,13 @@ class dokument_claim_jatim extends \yii\db\ActiveRecord
     }
 
 	
-	  public static function getAll($params = [])
+	  public static function getAll()
     {
          $query = self::find()
 		   -> select ([
-		   self::tableName() . '.kode',
 		    self::tableName() . '.nama_dokument',
 		   ])
             ->asArray();
-
-        if (isset($params['jenis_claim']) && $params['jenis_claim'] != null) {
-            $query->andFilterWhere(['=', self::tableName() . '.jenis_claim', $params['jenis_claim']]);
-        }
-
-        // if (isset($params['offset']) && $params['offset'] != null) {
-            // $query->offset($params['offset']);
-        // }
-
-        // if (isset($params['limit']) && $params['limit'] != null) {
-            // $query->limit($params['limit']);
-        // }
-
-        $query->orderBy(['id' => $params['sort']]);
 
         return $query->all();
     }

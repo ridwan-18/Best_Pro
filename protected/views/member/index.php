@@ -38,6 +38,7 @@ $this->title = 'Member - ' . Yii::$app->name;
                                     'id' => 'batch_no',
                                 ]) ?>
                             </div>
+							
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">

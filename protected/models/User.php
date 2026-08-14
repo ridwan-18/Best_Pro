@@ -65,6 +65,7 @@ class User extends ActiveRecord implements IdentityInterface
             'created_by' => 'Created By',
             'updated_at' => 'Updated At',
             'updated_by' => 'Updated By',
+			'partner_id'  =>    'partner_id',
         ];
     }
 
