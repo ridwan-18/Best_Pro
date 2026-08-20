@@ -160,7 +160,7 @@ class AlterationRefund extends \yii\db\ActiveRecord
 
 			'peserta' => [
 				[
-					'no_peserta' => 'no_peserta' => $membersNo[0],,
+					'no_peserta' => 'no_peserta' => $membersNo[0],
 
 					'refund_tanggal_efektif' =>
 						is_array($newEndDates) ? $newEndDates[0] : $newEndDates,
