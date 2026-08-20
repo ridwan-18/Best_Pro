@@ -208,10 +208,10 @@ class AlterationRefund extends \yii\db\ActiveRecord
 
 		$decode = json_decode($response, true);
 
-		// echo "<br><br>JSON DECODE<br>";
-		// var_dump($decode);
+		echo "<br><br>JSON DECODE<br>";
+		var_dump($decode);
 
-		// die;
+		die;
 
 		return $decode;
 	}

@@ -313,10 +313,10 @@ class AlterationRefundController extends Controller
 					$totalPremium
 				);
 
-				// echo "<pre>";
-				// echo "===== RESPONSE REFUND =====<br>";
-				// var_dump($response_member);
-				// die;
+				echo "<pre>";
+				echo "===== RESPONSE REFUND =====<br>";
+				var_dump($response_member);
+				die;
 
 				// Jika response memang array
 				if (
