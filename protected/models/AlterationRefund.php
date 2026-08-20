@@ -139,7 +139,7 @@ class AlterationRefund extends \yii\db\ActiveRecord
         return json_decode($body, true);
     }
 	
-	public function callAPIPostMemberRefundPush($token,$policy_number,$newEndDates,$membersNo,$remainingTerm,$premiRefund,$totalPremium)
+	public function callAPIPostMemberRefundPush($token,$policy_number,$newEndDates,$membersNo,$remainingTerm,$premiRefunds,$totalPremium)
 	{
 		$headers = [
 			'Content-Type: application/json',
@@ -169,7 +169,7 @@ class AlterationRefund extends \yii\db\ActiveRecord
 
 					'total_kontribusi_dibayar' => $totalPremium,
 
-					'refund_kontribusi' => $premiRefund
+					'refund_kontribusi' => $premiRefunds
 				]
 			]
 		];
