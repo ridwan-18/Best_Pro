@@ -443,26 +443,26 @@ class ClaimController extends Controller
 		
 		
 		
-		echo '<pre>';
+		// echo '<pre>';
 
-foreach ($apiFiles as $key => $file) {
-    echo $key . ' => ';
+// foreach ($apiFiles as $key => $file) {
+    // echo $key . ' => ';
 
-    if ($file) {
-        echo $file . ' | ';
+    // if ($file) {
+        // echo $file . ' | ';
 
-        echo file_exists($file)
-            ? 'EXISTS'
-            : 'NOT FOUND';
-    } else {
-        echo 'NULL';
-    }
+        // echo file_exists($file)
+            // ? 'EXISTS'
+            // : 'NOT FOUND';
+    // } else {
+        // echo 'NULL';
+    // }
 
-    echo PHP_EOL;
-}
+    // echo PHP_EOL;
+// }
 
-echo '</pre>';
-die;
+// echo '</pre>';
+// die;
 
 		$loginResponse = $claim->callAPIPostMemberLogin();
 
