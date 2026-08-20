@@ -154,8 +154,8 @@ class AlterationRefund extends \yii\db\ActiveRecord
 				'tanggal_efektif'     => is_array($newEndDates) ? $newEndDates[0] : $newEndDates,
 				'tujuan_pembayaran'   => 'Transfer',
 				'nama_bank'           => 'BCA',
-				'nomor_peserta_awal' => '103-26070000025-705',
-				'nomor_peserta_akhir' =>  '111-25050005236-308'
+				'nomor_peserta_awal' => $membersNo,
+				'nomor_peserta_akhir' =>  $membersNo
 			],
 
 			'peserta' => [
@@ -197,14 +197,14 @@ class AlterationRefund extends \yii\db\ActiveRecord
 
 		curl_close($ch);
 
-		// echo "<pre>";
-		// echo "HTTP CODE : ".$httpCode."<br><br>";
+		echo "<pre>";
+		echo "HTTP CODE : ".$httpCode."<br><br>";
 
-		// echo "REQUEST<br>";
-		// print_r($data);
+		echo "REQUEST<br>";
+		print_r($data);
 
-		// echo "<br><br>RESPONSE<br>";
-		// var_dump($response);
+		echo "<br><br>RESPONSE<br>";
+		var_dump($response);
 
 		$decode = json_decode($response, true);
 
