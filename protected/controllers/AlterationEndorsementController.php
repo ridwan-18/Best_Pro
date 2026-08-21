@@ -197,7 +197,8 @@ class AlterationEndorsementController extends Controller
         $birthDates = Yii::$app->request->post('birth_dates');
         $startDates = Yii::$app->request->post('start_dates');
         $endDates = Yii::$app->request->post('end_dates');
-        $sumInsureds = Yii::$app->request->post('sum_insureds');
+        // $sumInsureds = Yii::$app->request->post('sum_insureds');
+		$sumInsureds = Yii::$app->request->post('sum_insureds', []);
 		$new_names = Yii::$app->request->post('new_names');
         $policy = Policy::findOne(['policy_no' => Yii::$app->request->post('policy_no')]);
         if ($policy == null) {
@@ -205,11 +206,6 @@ class AlterationEndorsementController extends Controller
             return $this->redirect(['create']);
         }
 		
-		
-		if($sumInsureds=='')
-		{
-			$sumInsureds = null;
-		}
 		
         $quotation = Quotation::findOne(['id' => $policy->quotation_id]);
         if ($quotation == null) {
