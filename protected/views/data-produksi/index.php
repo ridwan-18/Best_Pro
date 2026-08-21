@@ -111,17 +111,6 @@ $this->title = 'Data Produksi - ' . Yii::$app->name;
                         </div>
                     </div>
 						
-					
-					 <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="id_loan">ID Loan</label>
-                                <?= Html::input('text', 'id_loan', Yii::$app->request->get('id_loan'), [
-                                    'class' => 'form-control',
-                                    'id' => 'id_loan',
-                                ]) ?>
-                            </div>
-                        </div>
-						
 					 <div class="col-md-6">
                             <div class="form-group">
                                 <label for="username">Cabang</label>
