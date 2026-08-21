@@ -146,24 +146,7 @@ $this->title = 'Create Alteration Refund - ' . Yii::$app->name;
                         ]
                     ); ?>
                 </div>
-                <div class="col-md-6">
-                    <h5>Per Batch</h5>
-                    <div class="form-group">
-                        <?= Html::dropDownList('batch_no', null, $batchs, [
-                            'prompt' => '- Select Batch -',
-                            'id' => 'batch_no',
-                            'class' => 'form-control slct2',
-                        ]) ?>
-                    </div>
-                    <?= Html::a(
-                        '<i class="fa fa-plus"></i> Add',
-                        'javascript:void(0)',
-                        [
-                            'class' => 'btn btn-info btn-sm waves-effect',
-                            'id' => 'add-batch',
-                        ]
-                    ); ?>
-                </div>
+                
             </div>
             <div class="row mt-4">
                 <div class="col-md-12">
