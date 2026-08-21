@@ -256,16 +256,8 @@ class AlterationEndorsementController extends Controller
                 'quotation_id' => $policy->quotation_id,
                 'term' => $termYear
             ]);
-			
-			
-			$newSumInsured = isset($sumInsureds[$key])
-        ? trim((string)$sumInsureds[$key])
-        : '';
-		
-		$newSumInsured = (float)$newSumInsured;
 
-          $newPremi = (float)$newSumInsured[$key] * (float)$quotationRate->rate / 1000;
-		  var_dump($newPremi);
+          $newPremi = (float)$sumInsureds[$key] * (float)$quotationRate->rate / 1000;
 
             $members[] = [
                 'alteration_no' => $model->alteration_no,
@@ -282,8 +274,7 @@ class AlterationEndorsementController extends Controller
                 'term' => $member->term,
                 'new_term' => $newTerm,
                 'sum_insured' => $member->sum_insured,
-                // 'new_sum_insured' => $sumInsureds[$key],
-				'new_sum_insured' => $newSumInsured,
+                'new_sum_insured' => $sumInsureds[$key],
                 'premi' => $member->total_premium,
                 'new_premi' => $newPremi,
                 'extra_premi' => $member->extra_premium,
