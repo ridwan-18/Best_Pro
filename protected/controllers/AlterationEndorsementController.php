@@ -204,7 +204,13 @@ class AlterationEndorsementController extends Controller
             Yii::$app->session->setFlash('error', "Policy not found");
             return $this->redirect(['create']);
         }
-
+		
+		
+		if($sumInsureds=='')
+		{
+			$sumInsureds = null;
+		}
+		
         $quotation = Quotation::findOne(['id' => $policy->quotation_id]);
         if ($quotation == null) {
             Yii::$app->session->setFlash('error', "Quotation not found");
