@@ -159,7 +159,7 @@ $this->title = 'View Alteration Endorsement - ' . Yii::$app->name;
                             <tr>
                                 <td><?= $i; ?></td>
                                 <td><?= $member['member_no']; ?></td>
-                                <td><?= $member['name']; ?></td>
+                                <td><?= $member['new_name']; ?></td>
                                 <td><?= $member['new_birth_date']; ?></td>
                                 <td><?= $member['new_age']; ?></td>
                                 <td><?= $member['new_start_date']; ?></td>
