@@ -88,7 +88,9 @@ $this->title = 'Claim - ' . Yii::$app->name;
                                 <th>Approved Amount</th>
                                 <th>Status</th>
                                 <th>Decision</th>
+								<!--
                                 <th width="1">Action</th>
+								-->
                             </tr>
                         </thead>
                         <tbody>
@@ -120,6 +122,7 @@ $this->title = 'Claim - ' . Yii::$app->name;
                                         <td><?= number_format($model['approved_amount']); ?></td>
                                         <td><?= $model['status']; ?></td>
                                         <td><?= $model['decision']; ?></td>
+										<!--
                                         <td>
                                             <div class=" btn-group mb-2">
                                                 <?= Html::a(
@@ -135,6 +138,7 @@ $this->title = 'Claim - ' . Yii::$app->name;
                                                 ); ?>
                                             </div>
                                         </td>
+										-->
                                     </tr>
                             <?php
                                     $i++;
