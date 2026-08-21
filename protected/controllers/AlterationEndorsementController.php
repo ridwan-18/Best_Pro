@@ -256,8 +256,15 @@ class AlterationEndorsementController extends Controller
                 'quotation_id' => $policy->quotation_id,
                 'term' => $termYear
             ]);
+			
+			
+			$newSumInsured = isset($sumInsureds[$key])
+        ? trim((string)$sumInsureds[$key])
+        : '';
+		
+		$newSumInsured = (float)$newSumInsured;
 
-          $newPremi = (float)$sumInsureds[$key] * (float)$quotationRate->rate / 1000;
+          $newPremi = (float)$newSumInsured[$key] * (float)$quotationRate->rate / 1000;
 
             $members[] = [
                 'alteration_no' => $model->alteration_no,
@@ -274,7 +281,8 @@ class AlterationEndorsementController extends Controller
                 'term' => $member->term,
                 'new_term' => $newTerm,
                 'sum_insured' => $member->sum_insured,
-                'new_sum_insured' => $sumInsureds[$key],
+                // 'new_sum_insured' => $sumInsureds[$key],
+				'new_sum_insured' => $newSumInsured,
                 'premi' => $member->total_premium,
                 'new_premi' => $newPremi,
                 'extra_premi' => $member->extra_premium,
@@ -367,21 +375,12 @@ class AlterationEndorsementController extends Controller
 						"Error while Calling API"
 					);
 				}
-		
-		
-		
-		
 
-        // Yii::$app->session->setFlash('success', "Successfully saved");
-        // return $this->redirect(['index']);
+        Yii::$app->session->setFlash('success', "Successfully saved");
+        return $this->redirect(['index']);
     }
 
-    /**
-     * Updates an existing AlterationEndorsement model.
-     * If update is successful, the browser will be redirected to the 'view' page.
-     * @param int $id ID
-     * @return string|\yii\web\Response
-     * @throws NotFoundHttpException if the model cannot be found
+ 
      */
     public function actionUpdate($id)
     {
