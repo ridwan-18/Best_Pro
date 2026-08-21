@@ -13,6 +13,7 @@ $this->title = 'View Alteration Refund - ' . Yii::$app->name;
             <h2 class="p-0 m-0">Alteration Refund</h2>
             <h5 class="p-0 m-0"><?= $model->alteration_no; ?></h5>
         </div>
+		<!--
         <div class="col-md-6 text-right my-auto">
             <?= Html::a(
                 '<i class="fa fa-check"></i> Approve',
@@ -40,6 +41,7 @@ $this->title = 'View Alteration Refund - ' . Yii::$app->name;
                 ]
             ); ?>
         </div>
+		-->
     </div>
     <?= Alert::widget() ?>
     <div class="card-box mt-4">
