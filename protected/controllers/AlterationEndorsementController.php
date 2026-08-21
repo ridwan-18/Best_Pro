@@ -258,6 +258,11 @@ class AlterationEndorsementController extends Controller
                 'quotation_id' => $policy->quotation_id,
                 'term' => $termYear
             ]);
+			
+			
+			$sumInsured = !empty($sumInsureds[$key])
+    ? str_replace(',', '', $sumInsureds[$key])
+    : 0;
 
           $newPremi = (float)$sumInsureds[$key] * (float)$quotationRate->rate / 1000;
 
@@ -276,7 +281,7 @@ class AlterationEndorsementController extends Controller
                 'term' => $member->term,
                 'new_term' => $newTerm,
                 'sum_insured' => $member->sum_insured,
-                'new_sum_insured' => $sumInsureds[$key],
+                'new_sum_insured' => $sumInsured,
                 'premi' => $member->total_premium,
                 'new_premi' => $newPremi,
                 'extra_premi' => $member->extra_premium,
@@ -284,7 +289,7 @@ class AlterationEndorsementController extends Controller
             ];
 
             $totalSi += $member->sum_insured;
-            $newTotalSi += (float)$sumInsureds[$key];
+            $newTotalSi += (float)$sumInsureds;
             $totalPremium += $member->total_premium;
             $newTotalPremium += $newPremi;
         }
