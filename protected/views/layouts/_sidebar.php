@@ -125,7 +125,7 @@ use app\models\User;
 							<!-- batas update edo 14-08-2023  -->
                             <!--  <li><a href="<?= Url::base() . '/policy'; ?>">Policy</a></li>   -->
                             <li><a href="<?= Url::base() . '/member'; ?>">Member</a></li>
-                            <li><a href="<?= Url::base() . '/billing'; ?>">Blling</a></li>
+                            <!-- <li><a href="<?= Url::base() . '/billing'; ?>">Blling</a></li> -->
                         </ul>
                     </li>
 					
@@ -189,7 +189,7 @@ use app\models\User;
 							<!-- batas update edo 14-08-2023  -->
                             <!--  <li><a href="<?= Url::base() . '/policy'; ?>">Policy</a></li>   -->
                             <li><a href="<?= Url::base() . '/member'; ?>">Member</a></li>
-                            <li><a href="<?= Url::base() . '/billing'; ?>">Blling</a></li>
+                           <!-- <li><a href="<?= Url::base() . '/billing'; ?>">Blling</a></li> -->
                         </ul>
                     </li>
 					
@@ -217,7 +217,7 @@ use app\models\User;
                         <ul class="nav-second-level" aria-expanded="false">
                               <!--  <li><a href="<?= Url::base() . '/report-billing'; ?>">Billing</a></li>  -->
 							<li><a href="<?= Url::base() . '/data-produksi'; ?>">Data produksi</a></li>
-							<!-- <li><a href="<?= Url::base() . '/member-claim'; ?>">Member claim</a></li> -->
+							 <li><a href="<?= Url::base() . '/member-claim'; ?>">Member claim</a></li>
                         </ul>
                     </li>					
                 <?php
