@@ -265,6 +265,7 @@ class AlterationEndorsementController extends Controller
 		$newSumInsured = (float)$newSumInsured;
 
           $newPremi = (float)$newSumInsured[$key] * (float)$quotationRate->rate / 1000;
+		  var_dump($newPremi);
 
             $members[] = [
                 'alteration_no' => $model->alteration_no,
