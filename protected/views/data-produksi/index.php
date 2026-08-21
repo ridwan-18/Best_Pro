@@ -11,6 +11,56 @@ use app\models\Utils;
 
 $this->title = 'Data Produksi - ' . Yii::$app->name;
 ?>
+
+
+<style>
+    /* Warna teks seluruh modal */
+    #search-modal {
+        color: #333333;
+    }
+
+    /* Header modal */
+    #search-modal .modal-header {
+        color: #333333;
+    }
+
+    /* Judul Search */
+    #search-modal .modal-title {
+        color: #333333 !important;
+        font-weight: 600;
+    }
+
+    /* Label form */
+    #search-modal label {
+        color: #333333 !important;
+        font-weight: 500;
+    }
+
+    /* Input */
+    #search-modal .form-control {
+        color: #333333 !important;
+        background-color: #ffffff !important;
+        border-color: #cccccc;
+    }
+
+    /* Placeholder */
+    #search-modal .form-control::placeholder {
+        color: #999999 !important;
+    }
+
+    /* Tombol close */
+    #search-modal .close {
+        color: #333333 !important;
+        opacity: 0.8;
+    }
+
+    #search-modal .close:hover {
+        color: #000000 !important;
+        opacity: 1;
+    }
+</style>
+
+
 <div class="member-index">
     <div class="modal fade" id="search-modal" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true" style="display: none;">
         <div class="modal-dialog modal-lg">
