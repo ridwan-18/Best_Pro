@@ -285,52 +285,52 @@ class AlterationRefund extends \yii\db\ActiveRecord
 
 			// ================= DEBUG =================
 
-			echo "<pre>";
+			// echo "<pre>";
 
-			echo "========================================\n";
-			echo "REFUND API DEBUG\n";
-			echo "========================================\n\n";
+			// echo "========================================\n";
+			// echo "REFUND API DEBUG\n";
+			// echo "========================================\n\n";
 
-			echo "URL:\n";
-			echo $url . "\n\n";
+			// echo "URL:\n";
+			// echo $url . "\n\n";
 
-			echo "HTTP CODE:\n";
-			var_dump($httpCode);
+			// echo "HTTP CODE:\n";
+			// var_dump($httpCode);
 
-			echo "\nCURL ERRNO:\n";
-			var_dump($curlNo);
+			// echo "\nCURL ERRNO:\n";
+			// var_dump($curlNo);
 
-			echo "\nCURL ERROR:\n";
-			var_dump($curlErr);
+			// echo "\nCURL ERROR:\n";
+			// var_dump($curlErr);
 
-			echo "\nCONTENT TYPE:\n";
-			var_dump($contentType);
+			// echo "\nCONTENT TYPE:\n";
+			// var_dump($contentType);
 
-			echo "\nTOKEN:\n";
-			var_dump(
-				empty($token)
-					? 'TOKEN KOSONG'
-					: substr($token, 0, 30) . '...'
-			);
+			// echo "\nTOKEN:\n";
+			// var_dump(
+				// empty($token)
+					// ? 'TOKEN KOSONG'
+					// : substr($token, 0, 30) . '...'
+			// );
 
-			echo "\nREQUEST JSON:\n";
-			echo $jsonData;
+			// echo "\nREQUEST JSON:\n";
+			// echo $jsonData;
 
-			echo "\n\nRAW RESPONSE:\n";
-			var_dump($response);
+			// echo "\n\nRAW RESPONSE:\n";
+			// var_dump($response);
 
-			echo "\n\nJSON DECODE:\n";
+			// echo "\n\nJSON DECODE:\n";
 
-			$decode = json_decode($response, true);
+			// $decode = json_decode($response, true);
 
-			var_dump($decode);
+			// var_dump($decode);
 
-			echo "\nJSON ERROR:\n";
-			var_dump(json_last_error_msg());
+			// echo "\nJSON ERROR:\n";
+			// var_dump(json_last_error_msg());
 
-			echo "</pre>";
+			// echo "</pre>";
 
-			die;
+			// die;
 
 			// =========================================
 
