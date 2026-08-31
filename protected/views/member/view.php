@@ -422,6 +422,7 @@ $this->title = 'View Member - ' . Yii::$app->name;
                                         <th>Percent EM (%)</th>
                                         <th>EM Premium</th>
                                         <th>EM Notes</th>
+										<th>Status BMI</th>
                                         <th>UW Notes</th>
 										<th>Upload FIle SPK</th>
 										<th>Download FIle SPK</th>
@@ -705,6 +706,18 @@ $this->title = 'View Member - ' . Yii::$app->name;
                                                                         ]) ?>
                                                                     </div>
                                                                 </div>
+																
+																  <div class="col-md-6">
+                                                                    <div class="form-group">
+                                                                        <label for="status_bmi">Status BMI</label>
+                                                                        <?= Html::textarea('status_bmi', $member['status_bmi'], [
+                                                                            'class' => 'form-control',
+                                                                            'id' => 'status_bmi',
+                                                                            'value' => $member['status_bmi'],
+                                                                        ]) ?>
+                                                                    </div>
+                                                                </div>
+																
                                                                 <div class="col-md-6">
                                                                     <div class="form-group">
                                                                         <label for="uw_notes">UW Notes</label>
