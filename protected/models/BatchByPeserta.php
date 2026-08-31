@@ -293,36 +293,35 @@ class BatchByPeserta extends \yii\db\ActiveRecord
             ->asArray();
 			
 			if (!Yii::$app->user->isGuest) {
+if (!Yii::$app->user->isGuest) {
 
     $user = Yii::$app->user->identity;
-    $memberTable = self::tableName();
 
     // SUPER ADMIN
-    if ($user->role == User::ROLE_SUPER_ADMIN) {
+    if ((int)$user->role === 1) {
 
-        // Semua data
+        // semua data
 
     }
 
     // PUSAT
-    elseif ($user->role == User::ROLE_PUSAT) {
+    elseif ((int)$user->role === 6) {
 
         $query->innerJoin(
             ['u' => User::tableName()],
-            'u.id = ' . $memberTable . '.created_by'
+            'u.id = m.created_by'
         );
 
         $query->andWhere([
             'u.partner_id' => $user->partner_id
         ]);
-
     }
 
     // CABANG
-    elseif ($user->role == User::ROLE_PARTNER) {
+    elseif ((int)$user->role === 2) {
 
         $query->andWhere([
-            $memberTable . '.created_by' => $user->id
+            'm.created_by' => $user->id
         ]);
     }
 }
