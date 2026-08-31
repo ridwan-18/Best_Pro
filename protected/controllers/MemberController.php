@@ -941,7 +941,7 @@ class MemberController extends Controller
 				return $this->redirect(['create']);
 			}
 		
-		// var_dump($members);
+		var_dump($response_member);
 
 		if (count($members) == 0) {
 			Yii::$app->session->setFlash('error', "Member was empty");

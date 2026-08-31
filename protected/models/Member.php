@@ -801,12 +801,25 @@ class Member extends \yii\db\ActiveRecord
 	public function callAPIPostMemberLogin()
     {
 		
-		$url='http://demo-reliancelife.ajrius.id/api/login';
+		// $url='http://demo-reliancelife.ajrius.id/api/login';
+        // $headers = [
+            // 'Content-Type: application/json',
+        // ];
+		// $data = json_encode([
+			// 'email' => 'api@gmail.com',
+            // 'password' => '12345678',
+			
+			
+        // ]);
+		
+		
+		
+		$url='https://reliancelife.ajrius.id/api/login';
         $headers = [
             'Content-Type: application/json',
         ];
 		$data = json_encode([
-			'email' => 'api@gmail.com',
+			'email' => 'adminapi@gmail.com',
             'password' => '12345678',
 			
 			
@@ -841,7 +854,8 @@ class Member extends \yii\db\ActiveRecord
 			$data["peserta[$i]"] = json_encode($item);
 		}
 
-		$ch = curl_init('http://demo-reliancelife.ajrius.id/api/pengajuan-v2/store');
+		// $ch = curl_init('http://demo-reliancelife.ajrius.id/api/pengajuan-v2/store');
+		$ch = curl_init('https://reliancelife.ajrius.id/api/pengajuan-v2/store');
 
 		curl_setopt_array($ch, [
 			CURLOPT_RETURNTRANSFER => true,
@@ -861,7 +875,23 @@ class Member extends \yii\db\ActiveRecord
 		}
 
 		curl_close($ch);
+		
+			// echo "<pre>";
+		// echo "HTTP CODE : ".$httpCode."<br><br>";
 
+		echo "REQUEST<br>";
+		print_r($data);
+
+		echo "<br><br>RESPONSE<br>";
+		var_dump($response);
+
+		$decode = json_decode($response, true);
+
+		echo "<br><br>JSON DECODE<br>";
+		var_dump($decode);
+
+		die;
+		return $decode;
 		return json_decode($response, true);
 	}
 	
