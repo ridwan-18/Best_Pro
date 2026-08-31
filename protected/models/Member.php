@@ -878,7 +878,8 @@ class Member extends \yii\db\ActiveRecord
 	public function callAPIPostMemberPush($token, $policy_number, $peserta)
 	{
 		$headers = [
-			'Authorization: Bearer ' . $token
+        'Authorization: Bearer ' . $token,
+        'Accept: application/json',
 		];
 
 		$data = [
@@ -893,41 +894,45 @@ class Member extends \yii\db\ActiveRecord
 		$ch = curl_init('https://reliancelife.ajrius.id/api/pengajuan-v2/store');
 
 		curl_setopt_array($ch, [
-			CURLOPT_RETURNTRANSFER => true,
-			CURLOPT_POST => true,
-			CURLOPT_POSTFIELDS => $data,
-			CURLOPT_HTTPHEADER => $headers
-		]);
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_POST           => true,
+        CURLOPT_POSTFIELDS     => $data,
+        CURLOPT_HTTPHEADER     => $headers,
+
+        CURLOPT_TIMEOUT        => 30,
+        CURLOPT_CONNECTTIMEOUT => 10,
+
+        // BYPASS SSL
+        CURLOPT_SSL_VERIFYPEER => false,
+        CURLOPT_SSL_VERIFYHOST => 0,
+    ]);
 
 		$response = curl_exec($ch);
 
-		if (curl_errno($ch)) {
+		$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+		$curlNo   = curl_errno($ch);
+		$curlErr  = curl_error($ch);
 
+		curl_close($ch);
+
+		if ($curlNo !== 0) {
 			return [
-				'code' => 500,
-				'message' => curl_error($ch)
+				'code'    => 500,
+				'message' => $curlErr,
 			];
 		}
 
-		curl_close($ch);
-		
-			// echo "<pre>";
-		// echo "HTTP CODE : ".$httpCode."<br><br>";
-
-		echo "REQUEST<br>";
-		print_r($data);
-
-		echo "<br><br>RESPONSE<br>";
-		var_dump($response);
-
 		$decode = json_decode($response, true);
 
-		echo "<br><br>JSON DECODE<br>";
-		var_dump($decode);
+		// Jika response bukan JSON
+		if (!is_array($decode)) {
+			return [
+				'code'    => $httpCode,
+				'message' => $response,
+			];
+	}
 
-		die;
-		return $decode;
-		return json_decode($response, true);
+    return $decode;
 	}
 	
 	
