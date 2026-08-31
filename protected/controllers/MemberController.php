@@ -778,8 +778,8 @@ class MemberController extends Controller
 
 				$bmi = '';
 				$bmiKategori = '';
-				$extraMortalita = '';
-				$extraPremi = '';
+				$extraMortalita = 0;
+				$extraPremi = 0;
 
 				// Jika tinggi dan berat badan tersedia
 				if ($tinggi_badan !== '' && $tinggi_badan !== null &&
