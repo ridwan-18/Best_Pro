@@ -313,21 +313,40 @@ class AlterationCancel extends \yii\db\ActiveRecord
 
     // Decode response
     $decode = json_decode($response, true);
+	return [
+    'code'      => isset($decode['code']) ? $decode['code'] : $httpCode,
+    'data'      => isset($decode['data']) ? $decode['data'] : [],
+    'http_code' => $httpCode,
+    'body'      => $response,
+    'request'   => $data,
+];
+
+echo "<pre>";
+echo "REQUEST:\n";
+print_r($response_member['request'] ?? []);
+
+echo "\n\nBODY RESPONSE:\n";
+var_dump($response_member['body'] ?? null);
+
+echo "\n\nDECODE:\n";
+print_r($response_member);
+
+die;
 
     // Kalau response bukan JSON
-    if (!is_array($decode)) {
-        return [
-            'code'      => (string) $httpCode,
-            'http_code' => $httpCode,
-            'message'   => 'Response bukan JSON',
-            'body'      => $response,
-        ];
-    }
+    // if (!is_array($decode)) {
+        // return [
+            // 'code'      => (string) $httpCode,
+            // 'http_code' => $httpCode,
+            // 'message'   => 'Response bukan JSON',
+            // 'body'      => $response,
+        // ];
+    // }
 
-    // Tambahkan HTTP code supaya mudah dicek
-    $decode['http_code'] = $httpCode;
+    // // Tambahkan HTTP code supaya mudah dicek
+    // $decode['http_code'] = $httpCode;
 
-    return $decode;
+    // return $decode;
 	}
 
 }
