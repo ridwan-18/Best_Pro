@@ -826,35 +826,37 @@ class Member extends \yii\db\ActiveRecord
 		
         $ch = curl_init($url);
 
-			curl_setopt_array($ch, [
-				CURLOPT_POST           => true,
-				CURLOPT_POSTFIELDS     => json_encode($data),
-				CURLOPT_HTTPHEADER     => [
-					'Content-Type: application/json',
-					'Accept: application/json',
-				],
-				CURLOPT_RETURNTRANSFER => true,
-				CURLOPT_TIMEOUT        => 30,
-				CURLOPT_CONNECTTIMEOUT => 10,
-				CURLOPT_SSL_VERIFYPEER => true,
-				CURLOPT_SSL_VERIFYHOST => 2,
-			]);
+    curl_setopt_array($ch, [
+        CURLOPT_POST           => true,
+        CURLOPT_POSTFIELDS     => json_encode($data),
+        CURLOPT_HTTPHEADER     => [
+            'Content-Type: application/json',
+            'Accept: application/json',
+        ],
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_TIMEOUT        => 30,
+        CURLOPT_CONNECTTIMEOUT => 10,
 
-			$body = curl_exec($ch);
+        // TEMPORARY untuk testing
+        CURLOPT_SSL_VERIFYPEER => false,
+        CURLOPT_SSL_VERIFYHOST => false,
+    ]);
 
-			$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-			$curlNo   = curl_errno($ch);
-			$curlErr  = curl_error($ch);
+    $body = curl_exec($ch);
 
-			curl_close($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $curlNo   = curl_errno($ch);
+    $curlErr  = curl_error($ch);
 
-			return [
-				'http_code'  => $httpCode,
-				'curl_errno' => $curlNo,
-				'curl_error' => $curlErr,
-				'body'       => $body,
-				'data'       => json_decode($body, true),
-			];
+    curl_close($ch);
+
+    return [
+        'http_code'  => $httpCode,
+        'curl_errno' => $curlNo,
+        'curl_error' => $curlErr,
+        'body'       => $body,
+        'data'       => json_decode($body, true),
+    ];
     }
 	
 	public function callAPIPostMemberPush($token, $policy_number, $peserta)
