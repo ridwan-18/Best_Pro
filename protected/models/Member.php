@@ -862,7 +862,7 @@ class Member extends \yii\db\ActiveRecord
         'body'       => $body,
         'data'       => json_decode($body, true),
     ];
-}
+
     }
 	
 	public function callAPIPostMemberPush($token, $policy_number, $peserta)
