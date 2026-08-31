@@ -1032,8 +1032,8 @@ class MemberController extends Controller
 			 */
 			try {
 
-			$email = trim(Yii::$app->user->identity->email);
-
+			// $email = trim(Yii::$app->user->identity->email);
+			$email ='ridwan.nurasyid@reliance-life.com';
 			// Validasi email recipient
 			if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
 
