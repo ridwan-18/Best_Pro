@@ -248,64 +248,71 @@ class BatchByPeserta extends \yii\db\ActiveRecord
 	public static function getAllProductionParticipant($paramsGetAllProduksi = [])
 {
     $memberTable = self::tableName();
+$query = self::find()
+    ->alias('m')
+    ->leftJoin(
+        ['u' => User::tableName()],
+        'u.id = m.created_by'
+    )
+    ->select([
+        'm.id',
+        'm.policy_no',
+        'm.batch_no',
+        'm.member_no',
+        'm.term',
+        'm.age',
+        'm.start_date',
+        'm.end_date',
+        'm.sum_insured',
+        'm.total_si',
+        'm.total_premium',
+        'm.rate_premi',
+        'm.rate_saving',
+        'm.gross_premium',
+        'm.basic_premium',
+        'm.saving_premium',
+        'm.percentage_discount',
+        'm.discount_premium',
+        'm.nett_premium',
+        'm.medical_code',
+        'm.status',
+        'm.member_status',
+        'm.reas_status',
+        'm.status_reason',
+        'm.stnc_date',
+        'm.stnc_status',
+        'm.stnc_reason',
+        'm.acc_status',
+        'm.percentage_extra_premium',
+        'm.extra_premium',
+        'm.em_type',
+        'm.percentage_em',
+        'm.rate_em',
+        'm.em_premium',
+        'm.em_notes',
+        'm.uw_notes',
+        'm.id_loan',
 
-    $query = self::find()
-        ->alias('m')
-        ->select([
-            'm.id',
-            'm.policy_no',
-            'm.batch_no',
-            'm.member_no',
-            'm.term',
-            'm.age',
-            'm.start_date',
-            'm.end_date',
-            'm.sum_insured',
-            'm.total_si',
-            'm.total_premium',
-            'm.rate_premi',
-            'm.rate_saving',
-            'm.gross_premium',
-            'm.basic_premium',
-            'm.saving_premium',
-            'm.percentage_discount',
-            'm.discount_premium',
-            'm.nett_premium',
-            'm.medical_code',
-            'm.status',
-            'm.member_status',
-            'm.reas_status',
-            'm.status_reason',
-            'm.stnc_date',
-            'm.stnc_status',
-            'm.stnc_reason',
-            'm.acc_status',
-            'm.percentage_extra_premium',
-            'm.extra_premium',
-            'm.em_type',
-            'm.percentage_em',
-            'm.rate_em',
-            'm.em_premium',
-            'm.em_notes',
-            'm.uw_notes',
-            'm.id_loan',
+        // USER PEMBUAT DATA
+        'm.created_by',
+        'u.username AS created_by_username',
 
-            '(SELECT ' . Personal::tableName() . '.name
-                FROM ' . Personal::tableName() . '
-                WHERE ' . Personal::tableName() . '.personal_no = m.personal_no
-                GROUP BY ' . Personal::tableName() . '.personal_no) AS name',
+        '(SELECT ' . Personal::tableName() . '.name
+            FROM ' . Personal::tableName() . '
+            WHERE ' . Personal::tableName() . '.personal_no = m.personal_no
+            GROUP BY ' . Personal::tableName() . '.personal_no) AS name',
 
-            '(SELECT ' . Personal::tableName() . '.birth_date
-                FROM ' . Personal::tableName() . '
-                WHERE ' . Personal::tableName() . '.personal_no = m.personal_no
-                GROUP BY ' . Personal::tableName() . '.personal_no) AS birth_date',
+        '(SELECT ' . Personal::tableName() . '.birth_date
+            FROM ' . Personal::tableName() . '
+            WHERE ' . Personal::tableName() . '.personal_no = m.personal_no
+            GROUP BY ' . Personal::tableName() . '.personal_no) AS birth_date',
 
-            '(SELECT ' . Personal::tableName() . '.gender
-                FROM ' . Personal::tableName() . '
-                WHERE ' . Personal::tableName() . '.personal_no = m.personal_no
-                GROUP BY ' . Personal::tableName() . '.personal_no) AS gender',
-        ])
-        ->asArray();
+        '(SELECT ' . Personal::tableName() . '.gender
+            FROM ' . Personal::tableName() . '
+            WHERE ' . Personal::tableName() . '.personal_no = m.personal_no
+            GROUP BY ' . Personal::tableName() . '.personal_no) AS gender',
+    ])
+    ->asArray();
 
 
     /*
