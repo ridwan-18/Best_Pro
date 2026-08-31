@@ -912,6 +912,11 @@ class MemberController extends Controller
 		$model = new Member();
 
 			$response = $model->callAPIPostMemberLogin();
+			
+			echo '<pre>';
+			print_r($response);
+			echo '</pre>';
+			exit;
 
 			if (empty($response['token'])) {
 
