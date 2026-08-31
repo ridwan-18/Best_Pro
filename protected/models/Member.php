@@ -814,30 +814,34 @@ class Member extends \yii\db\ActiveRecord
 		
 		
 		
-		$url='https://reliancelife.ajrius.id/api/login';
-        $headers = [
-            'Content-Type: application/json',
-        ];
-		$data = json_encode([
-			'email' => 'adminapi@gmail.com',
-            'password' => '12345678',
-			
-        ]);
-		
-        $ch = curl_init($url);
+		 $url = 'https://reliancelife.ajrius.id/api/login';
+
+    $data = [
+        'email'    => 'adminapi@gmail.com',
+        'password' => '12345678',
+    ];
+
+    $jsonData = json_encode($data);
+
+    $headers = [
+        'Content-Type: application/json',
+        'Accept: application/json',
+        'Content-Length: ' . strlen($jsonData),
+    ];
+
+    $ch = curl_init();
 
     curl_setopt_array($ch, [
+        CURLOPT_URL            => $url,
         CURLOPT_POST           => true,
-        CURLOPT_POSTFIELDS     => json_encode($data),
-        CURLOPT_HTTPHEADER     => [
-            'Content-Type: application/json',
-            'Accept: application/json',
-        ],
+        CURLOPT_POSTFIELDS     => $jsonData,
+        CURLOPT_HTTPHEADER     => $headers,
         CURLOPT_RETURNTRANSFER => true,
+
         CURLOPT_TIMEOUT        => 30,
         CURLOPT_CONNECTTIMEOUT => 10,
 
-        // TEMPORARY untuk testing
+        // SEMENTARA untuk testing SSL
         CURLOPT_SSL_VERIFYPEER => false,
         CURLOPT_SSL_VERIFYHOST => false,
     ]);
@@ -854,9 +858,11 @@ class Member extends \yii\db\ActiveRecord
         'http_code'  => $httpCode,
         'curl_errno' => $curlNo,
         'curl_error' => $curlErr,
+        'payload'    => $jsonData,
         'body'       => $body,
         'data'       => json_decode($body, true),
     ];
+}
     }
 	
 	public function callAPIPostMemberPush($token, $policy_number, $peserta)
