@@ -341,11 +341,6 @@ $query = self::find()
         // =================================================
         } elseif ((int)$user->role === 6) {
 
-            $query->innerJoin(
-                ['u' => User::tableName()],
-                'u.id = m.created_by'
-            );
-
             $query->andWhere([
                 'u.partner_id' => $user->partner_id
             ]);
