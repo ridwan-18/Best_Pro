@@ -913,10 +913,10 @@ class MemberController extends Controller
 
 			$response = $model->callAPIPostMemberLogin();
 			
-			// echo '<pre>';
-			// print_r($response);
-			// echo '</pre>';
-			// exit;
+			echo '<pre>';
+			print_r($response);
+			echo '</pre>';
+			exit;
 
 			if (empty($response['token'])) {
 
