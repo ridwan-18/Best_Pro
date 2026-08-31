@@ -813,58 +813,65 @@ class Member extends \yii\db\ActiveRecord
         // ]);
 		
 		
-		
-		 $url = 'https://reliancelife.ajrius.id/api/login';
+			 $url = 'https://reliancelife.ajrius.id/api/login';
 
-    $data = [
-        'email'    => 'adminapi@gmail.com',
-        'password' => '12345678',
-    ];
+		$data = [
+			'email'    => 'adminapi@gmail.com',
+			'password' => '12345678',
+		];
 
-    $jsonData = json_encode($data);
+		$jsonData = json_encode($data);
 
-    $headers = [
-        'Content-Type: application/json',
-        'Accept: application/json',
-        'Content-Length: ' . strlen($jsonData),
-    ];
+		$ch = curl_init();
 
-    $ch = curl_init();
+		curl_setopt_array($ch, [
+			CURLOPT_URL            => $url,
+			CURLOPT_POST           => true,
+			CURLOPT_POSTFIELDS     => $jsonData,
 
-    curl_setopt_array($ch, [
-        CURLOPT_URL            => $url,
-        CURLOPT_POST           => true,
-        CURLOPT_POSTFIELDS     => $jsonData,
-        CURLOPT_HTTPHEADER     => $headers,
-        CURLOPT_RETURNTRANSFER => true,
+			CURLOPT_HTTPHEADER     => [
+				'Content-Type: application/json',
+				'Accept: application/json',
+			],
 
-        CURLOPT_TIMEOUT        => 30,
-        CURLOPT_CONNECTTIMEOUT => 10,
+			CURLOPT_RETURNTRANSFER => true,
+			CURLOPT_TIMEOUT        => 30,
+			CURLOPT_CONNECTTIMEOUT => 10,
 
-        // SEMENTARA untuk testing SSL
-        CURLOPT_SSL_VERIFYPEER => false,
-        CURLOPT_SSL_VERIFYHOST => false,
-    ]);
+			// Untuk mengatasi SSL error
+			CURLOPT_SSL_VERIFYPEER => false,
+			CURLOPT_SSL_VERIFYHOST => false,
+		]);
 
-    $body = curl_exec($ch);
+		$body = curl_exec($ch);
 
-    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    $curlNo   = curl_errno($ch);
-    $curlErr  = curl_error($ch);
+		$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+		$curlNo   = curl_errno($ch);
+		$curlErr  = curl_error($ch);
 
-    curl_close($ch);
-	
-	$json = json_decode($body, true);
-	
-    return [
-    'http_code'  => $httpCode,
-    'curl_errno' => $curlNo,
-    'curl_error' => $curlErr,
-    'payload'    => $jsonData,
-    'body'       => $body,
-    'data'       => $json,
-    'token'      => isset($json['token']) ? $json['token'] : null,
-	];
+		curl_close($ch);
+
+		if ($curlNo !== 0) {
+			return [
+				'token'      => null,
+				'http_code'  => $httpCode,
+				'curl_errno' => $curlNo,
+				'curl_error' => $curlErr,
+			];
+		}
+
+		$response = json_decode($body, true);
+
+		return [
+			'token'      => isset($response['token']) ? $response['token'] : null,
+			'expired'    => isset($response['expired']) ? $response['expired'] : null,
+			'success'    => isset($response['success']) ? $response['success'] : false,
+			'user'       => isset($response['user']) ? $response['user'] : null,
+			'http_code'  => $httpCode,
+			'curl_errno' => $curlNo,
+			'curl_error' => $curlErr,
+			'body'       => $body,
+		];
 
     }
 	
