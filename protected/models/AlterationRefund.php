@@ -113,107 +113,243 @@ class AlterationRefund extends \yii\db\ActiveRecord
 	public function callAPIPostMemberLogin()
     {
 		
-		$url='http://demo-reliancelife.ajrius.id/api/login';
-        $headers = [
-            'Content-Type: application/json',
-        ];
-		$data = json_encode([
-			'email' => 'api@gmail.com',
-            'password' => '12345678',
+		// $url='http://demo-reliancelife.ajrius.id/api/login';
+        // $headers = [
+            // 'Content-Type: application/json',
+        // ];
+		// $data = json_encode([
+			// 'email' => 'api@gmail.com',
+            // 'password' => '12345678',
 			
 			
-        ]);
+        // ]);
 		
-         $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-        curl_setopt($ch, CURLOPT_HEADER, true);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-
-        $response = curl_exec($ch);
-        $body = substr($response, curl_getinfo($ch, CURLINFO_HEADER_SIZE));
-
-        curl_close($ch);
-
-        return json_decode($body, true);
-    }
-	
-	public function callAPIPostMemberRefundPush($token,$policy_number,$newEndDates,$membersNo,$remainingTerm,$premiRefunds,$totalPremium)
-	{
-		$headers = [
-			'Content-Type: application/json',
-			'Authorization: Bearer ' . $token
-		];
+		
+			 $url = 'https://reliancelife.ajrius.id/api/login';
 
 		$data = [
-			'no_polis' => $policy_number ,
-
-			'data' => [
-				'tanggal_pengajuan'   => date('Y-m-d'),
-				'tanggal_efektif'     => is_array($newEndDates) ? $newEndDates[0] : $newEndDates,
-				'tujuan_pembayaran'   => 'Transfer',
-				'nama_bank'           => 'BCA',
-				'nomor_peserta_awal' => $membersNo,
-				'nomor_peserta_akhir' =>  $membersNo
-			],
-
-			'peserta' => [
-				[
-				    'no_peserta' => $membersNo[0],
-
-					'refund_tanggal_efektif' =>
-						is_array($newEndDates) ? $newEndDates[0] : $newEndDates,
-
-					'refund_sisa_masa_asuransi' => $remainingTerm,
-
-					'total_kontribusi_dibayar' => $totalPremium,
-
-					'refund_kontribusi' => $premiRefunds
-				]
-			]
+			'email'    => 'adminapi@gmail.com',
+			'password' => '12345678',
 		];
 
-		$ch = curl_init('http://demo-reliancelife.ajrius.id/api/memo-refund/store');
+		$jsonData = json_encode($data);
 
+		$ch = curl_init();
 
 		curl_setopt_array($ch, [
+			CURLOPT_URL            => $url,
+			CURLOPT_POST           => true,
+			CURLOPT_POSTFIELDS     => $jsonData,
+
+			CURLOPT_HTTPHEADER     => [
+				'Content-Type: application/json',
+				'Accept: application/json',
+			],
+
 			CURLOPT_RETURNTRANSFER => true,
-			CURLOPT_POST => true,
-			CURLOPT_POSTFIELDS => json_encode($data),
-			CURLOPT_HTTPHEADER => $headers
+			CURLOPT_TIMEOUT        => 30,
+			CURLOPT_CONNECTTIMEOUT => 10,
+
+			// Untuk mengatasi SSL error
+			CURLOPT_SSL_VERIFYPEER => false,
+			CURLOPT_SSL_VERIFYHOST => false,
 		]);
 
-		$response = curl_exec($ch);
-
-		if (curl_errno($ch)) {
-			return [
-				'success' => false,
-				'message' => curl_error($ch)
-			];
-		}
+		$body = curl_exec($ch);
 
 		$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+		$curlNo   = curl_errno($ch);
+		$curlErr  = curl_error($ch);
 
 		curl_close($ch);
 
-		// echo "<pre>";
-		// echo "HTTP CODE : ".$httpCode."<br><br>";
+		if ($curlNo !== 0) {
+			return [
+				'token'      => null,
+				'http_code'  => $httpCode,
+				'curl_errno' => $curlNo,
+				'curl_error' => $curlErr,
+			];
+		}
 
-		// echo "REQUEST<br>";
-		// print_r($data);
+		$response = json_decode($body, true);
 
-		// echo "<br><br>RESPONSE<br>";
-		// var_dump($response);
+		return [
+			'token'      => isset($response['token']) ? $response['token'] : null,
+			'expired'    => isset($response['expired']) ? $response['expired'] : null,
+			'success'    => isset($response['success']) ? $response['success'] : false,
+			'user'       => isset($response['user']) ? $response['user'] : null,
+			'http_code'  => $httpCode,
+			'curl_errno' => $curlNo,
+			'curl_error' => $curlErr,
+			'body'       => $body,
+		];
 
-		// $decode = json_decode($response, true);
+    }
+	
+	public function callAPIPostMemberRefundPush(
+    $token,
+    $policy_number,
+    $newEndDates,
+    $membersNo,
+    $remainingTerm,
+    $premiRefunds,
+	$totalPremium
+	) 
+	{
+			$url = 'https://reliancelife.ajrius.id/api/memo-refund/store';
 
-		// echo "<br><br>JSON DECODE<br>";
-		// var_dump($decode);
+			$tanggalEfektif = is_array($newEndDates)
+				? $newEndDates[0]
+				: $newEndDates;
 
-		// die;
+			$noPeserta = is_array($membersNo)
+				? $membersNo[0]
+				: $membersNo;
 
-		return $decode;
-	}
+			$data = [
+				'no_polis' => $policy_number,
+
+				'data' => [
+					'tanggal_pengajuan'    => date('Y-m-d'),
+					'tanggal_efektif'      => $tanggalEfektif,
+					'tujuan_pembayaran'    => 'Transfer',
+					'nama_bank'            => 'BCA',
+					'nomor_peserta_awal'   => $noPeserta,
+					'nomor_peserta_akhir'  => $noPeserta
+				],
+
+				'peserta' => [
+					[
+						'no_peserta' => $noPeserta,
+
+						'refund_tanggal_efektif' => $tanggalEfektif,
+
+						'refund_sisa_masa_asuransi' => $remainingTerm,
+
+						'total_kontribusi_dibayar' => $totalPremium,
+
+						'refund_kontribusi' => $premiRefunds
+					]
+				]
+			];
+
+			$jsonData = json_encode($data);
+
+			if ($jsonData === false) {
+				return [
+					'success' => false,
+					'message' => 'JSON Encode Error: ' . json_last_error_msg()
+				];
+			}
+
+			$headers = [
+				'Content-Type: application/json',
+				'Accept: application/json',
+				'Authorization: Bearer ' . trim($token)
+			];
+
+			$ch = curl_init();
+
+			curl_setopt_array($ch, [
+				CURLOPT_URL            => $url,
+				CURLOPT_POST           => true,
+				CURLOPT_POSTFIELDS     => $jsonData,
+
+				CURLOPT_HTTPHEADER     => $headers,
+
+				CURLOPT_RETURNTRANSFER => true,
+
+				CURLOPT_CONNECTTIMEOUT => 10,
+				CURLOPT_TIMEOUT        => 60,
+
+				// sementara untuk debugging SSL
+				CURLOPT_SSL_VERIFYPEER => false,
+				CURLOPT_SSL_VERIFYHOST => false,
+
+				CURLOPT_FOLLOWLOCATION => true,
+
+				CURLOPT_VERBOSE        => false,
+			]);
+
+			$response = curl_exec($ch);
+
+			$curlNo  = curl_errno($ch);
+			$curlErr = curl_error($ch);
+
+			$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
+			$contentType = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
+
+			curl_close($ch);
+
+			// ================= DEBUG =================
+
+			echo "<pre>";
+
+			echo "========================================\n";
+			echo "REFUND API DEBUG\n";
+			echo "========================================\n\n";
+
+			echo "URL:\n";
+			echo $url . "\n\n";
+
+			echo "HTTP CODE:\n";
+			var_dump($httpCode);
+
+			echo "\nCURL ERRNO:\n";
+			var_dump($curlNo);
+
+			echo "\nCURL ERROR:\n";
+			var_dump($curlErr);
+
+			echo "\nCONTENT TYPE:\n";
+			var_dump($contentType);
+
+			echo "\nTOKEN:\n";
+			var_dump(
+				empty($token)
+					? 'TOKEN KOSONG'
+					: substr($token, 0, 30) . '...'
+			);
+
+			echo "\nREQUEST JSON:\n";
+			echo $jsonData;
+
+			echo "\n\nRAW RESPONSE:\n";
+			var_dump($response);
+
+			echo "\n\nJSON DECODE:\n";
+
+			$decode = json_decode($response, true);
+
+			var_dump($decode);
+
+			echo "\nJSON ERROR:\n";
+			var_dump(json_last_error_msg());
+
+			echo "</pre>";
+
+			die;
+
+			// =========================================
+
+			if ($curlNo !== 0) {
+				return [
+					'success'    => false,
+					'http_code'  => $httpCode,
+					'curl_errno' => $curlNo,
+					'curl_error' => $curlErr,
+					'body'       => $response
+				];
+			}
+
+			return [
+				'success'    => true,
+				'http_code'  => $httpCode,
+				'body'       => $response,
+				'data'       => $decode
+			];
+		}
 	
 }
