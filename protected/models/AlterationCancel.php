@@ -108,33 +108,110 @@ class AlterationCancel extends \yii\db\ActiveRecord
         return $params['id'] . '/CNC/AJRI/' . date("Y");
     }
 	
+	// public function callAPIPostMemberLogin()
+    // {
+		
+		// $url='http://demo-reliancelife.ajrius.id/api/login';
+        // $headers = [
+            // 'Content-Type: application/json',
+        // ];
+		// $data = json_encode([
+			// 'email' => 'api@gmail.com',
+            // 'password' => '12345678',
+			
+			
+        // ]);
+		
+         // $ch = curl_init();
+        // curl_setopt($ch, CURLOPT_URL, $url);
+        // curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        // curl_setopt($ch, CURLOPT_HEADER, true);
+        // curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+        // curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+        // $response = curl_exec($ch);
+        // $body = substr($response, curl_getinfo($ch, CURLINFO_HEADER_SIZE));
+
+        // curl_close($ch);
+
+        // return json_decode($body, true);
+    // }
+	
 	public function callAPIPostMemberLogin()
     {
 		
-		$url='http://demo-reliancelife.ajrius.id/api/login';
-        $headers = [
-            'Content-Type: application/json',
-        ];
-		$data = json_encode([
-			'email' => 'api@gmail.com',
-            'password' => '12345678',
+		// $url='http://demo-reliancelife.ajrius.id/api/login';
+        // $headers = [
+            // 'Content-Type: application/json',
+        // ];
+		// $data = json_encode([
+			// 'email' => 'api@gmail.com',
+            // 'password' => '12345678',
 			
 			
-        ]);
+        // ]);
 		
-         $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-        curl_setopt($ch, CURLOPT_HEADER, true);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		
+			 $url = 'https://reliancelife.ajrius.id/api/login';
 
-        $response = curl_exec($ch);
-        $body = substr($response, curl_getinfo($ch, CURLINFO_HEADER_SIZE));
+		$data = [
+			'email'    => 'adminapi@gmail.com',
+			'password' => '12345678',
+		];
 
-        curl_close($ch);
+		$jsonData = json_encode($data);
 
-        return json_decode($body, true);
+		$ch = curl_init();
+
+		curl_setopt_array($ch, [
+			CURLOPT_URL            => $url,
+			CURLOPT_POST           => true,
+			CURLOPT_POSTFIELDS     => $jsonData,
+
+			CURLOPT_HTTPHEADER     => [
+				'Content-Type: application/json',
+				'Accept: application/json',
+			],
+
+			CURLOPT_RETURNTRANSFER => true,
+			CURLOPT_TIMEOUT        => 30,
+			CURLOPT_CONNECTTIMEOUT => 10,
+
+			// Untuk mengatasi SSL error
+			CURLOPT_SSL_VERIFYPEER => false,
+			CURLOPT_SSL_VERIFYHOST => false,
+		]);
+
+		$body = curl_exec($ch);
+
+		$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+		$curlNo   = curl_errno($ch);
+		$curlErr  = curl_error($ch);
+
+		curl_close($ch);
+
+		if ($curlNo !== 0) {
+			return [
+				'token'      => null,
+				'http_code'  => $httpCode,
+				'curl_errno' => $curlNo,
+				'curl_error' => $curlErr,
+			];
+		}
+
+		$response = json_decode($body, true);
+
+		return [
+			'token'      => isset($response['token']) ? $response['token'] : null,
+			'expired'    => isset($response['expired']) ? $response['expired'] : null,
+			'success'    => isset($response['success']) ? $response['success'] : false,
+			'user'       => isset($response['user']) ? $response['user'] : null,
+			'http_code'  => $httpCode,
+			'curl_errno' => $curlNo,
+			'curl_error' => $curlErr,
+			'body'       => $body,
+		];
+
     }
 	
 	
@@ -170,13 +247,21 @@ class AlterationCancel extends \yii\db\ActiveRecord
 			],
 		];
 
-		$ch = curl_init('http://demo-reliancelife.ajrius.id/api/memo-cancel/store');
+		// $ch = curl_init('http://demo-reliancelife.ajrius.id/api/memo-cancel/store');
+		$ch = curl_init('https://reliancelife.ajrius.id/memo-cancel/store');
 
 		curl_setopt_array($ch, [
-			CURLOPT_RETURNTRANSFER => true,
-			CURLOPT_POST => true,
-			CURLOPT_POSTFIELDS => json_encode($data),
-			CURLOPT_HTTPHEADER => $headers,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_POST           => true,
+        CURLOPT_POSTFIELDS     => $data,
+        CURLOPT_HTTPHEADER     => $headers,
+
+        CURLOPT_TIMEOUT        => 30,
+        CURLOPT_CONNECTTIMEOUT => 10,
+
+        // BYPASS SSL
+        CURLOPT_SSL_VERIFYPEER => false,
+        CURLOPT_SSL_VERIFYHOST => 0,
 		]);
 
 		$response = curl_exec($ch);

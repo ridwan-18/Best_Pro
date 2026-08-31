@@ -931,22 +931,22 @@ class MemberController extends Controller
 			$token = $response['token'];
 
 			$response_member = $model->callAPIPostMemberPush(
-    $token,
-    $policyNo,
-    $pesertaApi
-);
+				$token,
+				$policyNo,
+				$pesertaApi
+			);
 
-if (!empty($response_member['code']) && $response_member['code'] != '200') {
+			if (!empty($response_member['code']) && $response_member['code'] != '200') {
 
-    Yii::$app->session->setFlash(
-        'error',
-        $response_member['message'] ?? 'Error Call API'
-    );
+				Yii::$app->session->setFlash(
+					'error',
+					$response_member['message'] ?? 'Error Call API'
+				);
 
-    return $this->redirect(['create']);
-}
-
-var_dump($response_member);
+				return $this->redirect(['create']);
+			}
+		
+		var_dump($response_member);
 
 		if (count($members) == 0) {
 			Yii::$app->session->setFlash('error', "Member was empty");
