@@ -328,5 +328,6 @@ class AlterationCancel extends \yii\db\ActiveRecord
     $decode['http_code'] = $httpCode;
 
     return $decode;
+	}
 
 }
