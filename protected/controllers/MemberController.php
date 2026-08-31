@@ -1031,7 +1031,20 @@ class MemberController extends Controller
 			 * Send email
 			 */
 			try {
-				$email = Yii::$app->user->identity->email;
+
+			$email = trim(Yii::$app->user->identity->email);
+
+			// Validasi email recipient
+			if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+
+				Yii::error(
+					'Email upload member tidak valid. User ID: '
+					. Yii::$app->user->id
+					. ', Email: [' . $email . ']',
+					__METHOD__
+				);
+
+			} else {
 
 				$sent = Yii::$app->mailer
 					->compose()
@@ -1039,36 +1052,74 @@ class MemberController extends Controller
 					->setFrom([
 						'ridwan.nurasyid@reliance-life.com' => 'AJRI'
 					])
-					->setSubject('Upload Member Berhasil - Batch ' . $batch->batch_no)
+					->setSubject(
+						'Upload Member Berhasil - Batch ' . $batch->batch_no
+					)
 					->setHtmlBody(
 						'<h3>Upload Member Berhasil</h3>' .
 						'<p>Data member berhasil di-upload.</p>' .
+
 						'<table border="1" cellpadding="5" cellspacing="0">' .
-						'<tr><td><b>Policy No</b></td><td>: ' . $policyNo . '</td></tr>' .
-						'<tr><td><b>Batch No</b></td><td>: ' . $batch->batch_no . '</td></tr>' .
-						'<tr><td><b>Total Member</b></td><td>: ' . $totalMember . '</td></tr>' .
-						'<tr><td><b>Total UP</b></td><td>: ' . number_format($totalUp, 0, ',', '.') . '</td></tr>' .
-						'<tr><td><b>Total Nett Premium</b></td><td>: ' . number_format($totalNettPremium, 0, ',', '.') . '</td></tr>' .
+
+						'<tr>
+							<td><b>Policy No</b></td>
+							<td>: ' . htmlspecialchars($policyNo) . '</td>
+						</tr>' .
+
+						'<tr>
+							<td><b>Batch No</b></td>
+							<td>: ' . htmlspecialchars($batch->batch_no) . '</td>
+						</tr>' .
+
+						'<tr>
+							<td><b>Total Member</b></td>
+							<td>: ' . number_format($totalMember, 0, ',', '.') . '</td>
+						</tr>' .
+
+						'<tr>
+							<td><b>Total UP</b></td>
+							<td>: ' . number_format($totalUp, 0, ',', '.') . '</td>
+						</tr>' .
+
+						'<tr>
+							<td><b>Total Nett Premium</b></td>
+							<td>: ' . number_format($totalNettPremium, 0, ',', '.') . '</td>
+						</tr>' .
+
 						'</table>' .
+
 						'<br>' .
 						'<p>Terima kasih.</p>'
 					)
 					->send();
 
 				if (!$sent) {
+
 					Yii::error(
 						'Email upload member gagal dikirim ke: ' . $email,
 						__METHOD__
 					);
+
+				} else {
+
+					Yii::info(
+						'Email upload member berhasil dikirim ke: ' . $email,
+						__METHOD__
+					);
 				}
-
-			} catch (\Throwable $e) {
-
-				Yii::error(
-					'Email upload member gagal: ' . $e->getMessage(),
-					__METHOD__
-				);
 			}
+
+		} catch (\Throwable $e) {
+
+			Yii::error(
+				'Email upload member gagal: ' . $e->getMessage(),
+				__METHOD__
+			);
+		}
+	
+	
+	
+	
 	
 		yii::$app->session->setflash('success', "successfully uploaded");
 		return $this->redirect([
