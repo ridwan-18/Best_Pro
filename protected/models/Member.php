@@ -822,7 +822,6 @@ class Member extends \yii\db\ActiveRecord
 			'email' => 'adminapi@gmail.com',
             'password' => '12345678',
 			
-			
         ]);
 		
          $ch = curl_init();
@@ -836,6 +835,9 @@ class Member extends \yii\db\ActiveRecord
         $body = substr($response, curl_getinfo($ch, CURLINFO_HEADER_SIZE));
 
         curl_close($ch);
+		
+		echo "<br><br>RESPONSE<br>";
+		var_dump($response);
 
         return json_decode($body, true);
     }
