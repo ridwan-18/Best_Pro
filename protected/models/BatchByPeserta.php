@@ -324,7 +324,7 @@ if (!Yii::$app->user->isGuest) {
             'm.created_by' => $user->id
         ]);
     }
-}
+
 
         if (isset($params['member_id']) && $params['member_id'] != null) {
             $query->andFilterWhere(['=', self::tableName() . '.id', $params['member_id']]);
