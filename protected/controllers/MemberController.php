@@ -134,15 +134,12 @@ class MemberController extends Controller
 		$objPHPExcel->getActiveSheet()->setCellValue('K1', 'End Date');
 		$objPHPExcel->getActiveSheet()->setCellValue('L1', 'Sum Insured');
 		$objPHPExcel->getActiveSheet()->setCellValue('M1', 'PK No');
-		$objPHPExcel->getActiveSheet()->setCellValue('N1', 'Account No');
-		$objPHPExcel->getActiveSheet()->setCellValue('O1', 'Bank Branch');
-		$objPHPExcel->getActiveSheet()->setCellValue('P1', 'Branch Code');
-		$objPHPExcel->getActiveSheet()->setCellValue('Q1', 'Identity No');
-		$objPHPExcel->getActiveSheet()->setCellValue('R1', 'Email');
-		$objPHPExcel->getActiveSheet()->setCellValue('S1', 'Phone');
-		$objPHPExcel->getActiveSheet()->setCellValue('T1', 'Address');
-		$objPHPExcel->getActiveSheet()->setCellValue('U1', 'City');
-		$objPHPExcel->getActiveSheet()->setCellValue('V1', 'Province');
+		$objPHPExcel->getActiveSheet()->setCellValue('N1', 'Identity No');
+		$objPHPExcel->getActiveSheet()->setCellValue('O1', 'Email');
+		$objPHPExcel->getActiveSheet()->setCellValue('P1', 'Phone');
+		$objPHPExcel->getActiveSheet()->setCellValue('Q1', 'Address');
+		$objPHPExcel->getActiveSheet()->setCellValue('R1', 'Tinggi Badan');
+		$objPHPExcel->getActiveSheet()->setCellValue('S1', 'Berat Badan');
 
 		$objPHPExcel->getActiveSheet()->getComment('D1')->getText()->createTextRun('Name cannot be blank');
 		$objPHPExcel->getActiveSheet()->getStyle('D1')->getFont()->setBold(true);
@@ -157,6 +154,10 @@ class MemberController extends Controller
 		$objPHPExcel->getActiveSheet()->getStyle('K:K')->getNumberFormat()->setFormatCode('yyyy-mm-dd');
 		$objPHPExcel->getActiveSheet()->getComment('L1')->getText()->createTextRun('Sum Insured must be a number');
 		$objPHPExcel->getActiveSheet()->getStyle('L1')->getFont()->setBold(true);
+		$objPHPExcel->getActiveSheet()->getComment('R1')->getText()->createTextRun('Tinggi Badan must be a number');
+		$objPHPExcel->getActiveSheet()->getStyle('R1')->getFont()->setBold(true);
+		$objPHPExcel->getActiveSheet()->getComment('S1')->getText()->createTextRun('Berat Badan must be a number');
+		$objPHPExcel->getActiveSheet()->getStyle('S1')->getFont()->setBold(true);
 
 		header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
 		header('Content-Disposition: attachment;filename="member-template.xlsx"');
@@ -770,7 +771,53 @@ class MemberController extends Controller
 				$premi = $totalPremium;
 				$rate = $quotationRate->rate;
 				$uw =$quotationUwLimit->medical_code;
-				
+				$tinggi_badan = $sheetData[$baseRow]['R'];
+				$berat_badan  = $sheetData[$baseRow]['S'];
+
+				$bmi = '';
+				$bmiKategori = '';
+				$extraMortalita = '';
+				$extraPremi = '';
+
+				// Jika tinggi dan berat badan tersedia
+				if ($tinggi_badan !== '' && $tinggi_badan !== null &&
+					$berat_badan !== '' && $berat_badan !== null &&
+					(float)$tinggi_badan > 0 && (float)$berat_badan > 0) {
+
+					$tinggiMeter = (float)$tinggi_badan / 100;
+
+					$bmi = round(
+						(float)$berat_badan / ($tinggiMeter * $tinggiMeter),
+						2
+					);
+
+					// Kategori BMI dan Extra Mortalita
+					if ($bmi < 18.5) {
+						$bmiKategori = 'Underweight';
+						$extraMortalita = 25;
+					} elseif ($bmi <= 25.9) {
+						$bmiKategori = 'Ideal';
+						$extraMortalita = 0;
+					} elseif ($bmi <= 29.9) {
+						$bmiKategori = 'Overweight';
+						$extraMortalita = 25;
+					} elseif ($bmi <= 34.9) {
+						$bmiKategori = 'Obesitas Kelas 1';
+						$extraMortalita = 50;
+					} elseif ($bmi <= 39.9) {
+						$bmiKategori = 'Obesitas Kelas 2';
+						$extraMortalita = 75;
+					} else {
+						$bmiKategori = 'Obesitas Kelas 3';
+						$extraMortalita = 100;
+					}
+
+			
+						$extraPremi = (float)$grossPremium * ($extraMortalita / 100);
+					}
+
+				// Total Premi setelah Extra Mortalita
+				$nettPremium = $grossPremium + $extraPremi - $discount;
 				// $model = new Member();
 				// $response = $model->callAPIPostMemberLogin();
 				// $token = $response['token'];
@@ -819,9 +866,7 @@ class MemberController extends Controller
 					'personal_no' => $personal->personal_no,
 					'branch' => $sheetData[$baseRow]['B'],
 					'age' => $age,
-					'branch_code' => $sheetData[$baseRow]['P'],
-					'account_no' => $sheetData[$baseRow]['N'],
-					'bank_branch' => $sheetData[$baseRow]['O'],
+					
 					'term' => $term,
 					'start_date' => Utils::convertDateToYmd($sheetData[$baseRow]['J']),
 					'end_date' => Utils::convertDateToYmd($sheetData[$baseRow]['K']),
@@ -841,6 +886,12 @@ class MemberController extends Controller
 					'acc_status' => $accStatus,
 					'created_at' => $createdAt,
 					'created_by' => $createdBy,
+					'tinggi_badan' => $sheetData[$baseRow]['R'],
+					'berat_badan' => $sheetData[$baseRow]['S'],
+					'status_bmi' => $bmiKategori,
+					'bmi' => $bmi,
+					'em_premium' => $extraPremi,
+					'percentage_em' =>  $extraMortalita
 				];
 
 				$totalUp += $sumInsured;
@@ -946,7 +997,13 @@ class MemberController extends Controller
 			'stnc_date',
 			'acc_status',
 			'created_at',
-			'created_by'
+			'created_by',
+			'tinggi_badan',
+			'berat_badan',
+			'status_bmi',
+			'bmi',
+			'em_premium',
+			'percentage_em'
 		];
 		// $modelSave = Yii::$app->db->createCommand()
 			// ->batchInsert(Member::tableName(), $attributes, $members)
