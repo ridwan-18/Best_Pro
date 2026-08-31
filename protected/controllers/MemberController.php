@@ -866,7 +866,6 @@ class MemberController extends Controller
 					'personal_no' => $personal->personal_no,
 					'branch' => $sheetData[$baseRow]['B'],
 					'age' => $age,
-					
 					'term' => $term,
 					'start_date' => Utils::convertDateToYmd($sheetData[$baseRow]['J']),
 					'end_date' => Utils::convertDateToYmd($sheetData[$baseRow]['K']),
@@ -976,9 +975,6 @@ class MemberController extends Controller
 			'personal_no',
 			'branch',
 			'age',
-			'branch_code',
-			'account_no',
-			'bank_branch',
 			'term',
 			'start_date',
 			'end_date',
