@@ -776,7 +776,7 @@ class MemberController extends Controller
 				$tinggi_badan = $sheetData[$baseRow]['R'];
 				$berat_badan  = $sheetData[$baseRow]['S'];
 
-				$bmi = '';
+				$bmi = 0;
 				$bmiKategori = '';
 				$extraMortalita = 0;
 				$extraPremi = 0;
