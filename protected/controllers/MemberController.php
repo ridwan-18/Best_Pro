@@ -1049,7 +1049,9 @@ class MemberController extends Controller
 				$sent = Yii::$app->mailer
 					->compose()
 					->setTo($email)
-					->setFrom($useremail)
+					->setFrom([
+						'ridwan.nurasyid@reliance-life.com' => 'AJRI'
+					])
 					->setSubject(
 						'Upload Member Berhasil - Batch ' . $batch->batch_no
 					)
