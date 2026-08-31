@@ -531,6 +531,8 @@ class MemberController extends Controller
 		]);
 
 		$members = Member::getAll($params);
+		
+		var_dump($members);
 
 		return $this->render('view', [
 			'batch' => $batch,
