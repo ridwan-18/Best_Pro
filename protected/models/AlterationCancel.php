@@ -216,84 +216,117 @@ class AlterationCancel extends \yii\db\ActiveRecord
 	
 	
 	
-	public function callAPIPostMemberCancelPush($token, $policy_number, $membersNo,$cancel_premi)
+	public function callAPIPostMemberCancelPush(
+    $token,
+    $policy_number,
+    $membersNo,
+    $cancel_premi
+	)
 	{
-		$headers = [
-			'Content-Type: application/json',
-			'Authorization: Bearer ' . $token,
-		];
+    $url = 'https://reliancelife.ajrius.id/api/memo-cancel/store';
 
+    $headers = [
+        'Content-Type: application/json',
+        'Accept: application/json',
+        'Authorization: Bearer ' . $token,
+    ];
 
-		$peserta = [];
+    $peserta = [];
 
-			foreach ($membersNo as $memberNo) {
-				$peserta[] = [
-					'no_peserta' => $memberNo,
-					'cancel_kontribusi_netto' => $cancel_premi,
-					'total_kontribusi_dibayar' => $cancel_premi,
-				];
-			}
+    // Pastikan membersNo selalu array
+    if (!is_array($membersNo)) {
+        $membersNo = [$membersNo];
+    }
 
-		$data = [
-			'no_polis' => $policy_number,
-			'source' => 2,
-			'peserta' => $peserta,
-			'data' => [
-				'tanggal_efektif'   => date('Y-m-d'),
-				'tanggal_pengajuan' => date('Y-m-d'),
-				'tujuan_pembayaran' => 'ABC',
-				'nama_bank'         => 'ABC',
-				'no_rekening'       => 'ABC',
-			],
-		];
+    foreach ($membersNo as $memberNo) {
+        $peserta[] = [
+            'no_peserta' => $memberNo,
+            'cancel_kontribusi_netto' => (float) $cancel_premi,
+            'total_kontribusi_dibayar' => (float) $cancel_premi,
+        ];
+    }
 
-		// $ch = curl_init('http://demo-reliancelife.ajrius.id/api/memo-cancel/store');
-		$ch = curl_init('https://reliancelife.ajrius.id/memo-cancel/store');
+    $data = [
+        'no_polis' => $policy_number,
+        'source' => 2,
+        'peserta' => $peserta,
+        'data' => [
+            'tanggal_efektif'   => date('Y-m-d'),
+            'tanggal_pengajuan' => date('Y-m-d'),
+            'tujuan_pembayaran' => 'ABC',
+            'nama_bank'         => 'ABC',
+            'no_rekening'       => 'ABC',
+        ],
+    ];
 
-		curl_setopt_array($ch, [
+    // Convert ke JSON
+    $jsonData = json_encode($data);
+
+    $ch = curl_init($url);
+
+    curl_setopt_array($ch, [
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_POST           => true,
-        CURLOPT_POSTFIELDS     => $data,
+        CURLOPT_POSTFIELDS     => $jsonData,
+
         CURLOPT_HTTPHEADER     => $headers,
 
         CURLOPT_TIMEOUT        => 30,
         CURLOPT_CONNECTTIMEOUT => 10,
 
-        // BYPASS SSL
         CURLOPT_SSL_VERIFYPEER => false,
-        CURLOPT_SSL_VERIFYHOST => 0,
-		]);
+        CURLOPT_SSL_VERIFYHOST => false,
+    ]);
 
-		$response = curl_exec($ch);
+    $response = curl_exec($ch);
 
-		if (curl_errno($ch)) {
-			return [
-				'http_code' => 0,
-				'error' => curl_error($ch),
-			];
-		}
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $curlNo   = curl_errno($ch);
+    $curlErr  = curl_error($ch);
 
-		$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
 
-		curl_close($ch);
+    // =========================
+    // DEBUG
+    // =========================
+    Yii::info([
+        'url'        => $url,
+        'http_code'  => $httpCode,
+        'curl_errno' => $curlNo,
+        'curl_error' => $curlErr,
+        'request'    => $data,
+        'json'       => $jsonData,
+        'response'   => $response,
+    ], 'cancel-api');
 
-		
-		// echo "<pre>";
-		// echo "HTTP CODE : ".$httpCode."<br><br>";
+    // Jika CURL error
+    if ($curlNo !== 0) {
+        return [
+            'code'       => '0',
+            'http_code'  => $httpCode,
+            'curl_errno' => $curlNo,
+            'curl_error' => $curlErr,
+            'message'    => 'CURL Error',
+            'body'       => $response,
+        ];
+    }
 
-		// echo "REQUEST<br>";
-		// print_r($data);
+    // Decode response
+    $decode = json_decode($response, true);
 
-		// echo "<br><br>RESPONSE<br>";
-		// var_dump($response);
+    // Kalau response bukan JSON
+    if (!is_array($decode)) {
+        return [
+            'code'      => (string) $httpCode,
+            'http_code' => $httpCode,
+            'message'   => 'Response bukan JSON',
+            'body'      => $response,
+        ];
+    }
 
-		// $decode = json_decode($response, true);
+    // Tambahkan HTTP code supaya mudah dicek
+    $decode['http_code'] = $httpCode;
 
-		// echo "<br><br>JSON DECODE<br>";
-		// var_dump($decode);
+    return $decode;
 
-		// die;
-
-		return $decode;
-	}
 }

@@ -264,35 +264,52 @@ class AlterationCancelController extends Controller
 			
 			$response = $model->callAPIPostMemberLogin();
 
-				// if (!is_array($response)) {
-					// echo "<pre>";
-					// var_dump($response);
-					// die("Login API bukan array");
-				// }
+			if (empty($response['token'])) {
 
-				// if (!isset($response['token'])) {
-					// echo "<pre>";
-					// var_dump($response);
-					// die("Token tidak ditemukan");
-				// }
+				Yii::$app->session->setFlash(
+					'error',
+					'Login API gagal. HTTP: ' .
+					($response['http_code'] ?? '-') .
+					' | Error: ' .
+					($response['curl_error'] ?? '-') .
+					' | Response: ' .
+					($response['body'] ?? '-')
+				);
 
-				$token = $response['token'];
+				return $this->redirect(['create']);
+			}
 
+			$token = $response['token'];
+			
+			
 				$policy_number = $policy->policy_no;
 				$cancel_premi =$member->total_premium;
 
 				// ================= REFUND API ===================
 				$response_member = $model->callAPIPostMemberCancelPush(
 					$token,
-					$policy->policy_no,
+					$policy_number,
 					$membersNo,
 					$cancel_premi
 				);
-				
-					// echo "<pre>";
-				// echo "===== RESPONSE REFUND =====<br>";
-				// var_dump($response_member);
-				// die;
+
+				echo "<pre>";
+				echo "===== TOKEN =====\n";
+				var_dump($token);
+
+				echo "\n===== POLICY =====\n";
+				var_dump($policy_number);
+
+				echo "\n===== MEMBERS =====\n";
+				var_dump($membersNo);
+
+				echo "\n===== CANCEL PREMI =====\n";
+				var_dump($cancel_premi);
+
+				echo "\n===== RESPONSE CANCEL =====\n";
+				var_dump($response_member);
+
+				die;
 
 				if (
 					is_array($response_member) &&
