@@ -477,6 +477,7 @@ $this->title = 'View Member - ' . Yii::$app->name;
                                                 <td><?= $member['percentage_em']; ?></td>
                                                 <td><?= number_format($member['em_premium']); ?></td>
                                                 <td><?= nl2br($member['em_notes']); ?></td>
+												 <td><?= nl2br($member['status_bmi']); ?></td>
                                                 <td><?= nl2br($member['uw_notes']); ?></td>
 												
 												
@@ -706,18 +707,6 @@ $this->title = 'View Member - ' . Yii::$app->name;
                                                                         ]) ?>
                                                                     </div>
                                                                 </div>
-																
-																  <div class="col-md-6">
-                                                                    <div class="form-group">
-                                                                        <label for="status_bmi">Status BMI</label>
-                                                                        <?= Html::textarea('status_bmi', $member['status_bmi'], [
-                                                                            'class' => 'form-control',
-                                                                            'id' => 'status_bmi',
-                                                                            'value' => $member['status_bmi'],
-                                                                        ]) ?>
-                                                                    </div>
-                                                                </div>
-																
                                                                 <div class="col-md-6">
                                                                     <div class="form-group">
                                                                         <label for="uw_notes">UW Notes</label>
