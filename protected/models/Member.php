@@ -853,15 +853,18 @@ class Member extends \yii\db\ActiveRecord
     $curlErr  = curl_error($ch);
 
     curl_close($ch);
-
+	
+	$json = json_decode($body, true);
+	
     return [
-        'http_code'  => $httpCode,
-        'curl_errno' => $curlNo,
-        'curl_error' => $curlErr,
-        'payload'    => $jsonData,
-        'body'       => $body,
-        'data'       => json_decode($body, true),
-    ];
+    'http_code'  => $httpCode,
+    'curl_errno' => $curlNo,
+    'curl_error' => $curlErr,
+    'payload'    => $jsonData,
+    'body'       => $body,
+    'data'       => $json,
+    'token'      => isset($json['token']) ? $json['token'] : null,
+	];
 
     }
 	
