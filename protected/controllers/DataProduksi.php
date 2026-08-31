@@ -204,10 +204,39 @@ class DataProduksi extends \yii\db\ActiveRecord
             ->asArray();
 			
 			if (!Yii::$app->user->isGuest) {
-			if (Yii::$app->user->identity->role == User::ROLE_UW) {
-				$query->andWhere(['=', self::tableName() . '.created_by', Yii::$app->user->identity->id]);
-			}
-		}
+
+    $user = Yii::$app->user->identity;
+    $memberTable = self::tableName();
+
+    // SUPER ADMIN
+    if ($user->role == User::ROLE_SUPER_ADMIN) {
+
+        // Semua data
+
+    }
+
+    // PUSAT
+    elseif ($user->role == User::ROLE_PUSAT) {
+
+        $query->innerJoin(
+            ['u' => User::tableName()],
+            'u.id = ' . $memberTable . '.created_by'
+        );
+
+        $query->andWhere([
+            'u.partner_id' => $user->partner_id
+        ]);
+
+    }
+
+    // CABANG
+    elseif ($user->role == User::ROLE_PARTNER) {
+
+        $query->andWhere([
+            $memberTable . '.created_by' => $user->id
+        ]);
+    }
+}
 
         if (isset($params['member_id']) && $params['member_id'] != null) {
             $query->andFilterWhere(['=', self::tableName() . '.id', $params['member_id']]);
