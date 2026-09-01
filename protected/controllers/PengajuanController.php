@@ -3,7 +3,9 @@
 namespace app\controllers;
 
 use Yii;
-
+use yii\web\UploadedFile;
+use phpseclib3\Net\SFTP;
+use app\components\SftpBankService;
 use app\models\Partner;
 use yii\web\Controller;
 use yii\web\Response;
@@ -26,7 +28,7 @@ use app\models\QuotationUwLimit;
 use app\models\RateType;
 use app\models\Signature;
 use yii\web\NotFoundHttpException;
-use yii\web\UploadedFile;
+
 use Da\QrCode\QrCode;
 use yii\helpers\Url;
 use app\models\claim_bank_jatim;
@@ -53,16 +55,7 @@ class PengajuanController extends Controller
 	const PICTURE_PATH_Logo = '/images/img-Reliance-life.jpg';
 	const PICTURE_PATH_Ttd = '/images/policy-qr.png';
 
-    // public function beforeAction($action)
-    // {
-        // $h = Yii::$app->request->headers;
-        // $k = Utils::sanitize($h->get('x-api-key'));
-        // $s = Utils::sanitize($h->get('x-api-secret'));
-        // if (!Api::validate($k, $s)) {
-            // $this->redirect(['/api/v1/site/header-error']);
-            // return false;
-        // }
-        // return parent::beforeAction($action);
+
     // }
 	
 	public function beforeAction($action)
@@ -182,7 +175,680 @@ class PengajuanController extends Controller
 		return true;
 	}
 	
-	
+
+	public function actionSubmitDokumenCbc()
+	{
+		Yii::$app->response->format =
+			\yii\web\Response::FORMAT_JSON;
+
+		$request = Yii::$app->request;
+
+		$headers = $request->headers;
+
+		$authorization =
+			$headers->get('Authorization');
+
+		if (!$authorization) {
+
+			return [
+				'is_success' => 0,
+				'message' =>
+					'Authorization header tidak ditemukan'
+			];
+		}
+
+		if (
+			!preg_match(
+				'/^Bearer\s+(.+)$/i',
+				$authorization,
+				$matches
+			)
+		) {
+
+			return [
+				'is_success' => 0,
+				'message' =>
+					'Format Authorization harus Bearer Token'
+			];
+		}
+
+		$token = trim($matches[1]);
+
+		if ($token === '') {
+
+			return [
+				'is_success' => 0,
+				'message' =>
+					'Bearer Token tidak ditemukan'
+			];
+		}
+
+
+		$contentType =
+			$request->headers->get('Content-Type');
+
+		if (
+			$contentType &&
+			stripos(
+				$contentType,
+				'application/json'
+			) === false
+		) {
+
+			return [
+				'is_success' => 0,
+				'message' =>
+					'Content-Type harus application/json'
+			];
+		}
+
+
+		$rawBody =
+			$request->getRawBody();
+
+		if (
+			$rawBody === null ||
+			trim($rawBody) === ''
+		) {
+
+			return [
+				'is_success' => 0,
+				'message' =>
+					'Request body kosong'
+			];
+		}
+
+
+		$payload =
+			json_decode(
+				$rawBody,
+				true
+			);
+
+		if (
+			!is_array($payload) ||
+			json_last_error() !== JSON_ERROR_NONE
+		) {
+
+			return [
+				'is_success' => 0,
+				'message' =>
+					'Payload JSON tidak valid',
+				'error' =>
+					json_last_error_msg()
+			];
+		}
+
+
+
+		$idTransaksi =
+			$payload['id_transaksi'] ?? null;
+
+		$idPengajuan =
+			$payload['id_pengajuan'] ?? null;
+
+		$kodeBroker =
+			$payload['kode_broker'] ?? null;
+
+		$kodeCabang =
+			$payload['kode_cabang'] ?? null;
+
+		$nama =
+			$payload['nama'] ?? null;
+
+		$ktp =
+			$payload['ktp'] ?? null;
+
+		$jenisKelamin =
+			$payload['jenis_kelamin'] ?? null;
+
+		$tglLahirRaw =
+			$payload['tgl_lahir'] ?? null;
+
+		$tenor =
+			(int)($payload['tenor'] ?? 0);
+
+		$coverage =
+			(float)($payload['coverage'] ?? 0);
+
+		$jenisPembiayaan =
+			$payload['jenis_pembiayaan'] ?? null;
+
+		$plafond =
+			(float)($payload['plafond'] ?? 0);
+
+		$benefit =
+			$payload['benefit'] ?? null;
+
+		$pekerjaan =
+			$payload['pekerjaan'] ?? null;
+
+		$benefitPembiayaan =
+			$payload['benefit_pembiayaan'] ?? null;
+
+
+		$requiredFields = [
+			'id_transaksi' =>
+				$idTransaksi,
+
+			'id_pengajuan' =>
+				$idPengajuan,
+
+			'kode_broker' =>
+				$kodeBroker,
+
+			'kode_cabang' =>
+				$kodeCabang,
+
+			'nama' =>
+				$nama,
+
+			'ktp' =>
+				$ktp,
+
+			'jenis_kelamin' =>
+				$jenisKelamin,
+
+			'tgl_lahir' =>
+				$tglLahirRaw,
+
+			'tenor' =>
+				$tenor,
+
+			'coverage' =>
+				$coverage,
+
+			'jenis_pembiayaan' =>
+				$jenisPembiayaan,
+
+			'plafond' =>
+				$plafond,
+
+			'benefit' =>
+				$benefit,
+
+			'pekerjaan' =>
+				$pekerjaan,
+
+			'benefit_pembiayaan' =>
+				$benefitPembiayaan,
+		];
+
+
+		foreach (
+			$requiredFields
+			as $field => $value
+		) {
+
+			if (
+				$value === null ||
+				$value === ''
+			) {
+
+				return [
+					'is_success' => 0,
+					'message' =>
+						'Field ' .
+						$field .
+						' wajib diisi'
+				];
+			}
+		}
+
+
+		$tglLahirRaw =
+			(string)$tglLahirRaw;
+
+		if (
+			!preg_match(
+				'/^\d{8}$/',
+				$tglLahirRaw
+			)
+		) {
+
+			return [
+				'is_success' => 0,
+				'message' =>
+					'Format tgl_lahir harus YYYYMMDD'
+			];
+		}
+
+
+		$tglLahirDate =
+			\DateTime::createFromFormat(
+				'Ymd',
+				$tglLahirRaw
+			);
+
+
+		if (!$tglLahirDate) {
+
+			return [
+				'is_success' => 0,
+				'message' =>
+					'Tanggal lahir tidak valid'
+			];
+		}
+
+
+		$tglLahir =
+			$tglLahirDate->format('Y-m-d');
+
+
+		$tglBuka =
+			date('Y-m-d');
+
+
+		$birth =
+			new \DateTime($tglLahir);
+
+		$start =
+			new \DateTime($tglBuka);
+
+		$age =
+			$birth->diff($start)->y;
+
+
+		if ($tenor > 0) {
+
+			$tglAkhir =
+				date(
+					'Y-m-d',
+					strtotime(
+						'+' .
+						$tenor .
+						' months',
+						strtotime($tglBuka)
+					)
+				);
+
+		} else {
+
+			$tglAkhir = null;
+		}
+
+
+		$policybyproduk =
+			Policy::findOne([
+				'produk_code' =>
+					$pekerjaan,
+			]);
+
+
+		if (!$policybyproduk) {
+
+			return [
+				'is_success' => 0,
+				'message' =>
+					'Policy produk tidak ditemukan',
+				'produk_code' =>
+					$pekerjaan
+			];
+		}
+
+
+		$quotation =
+			Quotation::findOne([
+				'id' =>
+					$policybyproduk->quotation_id,
+			]);
+
+
+		if (!$quotation) {
+
+			return [
+				'is_success' => 0,
+				'message' =>
+					'Quotation tidak ditemukan'
+			];
+		}
+
+		$quotationUwLimit =
+			QuotationUwLimit::find()
+				->where([
+					'quotation_id' =>
+						$policybyproduk->quotation_id
+				])
+				->andWhere([
+					'<=',
+					'min_age',
+					$age
+				])
+				->andWhere([
+					'>=',
+					'max_age',
+					$age
+				])
+				->andWhere([
+					'<=',
+					'min_si',
+					$plafond
+				])
+				->andWhere([
+					'>=',
+					'max_si',
+					$plafond
+				])
+				->one();
+
+
+		if (!$quotationUwLimit) {
+
+			return [
+				'is_success' => 0,
+				'message' =>
+					'UW limit tidak ditemukan'
+			];
+		}
+
+
+		$medicalCode =$quotationUwLimit->medical_code;
+
+
+		$existingMember =Member::find()
+				->where([
+					'no_ktp' =>$ktp,
+					'member_status' =>Member::MEMBER_STATUS_INFORCE
+				])
+				->one();
+
+
+		$akumulasi = 'False';
+
+		$nilaiAkumulasi =$plafond;
+
+
+		if ($existingMember) {
+			$akumulasi = 'True';
+			$upAwal =
+				(float)$existingMember->sum_insured;
+			$nilaiAkumulasi =
+				$upAwal +
+				$plafond;
+
+
+			$quotationUwLimit =
+				QuotationUwLimit::find()
+					->where([
+						'quotation_id' =>
+							$policybyproduk->quotation_id
+					])
+					->andWhere([
+						'<=',
+						'min_age',
+						$age
+					])
+					->andWhere([
+						'>=',
+						'max_age',
+						$age
+					])
+					->andWhere([
+						'<=',
+						'min_si',
+						$nilaiAkumulasi
+					])
+					->andWhere([
+						'>=',
+						'max_si',
+						$nilaiAkumulasi
+					])
+					->one();
+
+
+			if (!$quotationUwLimit) {
+
+				return [
+					'is_success' => 0,
+					'message' =>
+						'Akumulasi UP melebihi batas underwriting',
+
+					'nilai_akumulasi' =>
+						$nilaiAkumulasi
+				];
+			}
+
+
+			$medicalCode =$quotationUwLimit->medical_code;
+		}
+
+
+		$personalNo =Personal::generatePersonalNo(
+				$nama,
+				$tglLahir
+			);
+
+		$batchNo =$idPengajuan;
+
+		$memberNo = '';
+
+		$memberStatus =Member::MEMBER_STATUS_PENDING;
+		$ratePolis = QuotationRate::findOne([
+					'term' => $tenor,
+					'quotation_id' => $policybyproduk->quotation_id
+				]);
+				
+		// var_dump($tenor);
+		  // var_dump($policybyproduk);
+
+		$nominalPremi = 0;
+		if ($ratePolis > 0) 
+		{
+			$nominalPremi =
+				$plafond *
+				$ratePolis->rate /
+				1000;
+		}
+
+		$nettPremium =
+			round($nominalPremi,
+				0
+			);
+
+
+		$polisJiwa = [
+			'plafon_pertanggungan' =>
+				$plafond,
+			'tenor_pertanggungan' =>
+				$tenor,
+			'rate_polis' =>
+				$ratePolis->rate,
+			'nominal_premi' =>
+				$nettPremium,
+		];
+
+
+		$polisJiwaJson =
+			json_encode(
+				$polisJiwa,
+				JSON_UNESCAPED_UNICODE
+			);
+
+
+		$transaction =
+			Yii::$app->db->beginTransaction();
+		
+		$fileNik = $ktp;
+
+		$fileTanggal = date(
+			'dmy',
+			strtotime($tglBuka)
+		);
+
+		$codeDoc = 'CBC';
+
+		$fileBenefit = $benefit;
+
+		$sequence = 1;
+
+		$fileName =
+			$fileNik . '_' .
+			$fileTanggal . '_' .
+			$codeDoc . '_' .
+			$fileBenefit . '_' .
+			$sequence .
+			'.zip';
+
+		try {
+
+
+			$personal =
+				new Personal();
+
+			$personal->personal_no =
+				$personalNo;
+
+			$personal->name =
+				$nama;
+
+			$personal->birth_date =
+				$tglLahir;
+
+			$personal->id_card_no =
+				$ktp;
+
+			$personal->phone =
+				$ktp;
+
+
+			if (!$personal->save()) {
+
+				throw new \Exception(
+					'Gagal insert Personal: ' .
+					json_encode(
+						$personal->errors
+					)
+				);
+			}
+
+			$member =new Member();
+			$member->policy_no = $policybyproduk->policy_no;
+			$member->batch_no =$batchNo;
+			$member->member_no =$memberNo;
+			$member->personal_no =$personalNo;
+			$member->age =$age;
+			$member->term =$tenor;
+			$member->start_date =$tglBuka;
+			$member->end_date =$tglAkhir;
+			$member->sum_insured =$plafond;
+			$member->total_si =$plafond;
+			$member->total_premium =$nettPremium;
+			$member->rate_premi =$ratePolis->rate;
+			$member->gross_premium =$nettPremium;
+			$member->basic_premium =$nettPremium;
+			$member->nett_premium =$nettPremium;
+			$member->medical_code =$medicalCode;
+			$member->status =Member::MEMBER_STATUS_PENDING;
+			$member->member_status =Member::MEMBER_STATUS_PENDING;
+			$member->created_at =date('Y-m-d H:i:s');
+			$member->created_by =$this->createdBy;
+			$member->contract_date =$tglBuka;
+			$member->produk =$policybyproduk->produk;
+			$member->id_loan =$idTransaksi;
+			$member->status_uw =$medicalCode;
+			$member->no_ktp =$ktp;
+			$member->pekerjaan =$pekerjaan;
+			$member->id_transaksi =$idTransaksi;
+			$member->id_pengajuan =$idPengajuan;
+			$member->kode_broker =$kodeBroker;
+			$member->kode_cabang =$kodeCabang;
+			$member->nama =$nama;
+			$member->ktp =$ktp;
+			$member->jenis_kelamin =$jenisKelamin;
+			$member->tgl_lahir =$tglLahir;
+			$member->tgl_buka =$tglBuka;
+			$member->tenor =$tenor;
+			$member->jenis_pembiayaan =$jenisPembiayaan;
+			$member->benefit =$benefit;
+			$member->benefit_pembiayaan =$benefitPembiayaan;
+			$member->coverage =$coverage;
+			$member->polis_jiwa =$polisJiwaJson;
+
+
+			if (!$member->save()) {
+
+				throw new \Exception(
+					'Gagal insert Member: ' .
+					json_encode(
+						$member->errors
+					)
+				);
+			}
+			$transaction->commit();
+		} catch (\Exception $e) {
+
+			$transaction->rollBack();
+
+			Yii::error(
+				'Submit Dokumen CBC Error: ' .
+				$e->getMessage()
+			);
+
+			return [
+				'is_success' => 0,
+				'message' =>
+					'Gagal menyimpan data',
+				'error' =>
+					$e->getMessage()
+			];
+		}
+
+
+		$dokument = Dokumen_Medis::getAll([
+				'medis' => $medicalCode
+			]);
+
+
+		$sftpResult =
+			$this->downloadFileFromBankSftp(
+				$fileName
+			);
+
+
+		if (!$sftpResult['success']) {
+
+			return [
+				'Result' => [
+					'status' => '200',
+					'kode_response' => '00',
+					'message' =>
+						'Pengajuan berhasil, dokumen belum tersedia di SFTP Bank',
+					'status_dokumen' => 0,
+					'premi_disetujui' => $nettPremium,
+					'coverage' => (string)$coverage,
+					'keterangan' =>
+						$sftpResult['message'],
+				]
+			];
+		}
+
+
+		return [
+			'Result' => [
+				'status' => '200',
+				'kode_response' => '00',
+				'message' =>
+					'Berhasil kirim pengajuan dokumen CBC',
+				'status_dokumen' => 1,
+				'premi_disetujui' => $nettPremium,
+				'coverage' => (string)$coverage,
+				'keterangan' => '-',
+
+				'dokumen' => [
+					'file_name' =>
+						$sftpResult['file_name'],
+
+					'local_path' =>
+						$sftpResult['local_path'],
+
+					'remote_path' =>
+						$sftpResult['remote_path'],
+				]
+			]
+		];
+	}
+
+
 
     public function actionSubmitPembiayaanBaru()
 	{
@@ -254,6 +920,8 @@ class PengajuanController extends Controller
 			$polisJiwa['tenor_pertanggungan']
 			?? ($payload['tenor'] ?? 0)
 		);
+		
+		
 
 		$ratePolis = (float)(
 			$polisJiwa['rate_polis']
@@ -1078,7 +1746,8 @@ class PengajuanController extends Controller
 						
 						
 				],
-				 'restitusi_jiwa' => ['status_restitusi' => '1',
+				 'restitusi_jiwa' => [
+				 'status_restitusi' => '1',
 				],
 				],
 		];
@@ -1534,5 +2203,603 @@ class PengajuanController extends Controller
 		];
 	}
 	
+	
+	private function getBankToken()
+	{
+		$config = Yii::$app->params['bankApi'];
+
+		$payload = [
+			'client_id' => $config['client_id'],
+			'client_secret' => $config['client_secret'],
+			'username' => $config['username'],
+			'password' => $config['password'],
+			'grant_type' => $config['grant_type'],
+		];
+
+		$ch = curl_init($config['tokenUrl']);
+
+		curl_setopt_array($ch, [
+			CURLOPT_RETURNTRANSFER => true,
+			CURLOPT_POST => true,
+			CURLOPT_POSTFIELDS => json_encode($payload),
+			CURLOPT_HTTPHEADER => [
+				'Content-Type: application/json',
+				'Accept: application/json',
+			],
+			CURLOPT_TIMEOUT => 60,
+		]);
+
+		$response = curl_exec($ch);
+
+		$httpCode = curl_getinfo(
+			$ch,
+			CURLINFO_HTTP_CODE
+		);
+
+		$curlError = curl_error($ch);
+
+		curl_close($ch);
+
+		if ($response === false) {
+			throw new \Exception(
+				'Gagal koneksi Token Bank: ' .
+				$curlError
+			);
+		}
+
+		if ($httpCode < 200 || $httpCode >= 300) {
+			throw new \Exception(
+				'Generate token gagal. HTTP ' .
+				$httpCode .
+				' Response: ' .
+				$response
+			);
+		}
+
+		$result = json_decode(
+			$response,
+			true
+		);
+
+		if (!is_array($result)) {
+			throw new \Exception(
+				'Response token Bank tidak valid'
+			);
+		}
+
+		/*
+		 * Sesuaikan nama field ini dengan
+		 * response sebenarnya dari Bank.
+		 */
+		if (isset($result['access_token'])) {
+			return $result['access_token'];
+		}
+
+		if (isset($result['token'])) {
+			return $result['token'];
+		}
+
+		throw new \Exception(
+			'Token tidak ditemukan pada response Bank: ' .
+			$response
+		);
+	}
+	
+	public function actionCallbackDocument()
+	{
+		Yii::$app->response->format =
+			\yii\web\Response::FORMAT_JSON;
+
+		$request = Yii::$app->request;
+
+		$rawBody = $request->getRawBody();
+
+		if (!$rawBody) {
+			return [
+				'Result' => [
+					'status' => '400',
+					'kode_response' => '01',
+					'message' => 'Request body kosong',
+				]
+			];
+		}
+
+		$payload = json_decode(
+			$rawBody,
+			true
+		);
+
+		if (!is_array($payload)) {
+			return [
+				'Result' => [
+					'status' => '400',
+					'kode_response' => '01',
+					'message' => 'Payload JSON tidak valid',
+				]
+			];
+		}
+
+		Yii::info(
+			'Callback Document Bank: ' .
+			json_encode($payload),
+			'bank.callback'
+		);
+
+		/*
+		 * Proses callback Bank di sini
+		 */
+
+		return [
+			'Result' => [
+				'status' => '200',
+				'kode_response' => '00',
+				'message' => 'Callback dokumen berhasil diterima',
+			]
+		];
+	}
+	
+	
+	private function getCbcFileFromSftp($fileName)
+	{
+		$config = Yii::$app->params['bankSftp'];
+
+		$connection = ssh2_connect(
+			$config['host'],
+			$config['port']
+		);
+
+		if (!$connection) {
+			throw new \Exception(
+				'Gagal koneksi SFTP Bank'
+			);
+		}
+
+		if (!ssh2_auth_password(
+			$connection,
+			$config['username'],
+			$config['password']
+		)) {
+			throw new \Exception(
+				'Login SFTP Bank gagal'
+			);
+		}
+
+		$sftp = ssh2_sftp($connection);
+
+		if (!$sftp) {
+			throw new \Exception(
+				'SFTP subsystem gagal'
+			);
+		}
+
+		$remoteFile =
+			'ssh2.sftp://' .
+			intval($sftp) .
+			'/' .
+			trim($config['outgoing'], '/') .
+			'/' .
+			$fileName;
+
+		$localDir =
+			Yii::getAlias('@runtime/cbc');
+
+		if (!is_dir($localDir)) {
+			mkdir($localDir, 0777, true);
+		}
+
+		$localFile =
+			$localDir .
+			DIRECTORY_SEPARATOR .
+			$fileName;
+
+		if (!file_exists($remoteFile)) {
+			throw new \Exception(
+				'File CBC belum tersedia: ' .
+				$fileName
+			);
+		}
+
+		if (!copy($remoteFile, $localFile)) {
+			throw new \Exception(
+				'Gagal download file CBC'
+			);
+		}
+
+		return $localFile;
+	}
+	
+	
+
+	public function actionTestSftp()
+{
+    require Yii::getAlias('@app/sftp-lib/vendor/autoload.php');
+
+    $sftp = new \phpseclib3\Net\SFTP(
+        '202.152.22.234',
+        22,
+        30
+    );
+
+    if (!$sftp->login('reliance', 'reliance@brks2026')) {
+        return $this->asJson([
+            'status' => false,
+            'message' => 'Login SFTP gagal'
+        ]);
+    }
+
+    if (!$sftp->chdir('/outgoing')) {
+        return $this->asJson([
+            'status' => false,
+            'message' => 'Folder /outgoing tidak ditemukan'
+        ]);
+    }
+
+    $files = $sftp->nlist();
+
+    return $this->asJson([
+        'status' => true,
+        'message' => 'SFTP berhasil',
+        'files' => $files
+    ]);
+}
+
+	public function actionDownloadCbc()
+	{
+		$nik = '1234567890123456';
+
+		try {
+
+			$sftpService = new SftpBankService();
+
+			$result = $sftpService->downloadFilesByNik($nik);
+
+			return $this->asJson([
+				'status' => true,
+				'data' => $result,
+			]);
+
+		} catch (\Throwable $e) {
+
+			Yii::error(
+				'DOWNLOAD CBC ERROR: ' . $e->getMessage(),
+				'sftp-bank'
+			);
+
+			return $this->asJson([
+				'status' => false,
+				'message' => $e->getMessage(),
+			]);
+		}
+	}
+
+
+	private function downloadFileFromBankSftp($fileName)
+	{
+		$host = '202.152.22.234';
+		$port = 22;
+		$username = 'reliance';
+		$password = 'reliance@brks2026';
+
+		$remotePath = '/outgoing/' . $fileName;
+
+		// Folder penyimpanan lokal
+		$localDir = Yii::getAlias('@runtime/cbc');
+
+		if (!is_dir($localDir)) {
+			if (!mkdir($localDir, 0777, true)) {
+				return [
+					'success' => false,
+					'message' => 'Gagal membuat folder penyimpanan dokumen CBC'
+				];
+			}
+		}
+
+		$localPath =
+			$localDir .
+			DIRECTORY_SEPARATOR .
+			$fileName;
+
+		try {
+
+			// Pastikan extension SSH2 tersedia
+			if (!function_exists('ssh2_connect')) {
+				return [
+					'success' => false,
+					'message' => 'Extension PHP SSH2 tidak tersedia'
+				];
+			}
+
+			// Connect ke SFTP Bank
+			$connection = \ssh2_connect(
+				$host,
+				$port
+			);
+
+			if (!$connection) {
+				return [
+					'success' => false,
+					'message' => 'Gagal koneksi ke SFTP Bank'
+				];
+			}
+
+			// Authentication
+			if (
+				!\ssh2_auth_password(
+					$connection,
+					$username,
+					$password
+				)
+			) {
+				return [
+					'success' => false,
+					'message' => 'Gagal authentication SFTP Bank'
+				];
+			}
+
+			// Buat SFTP resource
+			$sftp = \ssh2_sftp($connection);
+
+			if (!$sftp) {
+				return [
+					'success' => false,
+					'message' => 'Gagal membuat koneksi SFTP'
+				];
+			}
+
+			// Path file remote
+			$remoteFile =
+				'ssh2.sftp://' .
+				intval($sftp) .
+				$remotePath;
+
+			// Cek file
+			if (!file_exists($remoteFile)) {
+				return [
+					'success' => false,
+					'message' =>
+						'File belum tersedia di SFTP Bank: ' .
+						$remotePath
+				];
+			}
+
+			// Ambil isi file
+			$content = file_get_contents($remoteFile);
+
+			if ($content === false) {
+				return [
+					'success' => false,
+					'message' =>
+						'Gagal membaca file dari SFTP Bank'
+				];
+			}
+
+			// Simpan file lokal
+			$saved = file_put_contents(
+				$localPath,
+				$content
+			);
+
+			if ($saved === false) {
+				return [
+					'success' => false,
+					'message' =>
+						'Gagal menyimpan file CBC ke lokal'
+				];
+			}
+
+			Yii::info(
+				'File CBC berhasil didownload: ' .
+				$remotePath .
+				' -> ' .
+				$localPath,
+				'cbc-sftp'
+			);
+
+			return [
+				'success' => true,
+				'file_name' => $fileName,
+				'remote_path' => $remotePath,
+				'local_path' => $localPath,
+				'size' => $saved
+			];
+
+		} catch (\Throwable $e) {
+
+			Yii::error(
+				'SFTP CBC Error: ' .
+				$e->getMessage(),
+				'cbc-sftp'
+			);
+
+			return [
+				'success' => false,
+				'message' => $e->getMessage()
+			];
+		}
+	}
+	
+	public function actionCheckPhp()
+	{
+		Yii::$app->response->format =
+			\yii\web\Response::FORMAT_JSON;
+
+		return [
+			'php_version' => PHP_VERSION,
+			'php_ini' => php_ini_loaded_file(),
+			'extension_dir' => ini_get('extension_dir'),
+			'ssh2_connect' => function_exists('ssh2_connect'),
+			'loaded_extensions' => get_loaded_extensions(),
+		];
+	}
+	
+
+	
+public function actionListOutgoingFiles()
+{
+    Yii::$app->response->format =
+        \yii\web\Response::FORMAT_JSON;
+
+    $host = '202.152.22.234';
+    $port = 22;
+    $username = 'reliance';
+    $password = 'reliance@brks2026';
+
+    try {
+
+        // =========================
+        // CEK SSH2
+        // =========================
+        if (!function_exists('ssh2_connect')) {
+            return [
+                'success' => false,
+                'step' => 'check_ssh2',
+                'message' => 'Extension PHP SSH2 tidak tersedia'
+            ];
+        }
+
+        // =========================
+        // CONNECT
+        // =========================
+        $connection = \ssh2_connect(
+            $host,
+            $port
+        );
+
+        if (!$connection) {
+            return [
+                'success' => false,
+                'step' => 'connect',
+                'message' => 'Gagal koneksi ke SFTP Bank'
+            ];
+        }
+
+        // =========================
+        // LOGIN
+        // =========================
+        if (!\ssh2_auth_password(
+            $connection,
+            $username,
+            $password
+        )) {
+            return [
+                'success' => false,
+                'step' => 'login',
+                'message' => 'Gagal authentication SFTP Bank'
+            ];
+        }
+
+        // =========================
+        // SFTP
+        // =========================
+        $sftp = \ssh2_sftp($connection);
+
+        if (!$sftp) {
+            return [
+                'success' => false,
+                'step' => 'sftp',
+                'message' => 'Gagal membuat koneksi SFTP'
+            ];
+        }
+
+        // =========================
+        // ROOT SFTP
+        // =========================
+        $rootPath =
+            'ssh2.sftp://' .
+            intval($sftp) .
+            '/';
+
+        // =========================
+        // LIST ROOT
+        // =========================
+        $rootFiles = scandir($rootPath);
+
+        if ($rootFiles === false) {
+            return [
+                'success' => false,
+                'step' => 'list_root',
+                'message' => 'Gagal membaca root SFTP',
+                'root_path' => $rootPath
+            ];
+        }
+
+        $rootFiles = array_values(
+            array_filter(
+                $rootFiles,
+                function ($file) {
+                    return $file !== '.' &&
+                           $file !== '..';
+                }
+            )
+        );
+
+        // =========================
+        // CEK OUTGOING
+        // =========================
+        $outgoingPath =
+            'ssh2.sftp://' .
+            intval($sftp) .
+            '/outgoing';
+
+        $outgoingExists = is_dir($outgoingPath);
+
+        // =========================
+        // JIKA OUTGOING ADA
+        // =========================
+        $outgoingFiles = [];
+
+        if ($outgoingExists) {
+
+            $outgoingFiles = scandir(
+                $outgoingPath
+            );
+
+            if ($outgoingFiles === false) {
+                $outgoingFiles = [];
+            }
+
+            $outgoingFiles = array_values(
+                array_filter(
+                    $outgoingFiles,
+                    function ($file) {
+                        return $file !== '.' &&
+                               $file !== '..';
+                    }
+                )
+            );
+        }
+
+        return [
+            'success' => true,
+            'message' => 'SFTP berhasil diakses',
+            'root_path' => $rootPath,
+            'root_files' => $rootFiles,
+            'outgoing_path' => $outgoingPath,
+            'outgoing_exists' => $outgoingExists,
+            'total_outgoing_file' =>
+                count($outgoingFiles),
+            'outgoing_files' => $outgoingFiles
+        ];
+
+    } catch (\Throwable $e) {
+
+        Yii::error(
+            'List SFTP Outgoing Error: ' .
+            $e->getMessage(),
+            'cbc-sftp'
+        );
+
+        return [
+            'success' => false,
+            'step' => 'exception',
+            'message' => $e->getMessage()
+        ];
+    }
+}
+
+
+
+
+
 
 }
