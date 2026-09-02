@@ -675,11 +675,11 @@ class PengajuanController extends Controller
 			strtotime($tglBuka)
 		);
 
-		$codeDoc = 'CBC';
+		$codeDoc = '001';
 
 		$fileBenefit = $benefit;
 
-		$sequence = 1;
+		$sequence = '01';
 
 		$fileName =
 			$fileNik . '_' .
@@ -878,7 +878,6 @@ class PengajuanController extends Controller
 		$npwp              = $payload['npwp'] ?? null;
 		$jenisKelamin      = $payload['jenis_kelamin'] ?? null;
 		$pekerjaan         = $payload['pekerjaan'] ?? null;
-
 		$jenisPembiayaan   = $payload['jenis_pembiayaan'] ?? null;
 		$jenisPengajuan    = $payload['jenis_pengajuan'] ?? null;
 		$plafond           = (float)($payload['plafond'] ?? 0);
@@ -1103,56 +1102,32 @@ class PengajuanController extends Controller
 			}
 
 			$member = new Member();
-
 			$member->policy_no = $policybyproduk->policy_no;
 			$member->batch_no = $batchNo;
 			$member->member_no = $memberNo;
 			$member->personal_no = $personalNo;
-
 			$member->age = $age;
 			$member->term = $tenorPertanggungan;
-
 			$member->start_date = $tglBuka;
 			$member->end_date = $tglAkhir;
-
 			$member->sum_insured = $plafonPertanggungan;
 			$member->total_si = $plafonPertanggungan;
-
 			$member->total_premium = $nettPremium;
 			$member->rate_premi = $ratePolis;
 			$member->gross_premium = $nettPremium;
 			$member->basic_premium = $nettPremium;
 			$member->nett_premium = $nettPremium;
-
 			$member->medical_code = $medicalCode;
-
-			$member->status =
-				Member::MEMBER_STATUS_PENDING;
-
-			$member->member_status =
-				Member::MEMBER_STATUS_PENDING;
-
-			$member->created_at =
-				date('Y-m-d H:i:s');
-
-			$member->created_by =
-				$this->createdBy;
-
-			$member->contract_date =
-				$tglBuka;
-
-			$member->produk =
-				$policybyproduk->produk;
-
-			$member->id_loan =
-				$idTransaksi;
-
-			$member->status_uw =
-				$medicalCode;
-
+			$member->status =Member::MEMBER_STATUS_PENDING;
+			$member->member_status =Member::MEMBER_STATUS_PENDING;
+			$member->created_at =date('Y-m-d H:i:s');
+			$member->created_by =$this->createdBy;
+			$member->contract_date =$tglBuka;
+			$member->produk =$policybyproduk->produk;
+			$member->id_loan =$idTransaksi;
+			$member->status_uw =$medicalCode;
 			$member->no_ktp = $ktp;
 			$member->pekerjaan = $pekerjaan;
-
 			$member->id_transaksi = $idTransaksi;
 			$member->id_pengajuan = $idPengajuan;
 			$member->kode_broker = $kodeBroker;
@@ -2634,168 +2609,168 @@ class PengajuanController extends Controller
 	
 
 	
-public function actionListOutgoingFiles()
-{
-    Yii::$app->response->format =
-        \yii\web\Response::FORMAT_JSON;
+	public function actionListOutgoingFiles()
+	{
+		Yii::$app->response->format =
+			\yii\web\Response::FORMAT_JSON;
 
-    $host = '202.152.22.234';
-    $port = 22;
-    $username = 'reliance';
-    $password = 'reliance@brks2026';
+		$host = '202.152.22.234';
+		$port = 22;
+		$username = 'reliance';
+		$password = 'reliance@brks2026';
 
-    try {
+		try {
 
-        // =========================
-        // CEK SSH2
-        // =========================
-        if (!function_exists('ssh2_connect')) {
-            return [
-                'success' => false,
-                'step' => 'check_ssh2',
-                'message' => 'Extension PHP SSH2 tidak tersedia'
-            ];
-        }
+			// =========================
+			// CEK SSH2
+			// =========================
+			if (!function_exists('ssh2_connect')) {
+				return [
+					'success' => false,
+					'step' => 'check_ssh2',
+					'message' => 'Extension PHP SSH2 tidak tersedia'
+				];
+			}
 
-        // =========================
-        // CONNECT
-        // =========================
-        $connection = \ssh2_connect(
-            $host,
-            $port
-        );
+			// =========================
+			// CONNECT
+			// =========================
+			$connection = \ssh2_connect(
+				$host,
+				$port
+			);
 
-        if (!$connection) {
-            return [
-                'success' => false,
-                'step' => 'connect',
-                'message' => 'Gagal koneksi ke SFTP Bank'
-            ];
-        }
+			if (!$connection) {
+				return [
+					'success' => false,
+					'step' => 'connect',
+					'message' => 'Gagal koneksi ke SFTP Bank'
+				];
+			}
 
-        // =========================
-        // LOGIN
-        // =========================
-        if (!\ssh2_auth_password(
-            $connection,
-            $username,
-            $password
-        )) {
-            return [
-                'success' => false,
-                'step' => 'login',
-                'message' => 'Gagal authentication SFTP Bank'
-            ];
-        }
+			// =========================
+			// LOGIN
+			// =========================
+			if (!\ssh2_auth_password(
+				$connection,
+				$username,
+				$password
+			)) {
+				return [
+					'success' => false,
+					'step' => 'login',
+					'message' => 'Gagal authentication SFTP Bank'
+				];
+			}
 
-        // =========================
-        // SFTP
-        // =========================
-        $sftp = \ssh2_sftp($connection);
+			// =========================
+			// SFTP
+			// =========================
+			$sftp = \ssh2_sftp($connection);
 
-        if (!$sftp) {
-            return [
-                'success' => false,
-                'step' => 'sftp',
-                'message' => 'Gagal membuat koneksi SFTP'
-            ];
-        }
+			if (!$sftp) {
+				return [
+					'success' => false,
+					'step' => 'sftp',
+					'message' => 'Gagal membuat koneksi SFTP'
+				];
+			}
 
-        // =========================
-        // ROOT SFTP
-        // =========================
-        $rootPath =
-            'ssh2.sftp://' .
-            intval($sftp) .
-            '/';
+			// =========================
+			// ROOT SFTP
+			// =========================
+			$rootPath =
+				'ssh2.sftp://' .
+				intval($sftp) .
+				'/';
 
-        // =========================
-        // LIST ROOT
-        // =========================
-        $rootFiles = scandir($rootPath);
+			// =========================
+			// LIST ROOT
+			// =========================
+			$rootFiles = scandir($rootPath);
 
-        if ($rootFiles === false) {
-            return [
-                'success' => false,
-                'step' => 'list_root',
-                'message' => 'Gagal membaca root SFTP',
-                'root_path' => $rootPath
-            ];
-        }
+			if ($rootFiles === false) {
+				return [
+					'success' => false,
+					'step' => 'list_root',
+					'message' => 'Gagal membaca root SFTP',
+					'root_path' => $rootPath
+				];
+			}
 
-        $rootFiles = array_values(
-            array_filter(
-                $rootFiles,
-                function ($file) {
-                    return $file !== '.' &&
-                           $file !== '..';
-                }
-            )
-        );
+			$rootFiles = array_values(
+				array_filter(
+					$rootFiles,
+					function ($file) {
+						return $file !== '.' &&
+							   $file !== '..';
+					}
+				)
+			);
 
-        // =========================
-        // CEK OUTGOING
-        // =========================
-        $outgoingPath =
-            'ssh2.sftp://' .
-            intval($sftp) .
-            '/outgoing';
+			// =========================
+			// CEK OUTGOING
+			// =========================
+			$outgoingPath =
+				'ssh2.sftp://' .
+				intval($sftp) .
+				'/outgoing';
 
-        $outgoingExists = is_dir($outgoingPath);
+			$outgoingExists = is_dir($outgoingPath);
 
-        // =========================
-        // JIKA OUTGOING ADA
-        // =========================
-        $outgoingFiles = [];
+			// =========================
+			// JIKA OUTGOING ADA
+			// =========================
+			$outgoingFiles = [];
 
-        if ($outgoingExists) {
+			if ($outgoingExists) {
 
-            $outgoingFiles = scandir(
-                $outgoingPath
-            );
+				$outgoingFiles = scandir(
+					$outgoingPath
+				);
 
-            if ($outgoingFiles === false) {
-                $outgoingFiles = [];
-            }
+				if ($outgoingFiles === false) {
+					$outgoingFiles = [];
+				}
 
-            $outgoingFiles = array_values(
-                array_filter(
-                    $outgoingFiles,
-                    function ($file) {
-                        return $file !== '.' &&
-                               $file !== '..';
-                    }
-                )
-            );
-        }
+				$outgoingFiles = array_values(
+					array_filter(
+						$outgoingFiles,
+						function ($file) {
+							return $file !== '.' &&
+								   $file !== '..';
+						}
+					)
+				);
+			}
 
-        return [
-            'success' => true,
-            'message' => 'SFTP berhasil diakses',
-            'root_path' => $rootPath,
-            'root_files' => $rootFiles,
-            'outgoing_path' => $outgoingPath,
-            'outgoing_exists' => $outgoingExists,
-            'total_outgoing_file' =>
-                count($outgoingFiles),
-            'outgoing_files' => $outgoingFiles
-        ];
+			return [
+				'success' => true,
+				'message' => 'SFTP berhasil diakses',
+				'root_path' => $rootPath,
+				'root_files' => $rootFiles,
+				'outgoing_path' => $outgoingPath,
+				'outgoing_exists' => $outgoingExists,
+				'total_outgoing_file' =>
+					count($outgoingFiles),
+				'outgoing_files' => $outgoingFiles
+			];
 
-    } catch (\Throwable $e) {
+		} catch (\Throwable $e) {
 
-        Yii::error(
-            'List SFTP Outgoing Error: ' .
-            $e->getMessage(),
-            'cbc-sftp'
-        );
+			Yii::error(
+				'List SFTP Outgoing Error: ' .
+				$e->getMessage(),
+				'cbc-sftp'
+			);
 
-        return [
-            'success' => false,
-            'step' => 'exception',
-            'message' => $e->getMessage()
-        ];
-    }
-}
+			return [
+				'success' => false,
+				'step' => 'exception',
+				'message' => $e->getMessage()
+			];
+		}
+	}
 
 
 
