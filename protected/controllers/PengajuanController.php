@@ -1239,8 +1239,6 @@ class PengajuanController extends Controller
 
 					'jumlah_extra_premi' =>
 						0,
-						
-						
 				],
 			],
 		
@@ -2752,26 +2750,48 @@ class PengajuanController extends Controller
 			mkdir($folder, 0777, true);
 		}
 
+		// $fileName =
+			// $policy->policy_no .
+			// '_' .
+			// preg_replace(
+				// '/[^A-Za-z0-9]/',
+				// '_',
+				// $member->nama
+			// ) .
+			// '_' .
+			// date('YmdHis') .
+			// '.pdf';
+			
+
+		
+		$norek   = $member->nomor_rekening;
+		$noAkad  = $member->nomor_akad;
+		$codeDoc = '005';
+		$benefit = 2;
+		
 		$fileName =
-			$policy->policy_no .
-			'_' .
-			preg_replace(
-				'/[^A-Za-z0-9]/',
-				'_',
-				$member->nama
-			) .
-			'_' .
-			date('YmdHis') .
-			'.pdf';
+		$norek . '_' .
+		$noAkad . '_' .
+		$codeDoc . '_' .
+		$benefit . '.pdf';
+		
+		$pdfFileName = $fileName;
+		
+		$pdfPath =$folder . DIRECTORY_SEPARATOR . $pdfFileName;
+		
+		$zipFileName =
+			$norek . '_' .
+			$noAkad . '_' .
+			$codeDoc . '_' .
+			$benefit . '.zip';
 
-		$filePath =
-			$folder . DIRECTORY_SEPARATOR . $fileName;
+		$zipPath =
+		$folder . DIRECTORY_SEPARATOR . $zipFileName;
+			
+		// norek_noakad_codedoc_benefit.zip	
 
-		/*
-		 * ==========================================================
-		 * PDF
-		 * ==========================================================
-		 */
+		// $filePath =
+			// $folder . DIRECTORY_SEPARATOR . $fileName;
 
 		$pdf = new \FPDF('L', 'mm', 'A4');
 
@@ -2780,16 +2800,6 @@ class PengajuanController extends Controller
 
 		$pdf->AddPage();
 
-		/*
-		 * Ukuran A4 Landscape
-		 * 297 x 210 mm
-		 */
-
-		/*
-		 * ==========================================================
-		 * BACKGROUND PUTIH
-		 * ==========================================================
-		 */
 
 		$pdf->SetFillColor(255, 255, 255);
 
@@ -2802,12 +2812,6 @@ class PengajuanController extends Controller
 		);
 
 
-		/*
-		 * ==========================================================
-		 * HEADER BIRU
-		 * ==========================================================
-		 */
-
 		$pdf->SetFillColor(42, 46, 111);
 
 		$pdf->Rect(
@@ -2819,12 +2823,6 @@ class PengajuanController extends Controller
 		);
 
 
-		/*
-		 * ==========================================================
-		 * GARIS MERAH
-		 * ==========================================================
-		 */
-
 		$pdf->SetFillColor(235, 52, 35);
 
 		$pdf->Rect(
@@ -2835,16 +2833,6 @@ class PengajuanController extends Controller
 			'F'
 		);
 
-
-		/*
-		 * ==========================================================
-		 * LOGO RELIANCE
-		 * ==========================================================
-		 *
-		 * Simpan:
-		 * protected/uploads/assets/reliance.png
-		 *
-		 */
 
 		$logoReliance =
 			Yii::getAlias(
@@ -2863,9 +2851,6 @@ class PengajuanController extends Controller
 
 		} else {
 
-			/*
-			 * fallback kalau logo belum tersedia
-			 */
 
 			$pdf->SetTextColor(255, 255, 255);
 
@@ -2909,16 +2894,6 @@ class PengajuanController extends Controller
 		}
 
 
-		/*
-		 * ==========================================================
-		 * LOGO KANAN
-		 * ==========================================================
-		 *
-		 * Simpan:
-		 * protected/uploads/assets/syariah.png
-		 *
-		 */
-
 		$logoSyariah =
 			Yii::getAlias(
 				'@webroot/uploads/assets/syariah.png'
@@ -2937,16 +2912,6 @@ class PengajuanController extends Controller
 		}
 
 
-		/*
-		 * ==========================================================
-		 * WATERMARK
-		 * ==========================================================
-		 *
-		 * Simpan:
-		 * protected/uploads/assets/watermark.png
-		 *
-		 */
-
 		$watermark =
 			Yii::getAlias(
 				'@webroot/uploads/assets/watermark.png'
@@ -2963,13 +2928,6 @@ class PengajuanController extends Controller
 			);
 
 		}
-
-
-		/*
-		 * ==========================================================
-		 * JUDUL
-		 * ==========================================================
-		 */
 
 		$pdf->SetTextColor(0, 0, 0);
 
@@ -2994,10 +2952,6 @@ class PengajuanController extends Controller
 		);
 
 
-		/*
-		 * JUDUL UTAMA
-		 */
-
 		$pdf->SetFont(
 			'Arial',
 			'B',
@@ -3013,10 +2967,6 @@ class PengajuanController extends Controller
 			'C'
 		);
 
-
-		/*
-		 * NOMOR POLIS
-		 */
 
 		$pdf->SetFont(
 			'Arial',
@@ -3034,12 +2984,6 @@ class PengajuanController extends Controller
 		);
 
 
-		/*
-		 * ==========================================================
-		 * DATA PESERTA
-		 * ==========================================================
-		 */
-
 		$pdf->SetFont(
 			'Arial',
 			'',
@@ -3048,10 +2992,6 @@ class PengajuanController extends Controller
 
 		$y = 55;
 
-
-		/*
-		 * NAMA
-		 */
 
 		$pdf->SetXY(33, $y);
 
@@ -3076,10 +3016,6 @@ class PengajuanController extends Controller
 			0
 		);
 
-
-		/*
-		 * NOMOR SERTIFIKAT
-		 */
 
 		$y += 6;
 
@@ -3110,11 +3046,6 @@ class PengajuanController extends Controller
 			$nomorSertifikat,
 			0
 		);
-
-
-		/*
-		 * TANGGAL LAHIR
-		 */
 
 		$y += 6;
 
@@ -3152,12 +3083,6 @@ class PengajuanController extends Controller
 		);
 
 
-		/*
-		 * ==========================================================
-		 * PEMEGANG POLIS
-		 * ==========================================================
-		 */
-
 		$y += 13;
 
 		$pdf->SetXY(
@@ -3173,12 +3098,6 @@ class PengajuanController extends Controller
 			1
 		);
 
-
-		/*
-		 * NAMA PEMEGANG POLIS
-		 *
-		 * Sesuaikan field dengan database Anda.
-		 */
 
 		$pemegangPolis = 'PT. PROTEKSI ANTAR NUSA QQ PT. BANK RIAU KEPRI SYARIAH (PERSERODA)';
 
@@ -3223,12 +3142,6 @@ class PengajuanController extends Controller
 		);
 
 
-		/*
-		 * ==========================================================
-		 * DETAIL ASURANSI
-		 * ==========================================================
-		 */
-
 		$pdf->SetFont(
 			'Arial',
 			'',
@@ -3251,18 +3164,8 @@ class PengajuanController extends Controller
 		);
 
 
-		/*
-		 * ==========================================================
-		 * KOLOM KIRI
-		 * ==========================================================
-		 */
-
 		$detailY = $y + 8;
 
-
-		/*
-		 * PRODUK
-		 */
 
 		$pdf->SetXY(
 			33,
@@ -3293,10 +3196,6 @@ class PengajuanController extends Controller
 		);
 
 
-		/*
-		 * MANFAAT
-		 */
-
 		$detailY += 6;
 
 		$pdf->SetXY(
@@ -3325,10 +3224,6 @@ class PengajuanController extends Controller
 			0
 		);
 
-
-		/*
-		 * MASA ASURANSI
-		 */
 
 		$detailY += 6;
 
@@ -3363,10 +3258,6 @@ class PengajuanController extends Controller
 			0
 		);
 
-
-		/*
-		 * PERIODE
-		 */
 
 		$detailY += 6;
 
@@ -3417,11 +3308,6 @@ class PengajuanController extends Controller
 			0
 		);
 
-
-		/*
-		 * UANG ASURANSI
-		 */
-
 		$detailY += 6;
 
 		$pdf->SetXY(
@@ -3461,18 +3347,8 @@ class PengajuanController extends Controller
 		);
 
 
-		/*
-		 * ==========================================================
-		 * KOLOM KANAN
-		 * ==========================================================
-		 */
-
 		$rightY = $y + 8;
 
-
-		/*
-		 * KONTRIBUSI GROSS
-		 */
 
 		$pdf->SetXY(
 			160,
@@ -3511,10 +3387,6 @@ class PengajuanController extends Controller
 		);
 
 
-		/*
-		 * EXTRA KONTRIBUSI
-		 */
-
 		$rightY += 6;
 
 		$pdf->SetXY(
@@ -3543,10 +3415,6 @@ class PengajuanController extends Controller
 			0
 		);
 
-
-		/*
-		 * TOTAL KONTRIBUSI
-		 */
 
 		$rightY += 6;
 
@@ -3595,13 +3463,6 @@ class PengajuanController extends Controller
 			0
 		);
 
-
-		/*
-		 * ==========================================================
-		 * CATATAN / KETENTUAN
-		 * ==========================================================
-		 */
-
 		$pdf->SetFont(
 			'Arial',
 			'',
@@ -3626,13 +3487,6 @@ class PengajuanController extends Controller
 			'L'
 		);
 
-
-		/*
-		 * ==========================================================
-		 * CATATAN BAWAH
-		 * ==========================================================
-		 */
-
 		$pdf->SetFont(
 			'Arial',
 			'I',
@@ -3651,12 +3505,6 @@ class PengajuanController extends Controller
 			0
 		);
 
-
-		/*
-		 * ==========================================================
-		 * TANDA TANGAN
-		 * ==========================================================
-		 */
 
 		$tanggalBuka = date('d-M-y');
 
@@ -3727,10 +3575,6 @@ class PengajuanController extends Controller
 			);
 
 		} else {
-
-			/*
-			 * Area kosong untuk tanda tangan
-			 */
 
 			$pdf->SetXY(
 				205,
@@ -3935,19 +3779,57 @@ class PengajuanController extends Controller
 
 		$pdf->Output(
 			'F',
-			$filePath
+			$pdfPath
 		);
+		
+		$zip = new \ZipArchive();
+
+		if ($zip->open(
+			$zipPath,
+			\ZipArchive::CREATE | \ZipArchive::OVERWRITE
+		) !== true) {
+
+			throw new \Exception(
+				'Gagal membuat file ZIP: ' . $zipPath
+			);
+		}
+		
+		if (!$zip->addFile(
+			$pdfPath,
+			$pdfFileName
+		)) {
+
+			$zip->close();
+
+			throw new \Exception(
+				'Gagal memasukkan PDF ke dalam ZIP'
+			);
+		}
+
+		$zip->close();
+		
+		if (!file_exists($zipPath)) {
+
+			throw new \Exception(
+				'File ZIP tidak berhasil dibuat'
+			);
+		}
+		
+		if (file_exists($pdfPath)) {
+			unlink($pdfPath);
+		}
+
 
 		return [
-			'file_name' => $fileName,
+			'file_name' => $zipFileName,
 
-			'file_path' => $filePath,
+			'file_path' => $zipPath,
 
-			'file_url' =>
+			 'file_url' =>
 				Yii::$app->request->hostInfo .
 				Yii::$app->request->baseUrl .
 				'/uploads/incoming/' .
-				$fileName,
+				$zipFileName,
 		];
 	}
 
