@@ -204,20 +204,20 @@ use app\models\User;
                     </li>
 					-->
 					
-					<!--
+					
 					<li>
                         <a href="<?= Url::base() . '/claim'; ?>">
                             <i class="fa fa-dropbox"></i> <span> Claim </span>
                         </a>
                     </li>
-					-->
+					
 					
                     <li>
                         <a href="javascript: void(0);"><i class="fa fa-book"></i> <span> Report </span> <span class="menu-arrow"></span></a>
                         <ul class="nav-second-level" aria-expanded="false">
                               <!--  <li><a href="<?= Url::base() . '/report-billing'; ?>">Billing</a></li>  -->
 							<li><a href="<?= Url::base() . '/data-produksi'; ?>">Data produksi</a></li>
-							 <li><a href="<?= Url::base() . '/member-claim'; ?>">Member claim</a></li>
+						
                         </ul>
                     </li>					
                 <?php
