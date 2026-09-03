@@ -1726,4 +1726,247 @@ class MemberController extends Controller
 			])
 			->all();
 	}
+	
+	public function actionUploadPeserta()
+		{
+			if (Yii::$app->request->isPost) {
+
+				$file = \yii\web\UploadedFile::getInstanceByName('file_excel');
+
+				if (!$file) {
+					Yii::$app->session->setFlash(
+						'error',
+						'File Excel belum dipilih.'
+					);
+
+					return $this->redirect(['upload-peserta']);
+				}
+
+				try {
+
+					// Load Excel
+					
+					
+				// $inputFileType = \PHPExcel_IOFactory::identify($file->tempName);
+				// $objReader = \PHPExcel_IOFactory::createReader($inputFileType);
+				
+				$inputFileType = \PHPExcel_IOFactory::identify($file->tempName);
+
+		$objReader = \PHPExcel_IOFactory::createReader($inputFileType);
+
+		$objPHPExcel = $objReader->load($file->tempName);
+					
+					// $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load(
+						// $file->tempName
+					// );
+
+					$sheet = $objPHPExcel->getActiveSheet();
+
+					// Ambil seluruh data
+					$rows = $sheet->toArray(
+						null,
+						true,
+						true,
+						true
+					);
+
+					$berhasil = 0;
+					$gagal = 0;
+
+					// Mulai dari row 2 karena row 1 adalah header
+					foreach ($rows as $rowNumber => $row) {
+
+						if ($rowNumber == 1) {
+							continue;
+						}
+
+						// Kolom Excel A - K
+						$policyNo       = trim($row['A']);
+						$policyHolder   = trim($row['B']);
+						$memberNo       = trim($row['C']);
+						$memberName     = trim($row['D']);
+						$dateOfBirth    = trim($row['E']);
+						$startDate      = trim($row['F']);
+						$endDate        = trim($row['G']);
+						$sumInsured     = trim($row['H']);
+						$totalPremium   = trim($row['I']);
+						$status         = trim($row['J']);
+						$branch          = trim($row['K']);
+
+						// Lewati baris kosong
+						if (
+							$policyNo === '' &&
+							$memberNo === '' &&
+							$memberName === ''
+						) {
+							continue;
+						}
+
+						// ==========================================
+						// KONVERSI TANGGAL
+						// ==========================================
+
+						$dateOfBirth = $this->convertExcelDate($dateOfBirth);
+						$startDate   = $this->convertExcelDate($startDate);
+						$endDate     = $this->convertExcelDate($endDate);
+
+
+						// ==========================================
+						// KONVERSI NOMINAL
+						// ==========================================
+
+						$sumInsured = str_replace(
+							['.', ',', ' '],
+							'',
+							$sumInsured
+						);
+
+						$totalPremium = str_replace(
+							['.', ',', ' '],
+							'',
+							$totalPremium
+						);
+
+
+						// ==========================================
+						// TERM
+						// ==========================================
+
+						$term = 0;
+
+						if ($startDate && $endDate) {
+
+							$start = new \DateTime($startDate);
+							$end   = new \DateTime($endDate);
+
+							$term = $start->diff($end)->y;
+
+							// Jika hasil 0 tetapi ada periode
+							if ($term == 0) {
+								$term = 1;
+							}
+						}
+
+
+						// ==========================================
+						// INSERT
+						// ==========================================
+
+						$member = new \app\models\Member();
+
+						$member->policy_no          = $policyNo;
+						$member->policy_holder_name = $policyHolder;
+
+						// batch_no wajib
+						$member->batch_no = $policyNo;
+
+						$member->member_no   = $memberNo;
+						$member->member_name = $memberName;
+
+						// personal_no wajib
+						$member->personal_no = $memberNo;
+
+						$member->date_of_birth = $dateOfBirth;
+
+						// age
+						if ($dateOfBirth) {
+
+							$dob = new \DateTime($dateOfBirth);
+							$now = new \DateTime();
+
+							$member->age = $dob->diff($now)->y;
+						}
+
+						$member->branch = $branch;
+
+						$member->term       = $term;
+						$member->start_date = $startDate;
+						$member->end_date   = $endDate;
+
+						$member->sum_insured   = (float) $sumInsured;
+						$member->total_premium = (float) $totalPremium;
+
+						$member->status = $status;
+
+						$member->created_at = date('Y-m-d H:i:s');
+
+						if ($member->save(false)) {
+							$berhasil++;
+						} else {
+							$gagal++;
+						}
+					}
+
+
+					Yii::$app->session->setFlash(
+						'success',
+						'Upload berhasil. Data berhasil: ' .
+						$berhasil .
+						', gagal: ' .
+						$gagal
+					);
+
+				} catch (\Exception $e) {
+
+					Yii::$app->session->setFlash(
+						'error',
+						'Gagal membaca Excel: ' . $e->getMessage()
+					);
+				}
+
+				return $this->redirect(['upload-peserta']);
+			}
+
+			return $this->render('upload-peserta');
+		}
+
+
+		/**
+		 * Konversi tanggal Excel
+		 */
+		private function convertExcelDate($value)
+		{
+			if ($value === null || trim($value) === '') {
+				return null;
+			}
+
+			// Jika tanggal berupa angka Excel
+			if (is_numeric($value)) {
+
+				try {
+
+					return PHPExcel_Shared_Date::
+						ExcelToPHPObject($value)
+						->format('Y-m-d');
+
+				} catch (\Exception $e) {
+
+					return null;
+				}
+			}
+
+			// Jika tanggal berupa text
+			$formats = [
+				'd-M-y',
+				'd-M-Y',
+				'd/m/Y',
+				'd-m-Y',
+				'Y-m-d'
+			];
+
+			foreach ($formats as $format) {
+
+				$date = \DateTime::createFromFormat(
+					$format,
+					trim($value)
+				);
+
+				if ($date !== false) {
+
+					return $date->format('Y-m-d');
+				}
+			}
+
+			return null;
+		}
 }
