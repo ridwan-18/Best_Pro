@@ -260,7 +260,7 @@ class BatchByPeserta extends \yii\db\ActiveRecord
 				Personal::tableName() . '.gender',
 				self::tableName() . '.status',
 				self::tableName() . '.id_loan',
-				// self::tableName() . '.refund_premi',
+				self::tableName() . '.refund_premi',
 				self::tableName() . '.no_ktp',
 				self::tableName() . '.start_date',
 				self::tableName() . '.end_date',
