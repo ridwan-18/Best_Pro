@@ -321,17 +321,17 @@ class AlterationCancel extends \yii\db\ActiveRecord
     'request'   => $data,
 ];
 
-echo "<pre>";
-echo "REQUEST:\n";
-print_r($response_member['request'] ?? []);
+// echo "<pre>";
+// echo "REQUEST:\n";
+// print_r($response_member['request'] ?? []);
 
-echo "\n\nBODY RESPONSE:\n";
-var_dump($response_member['body'] ?? null);
+// echo "\n\nBODY RESPONSE:\n";
+// var_dump($response_member['body'] ?? null);
 
-echo "\n\nDECODE:\n";
-print_r($response_member);
+// echo "\n\nDECODE:\n";
+// print_r($response_member);
 
-die;
+// die;
 
     // Kalau response bukan JSON
     // if (!is_array($decode)) {

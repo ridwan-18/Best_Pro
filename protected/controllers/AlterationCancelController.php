@@ -293,23 +293,23 @@ class AlterationCancelController extends Controller
 					$cancel_premi
 				);
 
-				echo "<pre>";
-				echo "===== TOKEN =====\n";
-				var_dump($token);
+				// echo "<pre>";
+				// echo "===== TOKEN =====\n";
+				// var_dump($token);
 
-				echo "\n===== POLICY =====\n";
-				var_dump($policy_number);
+				// echo "\n===== POLICY =====\n";
+				// var_dump($policy_number);
 
-				echo "\n===== MEMBERS =====\n";
-				var_dump($membersNo);
+				// echo "\n===== MEMBERS =====\n";
+				// var_dump($membersNo);
 
-				echo "\n===== CANCEL PREMI =====\n";
-				var_dump($cancel_premi);
+				// echo "\n===== CANCEL PREMI =====\n";
+				// var_dump($cancel_premi);
 
-				echo "\n===== RESPONSE CANCEL =====\n";
-				var_dump($response_member);
+				// echo "\n===== RESPONSE CANCEL =====\n";
+				// var_dump($response_member);
 
-				die;
+				// die;
 
 				if (
 					is_array($response_member) &&
