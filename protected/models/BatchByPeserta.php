@@ -255,7 +255,7 @@ class BatchByPeserta extends \yii\db\ActiveRecord
                 self::tableName() . '.policy_no',
                 self::tableName() . '.member_no',
                 self::tableName() . '.batch_no',
-                // Personal::tableName() . '.name',
+                self::tableName() . '.medical_code',
 				// Personal::tableName() . '.birth_date',
 				// Personal::tableName() . '.gender',
 				self::tableName() . '.status',

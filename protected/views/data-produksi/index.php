@@ -175,6 +175,7 @@ $this->title = 'Data Produksi - ' . Yii::$app->name;
                                 <th>End Date</th>
 								<th>Premi</th>
 								<th>Uang Pertanggungan</th>
+								<th>Medical Code</th>
 								<th>Status</th>
 								<th>User</th>
                             </tr>
@@ -196,6 +197,7 @@ $this->title = 'Data Produksi - ' . Yii::$app->name;
 										 <td><?= Utils::convertDateTodMy($model['end_date']); ?></td>
 										 <td><?= number_format($model['gross_premium']); ?></td>
 										 <td><?= number_format($model['sum_insured']); ?></td>
+										  td><?= $model['medical_code']; ?></td>
 										<td><?= $model['status']; ?></td>
 										<td><?= $model['username']; ?></td>
                                     </tr>
