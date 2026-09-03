@@ -255,9 +255,9 @@ class BatchByPeserta extends \yii\db\ActiveRecord
                 self::tableName() . '.policy_no',
                 self::tableName() . '.member_no',
                 self::tableName() . '.batch_no',
-                Personal::tableName() . '.name',
-				Personal::tableName() . '.birth_date',
-				Personal::tableName() . '.gender',
+                // Personal::tableName() . '.name',
+				// Personal::tableName() . '.birth_date',
+				// Personal::tableName() . '.gender',
 				self::tableName() . '.status',
 				self::tableName() . '.id_loan',
 				// self::tableName() . '.refund_premi',
@@ -272,7 +272,7 @@ class BatchByPeserta extends \yii\db\ActiveRecord
 				self::tableName() . '.date_of_birth',
             ])
           
-			 ->innerJoin(Personal::tableName(), Personal::tableName() . '.personal_no = ' . self::tableName() . '.personal_no')
+			 // ->innerJoin(Personal::tableName(), Personal::tableName() . '.personal_no = ' . self::tableName() . '.personal_no')
 			 ->innerJoin(USER::tableName(), USER::tableName() . '.id = ' . self::tableName() . '.created_by')
 			   ->asArray();
 		
