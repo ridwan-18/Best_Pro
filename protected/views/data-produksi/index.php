@@ -10,8 +10,10 @@ use app\models\Utils;
 
 
 $this->title = 'Data Produksi - ' . Yii::$app->name;
-?>
 
+
+
+?>
 
 <style>
     /* Warna teks seluruh modal */
@@ -59,7 +61,6 @@ $this->title = 'Data Produksi - ' . Yii::$app->name;
         opacity: 1;
     }
 </style>
-
 
 <div class="member-index">
     <div class="modal fade" id="search-modal" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true" style="display: none;">
@@ -110,6 +111,17 @@ $this->title = 'Data Produksi - ' . Yii::$app->name;
                             ]) ?>
                         </div>
                     </div>
+						
+					
+					 <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="id_loan">ID Loan</label>
+                                <?= Html::input('text', 'id_loan', Yii::$app->request->get('id_loan'), [
+                                    'class' => 'form-control',
+                                    'id' => 'id_loan',
+                                ]) ?>
+                            </div>
+                        </div>
 						
 					 <div class="col-md-6">
                             <div class="form-group">
@@ -185,7 +197,7 @@ $this->title = 'Data Produksi - ' . Yii::$app->name;
 										 <td><?= number_format($model['gross_premium']); ?></td>
 										 <td><?= number_format($model['sum_insured']); ?></td>
 										<td><?= $model['status']; ?></td>
-										<td><?= $model['created_by_username']; ?></td>
+										<td><?= $model['username']; ?></td>
                                     </tr>
                             <?php
                                     $i++;

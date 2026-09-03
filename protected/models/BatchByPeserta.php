@@ -107,6 +107,8 @@ class BatchByPeserta extends \yii\db\ActiveRecord
             'created_by' => 'Created By',
             'updated_at' => 'Updated At',
             'updated_by' => 'Updated By',
+			'member_name' => 'Member Name',
+			'date_of_birth' => 'date of birth',
         ];
     }
 
@@ -246,280 +248,81 @@ class BatchByPeserta extends \yii\db\ActiveRecord
     }
 	
 	public static function getAllProductionParticipant($paramsGetAllProduksi = [])
-{
-    $memberTable = self::tableName();
-$query = self::find()
-    ->alias('m')
-    ->leftJoin(
-        ['u' => User::tableName()],
-        'u.id = m.created_by'
-    )
-    ->select([
-        'm.id',
-        'm.policy_no',
-        'm.batch_no',
-        'm.member_no',
-        'm.term',
-        'm.age',
-        'm.start_date',
-        'm.end_date',
-        'm.sum_insured',
-        'm.total_si',
-        'm.total_premium',
-        'm.rate_premi',
-        'm.rate_saving',
-        'm.gross_premium',
-        'm.basic_premium',
-        'm.saving_premium',
-        'm.percentage_discount',
-        'm.discount_premium',
-        'm.nett_premium',
-        'm.medical_code',
-        'm.status',
-        'm.member_status',
-        'm.reas_status',
-        'm.status_reason',
-        'm.stnc_date',
-        'm.stnc_status',
-        'm.stnc_reason',
-        'm.acc_status',
-        'm.percentage_extra_premium',
-        'm.extra_premium',
-        'm.em_type',
-        'm.percentage_em',
-        'm.rate_em',
-        'm.em_premium',
-        'm.em_notes',
-        'm.uw_notes',
-        'm.id_loan',
-
-        // USER PEMBUAT DATA
-        'm.created_by',
-        'u.username AS created_by_username',
-
-        '(SELECT ' . Personal::tableName() . '.name
-            FROM ' . Personal::tableName() . '
-            WHERE ' . Personal::tableName() . '.personal_no = m.personal_no
-            GROUP BY ' . Personal::tableName() . '.personal_no) AS name',
-
-        '(SELECT ' . Personal::tableName() . '.birth_date
-            FROM ' . Personal::tableName() . '
-            WHERE ' . Personal::tableName() . '.personal_no = m.personal_no
-            GROUP BY ' . Personal::tableName() . '.personal_no) AS birth_date',
-
-        '(SELECT ' . Personal::tableName() . '.gender
-            FROM ' . Personal::tableName() . '
-            WHERE ' . Personal::tableName() . '.personal_no = m.personal_no
-            GROUP BY ' . Personal::tableName() . '.personal_no) AS gender',
-    ])
-    ->asArray();
-
-
-    /*
-     * =====================================================
-     * HAK AKSES USER
-     * =====================================================
-     */
-
-    if (!Yii::$app->user->isGuest) {
-
-        $user = Yii::$app->user->identity;
-
-
-        // =================================================
-        // ROLE 1 = SUPER ADMIN
-        // Bisa melihat semua produksi
-        // =================================================
-        if ((int)$user->role === 1) {
-
-            // Tidak perlu filter
-
-
-        // =================================================
-        // ROLE 6 = PUSAT
-        // Bisa melihat semua produksi berdasarkan partner
-        // =================================================
-        } elseif ((int)$user->role === 6) {
-
-            $query->andWhere([
-                'u.partner_id' => $user->partner_id
-            ]);
-
-
-        // =================================================
-        // ROLE 2 = CABANG
-        // Hanya melihat produksi miliknya sendiri
-        // =================================================
-        } elseif ((int)$user->role === 2) {
-
-            $query->andWhere([
-                'm.created_by' => $user->id
-            ]);
+    {
+        $query = self::find()
+            ->select([
+                self::tableName() . '.id',
+                self::tableName() . '.policy_no',
+                self::tableName() . '.member_no',
+                self::tableName() . '.batch_no',
+                Personal::tableName() . '.name',
+				Personal::tableName() . '.birth_date',
+				Personal::tableName() . '.gender',
+				self::tableName() . '.status',
+				self::tableName() . '.id_loan',
+				self::tableName() . '.refund_premi',
+				self::tableName() . '.no_ktp',
+				self::tableName() . '.start_date',
+				self::tableName() . '.end_date',
+				self::tableName() . '.sum_insured',
+				USER::tableName() . '.username',
+				self::tableName() . '.gross_premium',
+				self::tableName() . '.id_loan',
+				self::tableName() . '.member_name',
+				self::tableName() . '.date_of_birth',
+            ])
+          
+			 ->innerJoin(Personal::tableName(), Personal::tableName() . '.personal_no = ' . self::tableName() . '.personal_no')
+			 ->innerJoin(USER::tableName(), USER::tableName() . '.id = ' . self::tableName() . '.created_by')
+			   ->asArray();
+		
+		if (!Yii::$app->user->isGuest) {
+			if (Yii::$app->user->identity->role == User::ROLE_UW) {
+				$query->andWhere(['=', self::tableName() . '.created_by', Yii::$app->user->identity->id]);
+			}
+		}
+		
+		if (isset($paramsGetAllProduksi['status']) && $paramsGetAllProduksi['status'] != null) {
+            $query->andFilterWhere(['=', self::tableName() . '.status', $paramsGetAllProduksi['status']]);
         }
+		
+        if (isset($paramsGetAllProduksi['batch_no']) && $paramsGetAllProduksi['batch_no'] != null) {
+            $query->andFilterWhere(['=', self::tableName() . '.batch_no', $paramsGetAllProduksi['batch_no']]);
+        }
+		if (isset($paramsGetAllProduksi['id_loan']) && $paramsGetAllProduksi['id_loan'] != null) {
+            $query->andFilterWhere(['=', self::tableName() . '.id_loan', $paramsGetAllProduksi['id_loan']]);
+        }
+		
+		if (isset($paramsGetAllProduksi['username']) && $paramsGetAllProduksi['username'] != null) {
+            $query->andFilterWhere(['=', USER::tableName() . '.username', $paramsGetAllProduksi['username']]);
+        }
+		
+		if (
+            isset($paramsGetAllProduksi['start_date'])
+            && $paramsGetAllProduksi['start_date'] != null
+            && isset($paramsGetAllProduksi['end_date'])
+            && $paramsGetAllProduksi['end_date'] != null
+        ) {
+            $query->andFilterWhere(['>=', self::tableName() . '.updated_at', $paramsGetAllProduksi['start_date']]);
+            $query->andFilterWhere(['<=', self::tableName() . '.updated_at', $paramsGetAllProduksi['end_date']]);
+        }
+
+        if (isset($paramsGetAllProduksi['offset']) && $paramsGetAllProduksi['offset'] != null) {
+            $query->offset($paramsGetAllProduksi['offset']);
+        }
+
+        if (isset($paramsGetAllProduksi['limit']) && $paramsGetAllProduksi['limit'] != null) {
+            $query->limit($paramsGetAllProduksi['limit']);
+        }
+		
+         // $query->groupBy(['policy_no', 'batch_no']);
+       $query->orderBy(['id' => SORT_DESC]);
+		// echo $query;
+        return $query->all();
+		
+		
+		
     }
-
-
-    /*
-     * =====================================================
-     * FILTER
-     * =====================================================
-     */
-
-    if (
-        isset($paramsGetAllProduksi['member_id'])
-        && $paramsGetAllProduksi['member_id'] != null
-    ) {
-        $query->andFilterWhere([
-            '=',
-            'm.id',
-            $paramsGetAllProduksi['member_id']
-        ]);
-    }
-
-
-    if (
-        isset($paramsGetAllProduksi['policy_no'])
-        && $paramsGetAllProduksi['policy_no'] != null
-    ) {
-        $query->andFilterWhere([
-            '=',
-            'm.policy_no',
-            $paramsGetAllProduksi['policy_no']
-        ]);
-    }
-
-
-    if (
-        isset($paramsGetAllProduksi['batch_no'])
-        && $paramsGetAllProduksi['batch_no'] != null
-    ) {
-        $query->andFilterWhere([
-            '=',
-            'm.batch_no',
-            $paramsGetAllProduksi['batch_no']
-        ]);
-    }
-
-
-    if (
-        isset($paramsGetAllProduksi['start_date'])
-        && $paramsGetAllProduksi['start_date'] != null
-        && isset($paramsGetAllProduksi['end_date'])
-        && $paramsGetAllProduksi['end_date'] != null
-    ) {
-
-        $query->andFilterWhere([
-            '>=',
-            'm.start_date',
-            $paramsGetAllProduksi['start_date']
-        ]);
-
-        $query->andFilterWhere([
-            '<=',
-            'm.end_date',
-            $paramsGetAllProduksi['end_date']
-        ]);
-    }
-
-
-    if (
-        isset($paramsGetAllProduksi['status'])
-        && $paramsGetAllProduksi['status'] != null
-    ) {
-        $query->andFilterWhere([
-            '=',
-            'm.status',
-            $paramsGetAllProduksi['status']
-        ]);
-    }
-
-
-    if (
-        isset($paramsGetAllProduksi['member_status'])
-        && $paramsGetAllProduksi['member_status'] != null
-    ) {
-        $query->andFilterWhere([
-            '=',
-            'm.member_status',
-            $paramsGetAllProduksi['member_status']
-        ]);
-    }
-
-
-    if (
-        isset($paramsGetAllProduksi['reas_status'])
-        && $paramsGetAllProduksi['reas_status'] != null
-    ) {
-        $query->andFilterWhere([
-            '=',
-            'm.reas_status',
-            $paramsGetAllProduksi['reas_status']
-        ]);
-    }
-
-
-    if (
-        isset($paramsGetAllProduksi['is_accumulated'])
-        && $paramsGetAllProduksi['is_accumulated'] == 1
-    ) {
-        $query->andFilterWhere([
-            'like',
-            'm.acc_status',
-            'Accumulated'
-        ]);
-    }
-
-
-    /*
-     * =====================================================
-     * PAGINATION
-     * =====================================================
-     */
-
-    if (
-        isset($paramsGetAllProduksi['offset'])
-        && $paramsGetAllProduksi['offset'] != null
-    ) {
-        $query->offset($paramsGetAllProduksi['offset']);
-    }
-
-
-    if (
-        isset($paramsGetAllProduksi['limit'])
-        && $paramsGetAllProduksi['limit'] != null
-    ) {
-        $query->limit($paramsGetAllProduksi['limit']);
-    }
-
-
-    /*
-     * =====================================================
-     * GROUP & ORDER
-     * =====================================================
-     */
-
-    $query->groupBy([
-        'm.id',
-        'm.personal_no'
-    ]);
-
-
-    if (
-        isset($paramsGetAllProduksi['sort'])
-        && $paramsGetAllProduksi['sort'] != null
-    ) {
-        $query->orderBy([
-            'm.id' => $paramsGetAllProduksi['sort']
-        ]);
-    } else {
-        $query->orderBy([
-            'm.id' => SORT_DESC
-        ]);
-    }
-
-
-    return $query->all();
-}
 	
 		
 	public static function countAllDataproduksi($paramsGetAllProduksi = [])
