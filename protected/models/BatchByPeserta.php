@@ -328,21 +328,69 @@ class BatchByPeserta extends \yii\db\ActiveRecord
 	public static function countAllDataproduksi($paramsGetAllProduksi = [])
 	{
 		$query = self::find();
-		
-		
 
-		if (isset($paramsGetAllProduksi['policy_no']) && $paramsGetAllProduksi['policy_no'] != null) {
-			$query->andFilterWhere(['=', self::tableName() . '.policy_no', $paramsGetAllProduksi['policy_no']]);
+		// Filter status
+		if (!empty($paramsGetAllProduksi['status'])) {
+			$query->andWhere([
+				self::tableName() . '.status' => $paramsGetAllProduksi['status']
+			]);
 		}
 
-		if (isset($paramsGetAllProduksi['batch_no']) && $paramsGetAllProduksi['batch_no'] != null) {
-			$query->andFilterWhere(['=', self::tableName() . '.batch_no', $paramsGetAllProduksi['batch_no']]);
+		// Filter batch
+		if (!empty($paramsGetAllProduksi['batch_no'])) {
+			$query->andWhere([
+				self::tableName() . '.batch_no' => $paramsGetAllProduksi['batch_no']
+			]);
 		}
 
-		$query->groupBy(['policy_no', 'batch_no']);
+		// Filter ID Loan
+		if (!empty($paramsGetAllProduksi['id_loan'])) {
+			$query->andWhere([
+				self::tableName() . '.id_loan' => $paramsGetAllProduksi['id_loan']
+			]);
+		}
+
+		// Filter user
+		if (!empty($paramsGetAllProduksi['username'])) {
+			$query
+				->innerJoin(
+					User::tableName(),
+					User::tableName() . '.id = ' . self::tableName() . '.created_by'
+				)
+				->andWhere([
+					User::tableName() . '.username' => $paramsGetAllProduksi['username']
+				]);
+		}
+
+		// Filter tanggal
+		if (!empty($paramsGetAllProduksi['start_date'])) {
+			$query->andWhere([
+				'>=',
+				self::tableName() . '.updated_at',
+				$paramsGetAllProduksi['start_date']
+			]);
+		}
+
+		if (!empty($paramsGetAllProduksi['end_date'])) {
+			$query->andWhere([
+				'<=',
+				self::tableName() . '.updated_at',
+				$paramsGetAllProduksi['end_date']
+			]);
+		}
+
+		// Role UW
+		if (
+			!Yii::$app->user->isGuest &&
+			Yii::$app->user->identity->role == User::ROLE_UW
+		) {
+			$query->andWhere([
+				self::tableName() . '.created_by' => Yii::$app->user->identity->id
+			]);
+		}
 
 		return $query->count();
-	}		
+	}
 
 }
 
