@@ -193,7 +193,6 @@ use app\models\User;
                         </ul>
                     </li>
 					
-					<!-- 
                     <li>
                         <a href="javascript: void(0);"><i class="fa fa-pencil"></i> <span> Alteration </span> <span class="menu-arrow"></span></a>
                         <ul class="nav-second-level" aria-expanded="false">
@@ -202,7 +201,7 @@ use app\models\User;
                             <li><a href="<?= Url::base() . '/alteration-cancel'; ?>">Cancel</a></li>
                         </ul>
                     </li>
-					-->
+				
 					
 					
 					<li>
