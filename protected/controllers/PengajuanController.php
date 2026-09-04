@@ -44,6 +44,8 @@ use app\widgets\Alert;
 use yii\widgets\LinkPager;
 use app\models\claim_banding;
 use app\models\User;
+use app\models\Restitusi;
+use app\models\claim_riau;
 
 require_once __DIR__ . '/fpdf.php';
 
@@ -836,16 +838,16 @@ class PengajuanController extends Controller
 				'coverage' => (string)$coverage,
 				'keterangan' => '-',
 
-				'dokumen' => [
-					'file_name' =>
-						$sftpResult['file_name'],
+				// 'dokumen' => [
+					// 'file_name' =>
+						// $sftpResult['file_name'],
 
-					'local_path' =>
-						$sftpResult['local_path'],
+					// 'local_path' =>
+						// $sftpResult['local_path'],
 
-					'remote_path' =>
-						$sftpResult['remote_path'],
-				]
+					// 'remote_path' =>
+						// $sftpResult['remote_path'],
+				// ]
 			]
 		];
 	}
@@ -1203,10 +1205,10 @@ class PengajuanController extends Controller
 						$policybyproduk->policy_no,
 
 					's&k' =>
-						'DIISI NOMOR PKS',
+						'-',
 
 					'asuransi' =>
-						'DIISI NAMA ASURANSI',
+						'Reliance Life Unit Syariah',
 
 					'periode_awal' =>
 						date(
@@ -1651,10 +1653,10 @@ class PengajuanController extends Controller
 						$policybyproduk->policy_no,
 
 					's&k' =>
-						'DIISI NOMOR PKS',
+						'-',
 
 					'asuransi' =>
-						'DIISI NAMA ASURANSI',
+						'Reliance Life Unit Syariah',
 
 					'periode_awal' =>
 						date(
@@ -2749,20 +2751,6 @@ class PengajuanController extends Controller
 		if (!is_dir($folder)) {
 			mkdir($folder, 0777, true);
 		}
-
-		// $fileName =
-			// $policy->policy_no .
-			// '_' .
-			// preg_replace(
-				// '/[^A-Za-z0-9]/',
-				// '_',
-				// $member->nama
-			// ) .
-			// '_' .
-			// date('YmdHis') .
-			// '.pdf';
-			
-
 		
 		$norek   = $member->nomor_rekening;
 		$noAkad  = $member->nomor_akad;
@@ -3833,6 +3821,520 @@ class PengajuanController extends Controller
 		];
 	}
 
+	
+	public function actionSubmitRestitusi()
+	{
+		Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
+
+		$request = Yii::$app->request;
+
+
+		$authorization = $request->headers->get('Authorization');
+
+		if (!$authorization) {
+			return [
+				'Result' => [
+					'status' => '401',
+					'kode_response' => '01',
+					'message' => 'Authorization header tidak ditemukan'
+				]
+			];
+		}
+
+
+		$body = $request->getBodyParams();
+
+		if (empty($body)) {
+			return [
+				'Result' => [
+					'status' => '400',
+					'kode_response' => '01',
+					'message' => 'Request body tidak boleh kosong'
+				]
+			];
+		}
+
+
+		$requiredFields = [
+			'id_transaksi',
+			'id_pengajuan',
+			'kode_broker',
+			'kode_cabang',
+			'nomor_rekening',
+			'tanggal_pembiayaan',
+			'old_nomor_akad',
+			'nomor_akad',
+			'plafond_pembiayaan',
+			'tenor',
+			'benefit',
+			'restitusi_jiwa'
+		];
+
+		foreach ($requiredFields as $field) {
+
+			if (
+				!array_key_exists($field, $body) ||
+				$body[$field] === null ||
+				$body[$field] === ''
+			) {
+				return [
+					'Result' => [
+						'status' => '400',
+						'kode_response' => '01',
+						'message' => "Field {$field} wajib diisi"
+					]
+				];
+			}
+		}
+
+		$restitusiJiwa = $body['restitusi_jiwa'];
+
+		if (!is_array($restitusiJiwa)) {
+			return [
+				'Result' => [
+					'status' => '400',
+					'kode_response' => '01',
+					'message' => 'Format restitusi_jiwa tidak valid'
+				]
+			];
+		}
+
+		$requiredRestitusiFields = [
+			'plafon_penjaminan',
+			'tenor_berjalan',
+			'sisa_tenor',
+			'premi',
+			'asuransi',
+			'tujuan_pembayaran'
+		];
+
+		foreach ($requiredRestitusiFields as $field) {
+
+			if (
+				!array_key_exists($field, $restitusiJiwa) ||
+				$restitusiJiwa[$field] === null ||
+				$restitusiJiwa[$field] === ''
+			) {
+				return [
+					'Result' => [
+						'status' => '400',
+						'kode_response' => '01',
+						'message' => "Field restitusi_jiwa.{$field} wajib diisi"
+					]
+				];
+			}
+		}
+
+		$tanggalPembiayaan = $body['tanggal_pembiayaan'];
+
+		$date = \DateTime::createFromFormat(
+			'Ymd',
+			$tanggalPembiayaan
+		);
+
+		if (
+			!$date ||
+			$date->format('Ymd') !== $tanggalPembiayaan
+		) {
+			return [
+				'Result' => [
+					'status' => '400',
+					'kode_response' => '01',
+					'message' => 'Format tanggal_pembiayaan harus YYYYMMDD'
+				]
+			];
+		}
+
+		$tanggalPembiayaanDb = $date->format('Y-m-d');
+
+
+		$restitusiJiwaJson = json_encode(
+			$restitusiJiwa,
+			JSON_UNESCAPED_UNICODE
+		);
+
+		if ($restitusiJiwaJson === false) {
+			return [
+				'Result' => [
+					'status' => '400',
+					'kode_response' => '01',
+					'message' => 'Gagal memproses data restitusi_jiwa'
+				]
+			];
+		}
+
+
+		$transaction = Yii::$app->db->beginTransaction();
+
+		try {
+
+			$model = new Restitusi();
+
+
+			$model->id_transaksi = $body['id_transaksi'];
+
+			$model->id_pengajuan = $body['id_pengajuan'];
+
+			$model->kode_broker = $body['kode_broker'];
+
+			$model->kode_cabang = $body['kode_cabang'];
+
+			$model->nomor_rekening = $body['nomor_rekening'];
+
+			$model->tanggal_pembiayaan = $tanggalPembiayaanDb;
+
+			$model->old_nomor_akad = $body['old_nomor_akad'];
+
+			$model->nomor_akad = $body['nomor_akad'];
+
+			$model->plafon_pembiayaan =
+				$body['plafond_pembiayaan'];
+
+			$model->tenor = $body['tenor'];
+
+			$model->benefit = $body['benefit'];
+
+			$model->restitusi_jiwa = $restitusiJiwaJson;
+
+			$model->plafon_penjaminan =
+				$restitusiJiwa['plafon_penjaminan'];
+
+			$model->tenor_berjalan =
+				$restitusiJiwa['tenor_berjalan'];
+
+			$model->sisa_tenor =
+				$restitusiJiwa['sisa_tenor'];
+
+			$model->premi =
+				$restitusiJiwa['premi'];
+
+			$model->asuransi =
+				$restitusiJiwa['asuransi'];
+
+			$model->tujuan_pembayaran =
+				$restitusiJiwa['tujuan_pembayaran'];
+			$model->created_at =date('Y-m-d H:i:s');
+
+
+			$model->status_restitusi = '1';
+
+			if (!$model->save()) {
+
+				$transaction->rollBack();
+
+				return [
+					'Result' => [
+						'status' => '400',
+						'kode_response' => '01',
+						'message' =>
+							'Gagal menyimpan data pengajuan restitusi',
+						'jenis_pengajuan' => 'RESTITUSI',
+						'restitusi_jiwa' => [
+							'status_restitusi' => '0'
+						],
+						'errors' => $model->getErrors()
+					]
+				];
+			}
+
+			$transaction->commit();
+
+			return [
+				'Result' => [
+					'status' => '200',
+					'kode_response' => '00',
+					'message' =>
+						'Berhasil kirim data pengajuan restitusi',
+					'jenis_pengajuan' => 'RESTITUSI',
+					'restitusi_jiwa' => [
+						'status_restitusi' => '1'
+					]
+				]
+			];
+
+		} catch (\Exception $e) {
+
+			if ($transaction->getIsActive()) {
+				$transaction->rollBack();
+			}
+
+			return [
+				'Result' => [
+					'status' => '500',
+					'kode_response' => '99',
+					'message' => $e->getMessage(),
+					'jenis_pengajuan' => 'RESTITUSI',
+					'restitusi_jiwa' => [
+						'status_restitusi' => '0'
+					]
+				]
+			];
+		}
+	}
+
+	public function actionSubmitClaim()
+	{
+		Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
+
+		$request = Yii::$app->request;
+
+	
+		$authorization = $request->headers->get('Authorization');
+
+		if (!$authorization) {
+			return [
+				'Result' => [
+					'status' => '401',
+					'kode_response' => '01',
+					'message' => 'Authorization header tidak ditemukan'
+				]
+			];
+		}
+
+		$body = $request->getBodyParams();
+
+		if (empty($body)) {
+			return [
+				'Result' => [
+					'status' => '400',
+					'kode_response' => '01',
+					'message' => 'Request body tidak boleh kosong'
+				]
+			];
+		}
+
+		$requiredFields = [
+			'id_transaksi',
+			'id_pengajuan',
+			'kode_broker',
+			'ktp',
+			'nama',
+			'kode_cabang',
+			'nomor_rekening',
+			'no_akad',
+			'tenor',
+			'premi',
+			'periode_awal',
+			'periode_akhir',
+			'tenor_berjalan',
+			'sisa_tenor',
+			'benefit',
+			'jenis_klaim',
+			'penyebab_klaim',
+			'tanggal_kejadian',
+			'tempat_kejadian',
+			'jumlah_diajukan',
+			'tujuan_pembayaran',
+			'tanggal_kirim'
+		];
+
+		foreach ($requiredFields as $field) {
+
+			if (
+				!array_key_exists($field, $body) ||
+				$body[$field] === null ||
+				$body[$field] === ''
+			) {
+				return [
+					'Result' => [
+						'status' => '400',
+						'kode_response' => '01',
+						'message' => "Field {$field} wajib diisi"
+					]
+				];
+			}
+		}
+
+
+		$dateFields = [
+			'periode_awal',
+			'periode_akhir',
+			'tanggal_kejadian',
+			'tanggal_kirim'
+		];
+
+		$dateValues = [];
+
+		foreach ($dateFields as $field) {
+
+			$value = $body[$field];
+
+			$date = \DateTime::createFromFormat('Ymd', $value);
+
+			if (
+				!$date ||
+				$date->format('Ymd') !== $value
+			) {
+				return [
+					'Result' => [
+						'status' => '400',
+						'kode_response' => '01',
+						'message' => "Format {$field} harus YYYYMMDD"
+					]
+				];
+			}
+
+			$dateValues[$field] = $date->format('Y-m-d');
+		}
+
+
+		$idAgunan = isset($body['id_agunan'])
+			? trim($body['id_agunan'])
+			: '';
+
+		$nomorBukti = isset($body['nomor_bukti'])
+			? trim($body['nomor_bukti'])
+			: '';
+
+		if ($body['benefit'] == '4') {
+
+			if ($idAgunan === '') {
+				return [
+					'Result' => [
+						'status' => '400',
+						'kode_response' => '01',
+						'message' => 'Field id_agunan wajib diisi jika benefit = 4 (Kebakaran)'
+					]
+				];
+			}
+
+			if ($nomorBukti === '') {
+				return [
+					'Result' => [
+						'status' => '400',
+						'kode_response' => '01',
+						'message' => 'Field nomor_bukti wajib diisi jika benefit = 4 (Kebakaran)'
+					]
+				];
+			}
+		}
+
+		$transaction = Yii::$app->db->beginTransaction();
+
+		try {
+
+
+			$model = new \app\models\claim_riau();
+
+			$model->id_transaksi =
+				$body['id_transaksi'];
+
+			$model->id_pengajuan =
+				$body['id_pengajuan'];
+
+			$model->kode_broker =
+				$body['kode_broker'];
+
+			$model->ktp =
+				$body['ktp'];
+
+			$model->nama =
+				$body['nama'];
+
+			$model->kode_cabang =
+				$body['kode_cabang'];
+
+			$model->nomor_rekening =
+				$body['nomor_rekening'];
+
+			$model->no_akad =
+				$body['no_akad'];
+
+			$model->tenor =
+				$body['tenor'];
+
+			$model->premi =
+				$body['premi'];
+
+			$model->periode_awal =
+				$dateValues['periode_awal'];
+
+			$model->periode_akhir =
+				$dateValues['periode_akhir'];
+
+			$model->tenor_berjalan =
+				$body['tenor_berjalan'];
+
+			$model->sisa_tenor =
+				$body['sisa_tenor'];
+
+			$model->benefit =
+				$body['benefit'];
+
+			$model->id_agunan =
+				$idAgunan !== '' ? $idAgunan : null;
+
+			$model->nomor_bukti =
+				$nomorBukti !== '' ? $nomorBukti : null;
+
+			$model->jenis_klaim =
+				$body['jenis_klaim'];
+
+			$model->penyebab_klaim =
+				$body['penyebab_klaim'];
+
+			$model->tanggal_kejadian =
+				$dateValues['tanggal_kejadian'];
+
+			$model->tempat_kejadian =
+				$body['tempat_kejadian'];
+
+			$model->jumlah_diajukan =
+				$body['jumlah_diajukan'];
+
+			$model->tujuan_pembayaran =
+				$body['tujuan_pembayaran'];
+
+			$model->tanggal_kirim =
+				$dateValues['tanggal_kirim'];
+				
+			$model->created_at =date('Y-m-d H:i:s');
+
+
+			if (!$model->save()) {
+
+				$transaction->rollBack();
+
+				return [
+					'Result' => [
+						'status' => '400',
+						'kode_response' => '01',
+						'message' => 'Gagal menyimpan data pengajuan claim',
+						'status_claim' => '0',
+						'errors' => $model->getErrors()
+					]
+				];
+			}
+
+
+			$transaction->commit();
+
+
+			return [
+				'Result' => [
+					'status' => '200',
+					'kode_response' => '00',
+					'message' => 'Berhasil kirim data pengajuan claim',
+					'status_claim' => '1'
+				]
+			];
+
+		} catch (\Exception $e) {
+
+			if ($transaction->getIsActive()) {
+				$transaction->rollBack();
+			}
+
+			return [
+				'Result' => [
+					'status' => '500',
+					'kode_response' => '99',
+					'message' => $e->getMessage(),
+					'status_claim' => '0'
+				]
+			];
+		}
+	}
 
 
 }
