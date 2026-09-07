@@ -47,6 +47,7 @@ use app\models\User;
 use app\models\Restitusi;
 use app\models\claim_riau;
 
+
 require_once __DIR__ . '/fpdf.php';
 
 class PengajuanController extends Controller
@@ -2597,6 +2598,12 @@ class PengajuanController extends Controller
 		$port = 22;
 		$username = 'reliance';
 		$password = 'reliance@brks2026';
+		
+		
+		
+			// host : sftp://web.bestpro-id.com
+	// username : bank_riau
+	// password : Thunderbolt5
 
 		try {
 
@@ -3954,25 +3961,53 @@ class PengajuanController extends Controller
 		try {
 
 			$model = new Restitusi();
+
+
 			$model->id_transaksi = $body['id_transaksi'];
+
 			$model->id_pengajuan = $body['id_pengajuan'];
+
 			$model->kode_broker = $body['kode_broker'];
+
 			$model->kode_cabang = $body['kode_cabang'];
+
 			$model->nomor_rekening = $body['nomor_rekening'];
+
 			$model->tanggal_pembiayaan = $tanggalPembiayaanDb;
+
 			$model->old_nomor_akad = $body['old_nomor_akad'];
+
 			$model->nomor_akad = $body['nomor_akad'];
-			$model->plafon_pembiayaan =body['plafond_pembiayaan'];
+
+			$model->plafon_pembiayaan =
+				$body['plafond_pembiayaan'];
+
 			$model->tenor = $body['tenor'];
+
 			$model->benefit = $body['benefit'];
+
 			$model->restitusi_jiwa = $restitusiJiwaJson;
-			$model->plafon_penjaminan =$restitusiJiwa['plafon_penjaminan'];
-			$model->tenor_berjalan =$restitusiJiwa['tenor_berjalan'];
-			$model->sisa_tenor =$restitusiJiwa['sisa_tenor'];
-			$model->premi =$restitusiJiwa['premi'];
-			$model->asuransi =$restitusiJiwa['asuransi'];
-			$model->tujuan_pembayaran =$restitusiJiwa['tujuan_pembayaran'];
+
+			$model->plafon_penjaminan =
+				$restitusiJiwa['plafon_penjaminan'];
+
+			$model->tenor_berjalan =
+				$restitusiJiwa['tenor_berjalan'];
+
+			$model->sisa_tenor =
+				$restitusiJiwa['sisa_tenor'];
+
+			$model->premi =
+				$restitusiJiwa['premi'];
+
+			$model->asuransi =
+				$restitusiJiwa['asuransi'];
+
+			$model->tujuan_pembayaran =
+				$restitusiJiwa['tujuan_pembayaran'];
 			$model->created_at =date('Y-m-d H:i:s');
+
+
 			$model->status_restitusi = '1';
 
 			if (!$model->save()) {
@@ -4263,7 +4298,9 @@ class PengajuanController extends Controller
 				];
 			}
 
+
 			$transaction->commit();
+
 
 			return [
 				'Result' => [
@@ -4287,6 +4324,274 @@ class PengajuanController extends Controller
 					'message' => $e->getMessage(),
 					'status_claim' => '0'
 				]
+			];
+		}
+	}
+	
+	
+
+	public function actionListIncomingFiles()
+	{
+		Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
+
+		/*
+		 * LOAD PHPSecLib
+		 *
+		 * Lokasi:
+		 * C:\xampp7.4\htdocs\BestPro_syariah\protected\sftp-lib\vendor
+		 */
+		$autoload = 'C:\xampp7.4\htdocs\BestPro_syariah\protected\sftp-lib\vendor\autoload.php';
+
+		if (!file_exists($autoload)) {
+			return [
+				'success' => false,
+				'step' => 'autoload',
+				'message' => 'File autoload.php tidak ditemukan',
+				'autoload' => $autoload
+			];
+		}
+
+		require_once $autoload;
+
+		try {
+
+			/*
+			 * CHECK PHPSecLib
+			 */
+			if (!class_exists('phpseclib3\Net\SFTP')) {
+
+				return [
+					'success' => false,
+					'step' => 'check_phpseclib',
+					'message' => 'Class phpseclib3\\Net\\SFTP tidak tersedia'
+				];
+			}
+
+			/*
+			 * IMPORT CLASS
+			 */
+			$sftpClass = 'phpseclib3\Net\SFTP';
+
+			/*
+			 * CONFIG SFTP
+			 */
+			$host = 'web.bestpro-id.com';
+			$port = 22;
+
+			$username = 'bank_riau';
+			$password = 'Thunderbolt5';
+
+			$rootPath = '/sftp/bank_riau';
+			$incomingPath = '/sftp/bank_riau/incoming';
+
+
+			/*
+			 * CONNECT SFTP
+			 */
+			$sftp = new $sftpClass(
+				$host,
+				$port
+			);
+
+			/*
+			 * CHECK CONNECTION
+			 */
+			if (!$sftp->isConnected()) {
+
+				return [
+					'success' => false,
+					'step' => 'connect',
+					'message' => 'Gagal koneksi ke SFTP',
+					'host' => $host,
+					'port' => $port
+				];
+			}
+
+			/*
+			 * LOGIN
+			 */
+			if (!$sftp->login(
+				$username,
+				$password
+			)) {
+
+				return [
+					'success' => false,
+					'step' => 'login',
+					'message' => 'Gagal authentication SFTP',
+					'username' => $username
+				];
+			}
+
+			/*
+			 * LIST ROOT
+			 */
+			$rootFiles = $sftp->nlist($rootPath);
+
+			if ($rootFiles === false) {
+
+				return [
+					'success' => false,
+					'step' => 'list_root',
+					'message' => 'Gagal membaca root SFTP',
+					'root_path' => $rootPath
+				];
+			}
+
+			/*
+			 * FILTER . DAN ..
+			 */
+			$rootFiles = array_values(
+				array_filter(
+					$rootFiles,
+					function ($file) {
+						return $file !== '.'
+							&& $file !== '..';
+					}
+				)
+			);
+
+			/*
+			 * CHECK INCOMING
+			 */
+			$incomingExists =
+				$sftp->is_dir($incomingPath);
+
+			$incomingFiles = [];
+
+			/*
+			 * LIST INCOMING
+			 */
+			if ($incomingExists) {
+
+				/*
+				 * detailed list
+				 *
+				 * Menggunakan rawlist agar
+				 * mendapatkan informasi file.
+				 */
+				$items = $sftp->rawlist(
+					$incomingPath
+				);
+
+				if ($items !== false) {
+
+					foreach ($items as $itemName => $itemData) {
+
+						/*
+						 * Skip . dan ..
+						 */
+						if (
+							$itemName === '.' ||
+							$itemName === '..'
+						) {
+							continue;
+						}
+
+						/*
+						 * Tentukan type
+						 */
+						$type = 'file';
+
+						if (
+							isset($itemData['type']) &&
+							$itemData['type'] === 2
+						) {
+							$type = 'directory';
+						}
+
+						/*
+						 * Ukuran file
+						 */
+						$size = null;
+
+						if (
+							$type === 'file' &&
+							isset($itemData['size'])
+						) {
+							$size = $itemData['size'];
+						}
+
+						/*
+						 * Modified
+						 */
+						$modified = null;
+
+						if (
+							isset($itemData['mtime']) &&
+							$itemData['mtime']
+						) {
+							$modified = date(
+								'Y-m-d H:i:s',
+								$itemData['mtime']
+							);
+						}
+
+						$incomingFiles[] = [
+							'name' => $itemName,
+							'type' => $type,
+							'size' => $size,
+							'modified' => $modified
+						];
+					}
+				}
+			}
+
+			/*
+			 * DISCONNECT
+			 */
+			$sftp->disconnect();
+
+			/*
+			 * RESPONSE
+			 */
+			return [
+				'success' => true,
+
+				'message' =>
+					'SFTP berhasil diakses menggunakan phpseclib3',
+
+				'connection' => [
+					'host' => $host,
+					'port' => $port,
+					'username' => $username
+				],
+
+				'authentication' => true,
+
+				'root_path' =>
+					$rootPath,
+
+				'root_files' =>
+					$rootFiles,
+
+				'incoming_path' =>
+					$incomingPath,
+
+				'incoming_exists' =>
+					$incomingExists,
+
+				'total_incoming_file' =>
+					count($incomingFiles),
+
+				'incoming_files' =>
+					$incomingFiles
+			];
+
+		} catch (\Throwable $e) {
+
+			Yii::error(
+				'List SFTP Incoming Error: ' .
+				$e->getMessage() .
+				"\n" .
+				$e->getTraceAsString(),
+				'cbc-sftp'
+			);
+
+			return [
+				'success' => false,
+				'step' => 'exception',
+				'message' => $e->getMessage()
 			];
 		}
 	}

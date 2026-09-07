@@ -742,9 +742,6 @@ class GetController extends Controller
 
 		$request = Yii::$app->request->post();
 
-		// ==============================
-		// Ambil payload
-		// ==============================
 		$id_transaksi     = $request['id_transaksi'] ?? null;
 		$id_pengajuan     = $request['id_pengajuan'] ?? null;
 		$id_pengajuan_cbc = $request['id_pengajuan_cbc'] ?? null;
