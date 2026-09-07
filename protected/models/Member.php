@@ -988,5 +988,282 @@ class Member extends \yii\db\ActiveRecord
 		
 			return $query->all(); 
 	}
+	
+	public function callAPIPostMemberLoginRiau()
+	{
+		$url = 'http://202.152.22.234:5005/token';
+
+		$data = [
+			'client_id'     => 'SIAP',
+			'client_secret' => '62bb0a61-1eaf-489e-b3f2-6a60ff8c8ffa',
+			'username'      => 'reliance',
+			'password'      => 'Brk$reliance',
+			'grand_type'    => 'password',
+		];
+
+		$jsonData = json_encode($data);
+
+		$ch = curl_init();
+
+		curl_setopt_array($ch, [
+			CURLOPT_URL            => $url,
+			CURLOPT_POST           => true,
+			CURLOPT_POSTFIELDS     => $jsonData,
+
+			CURLOPT_HTTPHEADER     => [
+				'Content-Type: application/json',
+				'Accept: application/json',
+			],
+
+			CURLOPT_RETURNTRANSFER => true,
+			CURLOPT_CONNECTTIMEOUT => 10,
+			CURLOPT_TIMEOUT        => 30,
+			CURLOPT_HEADER         => false,
+		]);
+
+		$body = curl_exec($ch);
+
+		$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+		$curlNo   = curl_errno($ch);
+		$curlErr  = curl_error($ch);
+
+		curl_close($ch);
+
+
+		// ==========================================
+		// CURL ERROR
+		// ==========================================
+		if ($curlNo !== 0) {
+
+			return [
+				'success'    => false,
+				'token'      => null,
+				'http_code'  => $httpCode,
+				'curl_errno' => $curlNo,
+				'curl_error' => $curlErr,
+				'body'       => $body,
+			];
+		}
+
+
+		// ==========================================
+		// DEBUG RESPONSE RAW
+		// ==========================================
+		Yii::error(
+			"===== DEBUG TOKEN BANK =====\n" .
+			"HTTP CODE : " . $httpCode . "\n" .
+			"RAW BODY  : " . $body,
+			'api'
+		);
+
+
+		// ==========================================
+		// JSON DECODE
+		// ==========================================
+		$response = json_decode($body, true);
+
+
+		if (!is_array($response)) {
+
+			return [
+				'success'    => false,
+				'token'      => null,
+				'http_code'  => $httpCode,
+				'curl_errno' => $curlNo,
+				'curl_error' => $curlErr,
+				'body'       => $body,
+				'json_error' => json_last_error_msg(),
+			];
+		}
+
+
+		// ==========================================
+		// AMBIL TOKEN
+		// RESPONSE BANK:
+		//
+		// {
+		//   "result": {
+		//      "pesan": "BERHASIL",
+		//      "kode": "00",
+		//      "token": "JWT..."
+		//   }
+		// }
+		// ==========================================
+
+		$token = null;
+
+		if (
+			isset($response['result']) &&
+			is_array($response['result']) &&
+			isset($response['result']['token'])
+		) {
+			$token = $response['result']['token'];
+		}
+
+
+		// ==========================================
+		// DEBUG TOKEN
+		// ==========================================
+		Yii::error(
+			"===== HASIL PARSING TOKEN =====\n" .
+			"TOKEN ADA : " . (!empty($token) ? 'YA' : 'TIDAK') . "\n" .
+			"TOKEN     : " . (!empty($token) ? 'ADA' : 'NULL') . "\n" .
+			"KODE      : " .
+				(isset($response['result']['kode'])
+					? $response['result']['kode']
+					: 'NULL') . "\n" .
+			"PESAN     : " .
+				(isset($response['result']['pesan'])
+					? $response['result']['pesan']
+					: 'NULL'),
+			'api'
+		);
+
+
+		// ==========================================
+		// RETURN
+		// PENTING:
+		// TOKEN HARUS DI LEVEL INI
+		//
+		// $loginResponse['token']
+		// ==========================================
+
+		return [
+			'success' => !empty($token),
+
+			'token' => $token,
+
+			'http_code' => $httpCode,
+
+			'curl_errno' => $curlNo,
+
+			'curl_error' => $curlErr,
+
+			'kode' => isset($response['result']['kode'])
+				? $response['result']['kode']
+				: null,
+
+			'pesan' => isset($response['result']['pesan'])
+				? $response['result']['pesan']
+				: null,
+
+			'body' => $body,
+
+			'response' => $response,
+		];
+	}
+
+	public function callAPIPostConfirmationDocumentRiau($token, $model,$document)
+	{
+		$url = 'http://202.152.22.234:5008/callback/document';
+
+		if (empty($token)) {
+			throw new \Exception('Token Bank kosong');
+		}
+
+		if (!$model) {
+			throw new \Exception('Document tidak ditemukan');
+		}
+
+		$payload = [
+			'id_transaksi'      => $model->id_loan,
+			'id_transaksi_bank' => $model->id_pengajuan,
+			'id_pengajuan'      => $model->id_pengajuan,
+			'kode_cabang'       => $model->kode_cabang,
+			'kode_broker'       => $model->kode_broker,
+			'nama'              => $model->nama,
+			'ktp'               => $model->ktp,
+			'status_dokumen'    => ($document->approve === 'DISETUJUI') ? '1' : '0',
+			'premi_disetujui'   => $model->gross_premium,
+			'keterangan'        => ($document->approve === 'DISETUJUI')? 'Dokumen disetujui': 'Dokumen perlu direvisi',
+			'benefit'           => $model->benefit,
+		];
+
+		$jsonData = json_encode($payload);
+
+		$ch = curl_init();
+
+		curl_setopt_array($ch, [
+			CURLOPT_URL            => $url,
+			CURLOPT_POST           => true,
+			CURLOPT_POSTFIELDS     => $jsonData,
+
+			CURLOPT_HTTPHEADER     => [
+				'Content-Type: application/json',
+				'Accept: application/json',
+				'Authorization: Bearer ' . $token,
+			],
+
+			CURLOPT_RETURNTRANSFER => true,
+			CURLOPT_CONNECTTIMEOUT => 10,
+			CURLOPT_TIMEOUT        => 30,
+			CURLOPT_HEADER         => false,
+		]);
+
+		$body = curl_exec($ch);
+
+		$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+		$curlNo   = curl_errno($ch);
+		$curlErr  = curl_error($ch);
+
+		curl_close($ch);
+
+		/*
+		 * DEBUG
+		 */
+		Yii::error(
+			"===== DEBUG BANK CBC =====\n" .
+			"URL:\n" . $url . "\n\n" .
+			"HTTP CODE:\n" . $httpCode . "\n\n" .
+			"CURL ERROR:\n" . $curlErr . "\n\n" .
+			"PAYLOAD:\n" . json_encode($payload, JSON_PRETTY_PRINT) . "\n\n" .
+			"RESPONSE RAW:\n" . $body . "\n" .
+			"==========================",
+			'api'
+		);
+
+		/*
+		 * Jika CURL error
+		 */
+		if ($curlNo !== 0) {
+			return [
+				'success'    => false,
+				'http_code'  => $httpCode,
+				'curl_errno' => $curlNo,
+				'curl_error' => $curlErr,
+				'body'       => $body,
+				'payload'    => $payload,
+			];
+		}
+
+		/*
+		 * Decode response Bank
+		 */
+		$response = json_decode($body, true);
+
+		/*
+		 * Response bukan JSON
+		 */
+		if (!is_array($response)) {
+			return [
+				'success'   => ($httpCode >= 200 && $httpCode < 300),
+				'http_code' => $httpCode,
+				'body'      => $body,
+				'payload'   => $payload,
+				'json_error' => json_last_error_msg(),
+			];
+		}
+
+		/*
+		 * RETURN HASIL API BANK
+		 */
+		return [
+			'success'   => ($httpCode >= 200 && $httpCode < 300),
+			'http_code' => $httpCode,
+			'response'  => $response,
+			'body'      => $body,
+			'payload'   => $payload,
+		];
+	}
 
 }

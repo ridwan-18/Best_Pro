@@ -762,23 +762,26 @@ $this->title = 'View Member - ' . Yii::$app->name;
                                 </td>
 
                                 <td>
-                                    <?= Html::dropDownList(
-                                        'action',
-                                        null,
-                                        [
-                                            '' => 'Select Action',
-                                            'approve' => 'Approve',
-                                            'revisi' => 'Revisi',
-                                            'reject' => 'Reject',
-                                        ],
-                                        [
-                                            'class' => 'form-control action-dropdown',
-                                            'data-url' => \yii\helpers\Url::to([
-                                                'member/approvedoc',
-                                                'id_loan' => $member['id_transaksi'],
-                                            ]),
-                                        ]
-                                    ); ?>
+                                   
+								<?= Html::dropDownList(
+									'action',
+									null,
+									[
+										'' => 'Select Action',
+										'approve' => 'Approve',
+										'revisi' => 'Revisi',
+										'reject' => 'Reject',
+									],
+									[
+										'class' => 'form-control action-dropdown',
+
+										'data-url' => \yii\helpers\Url::to([
+											'data-produksi/approvedoc',
+											'id_loan' => $cd['id_loan'],
+										]),
+									]
+								); ?>
+
                                 </td>
 
                                 <td>
@@ -813,12 +816,125 @@ $this->title = 'View Member - ' . Yii::$app->name;
 
 
 
+
 <?php
 $script = <<< JS
-    $('#member-upload-form').submit(function() {
-        $('#upload-btn').html('<i class="fa fa-spinner"></i> Loading');
-        $('#upload-btn').attr('class', 'btn btn-primary waves-effect waves-light disabled');
+
+$(document).on('change', '.action-dropdown', function() {
+
+    var dropdown = $(this);
+
+    var action = dropdown.val();
+
+    var url = dropdown.attr('data-url');
+
+
+    console.log('==============================');
+    console.log('DEBUG CBC');
+    console.log('URL    :', url);
+    console.log('ACTION :', action);
+    console.log('==============================');
+
+
+    if (!action) {
+        return;
+    }
+
+
+    $.ajax({
+
+        url: url,
+
+        type: 'POST',
+
+        dataType: 'json',
+
+        data: {
+            action: action
+        },
+
+
+        beforeSend: function() {
+
+            console.log('REQUEST DIKIRIM');
+
+            dropdown.prop('disabled', true);
+
+        },
+
+
+        success: function(response) {
+
+            console.log('==============================');
+            console.log('RESPONSE CONTROLLER');
+            console.log(response);
+            console.log('==============================');
+
+
+            alert(
+                JSON.stringify(response, null, 4)
+            );
+
+
+            if (
+                response.Result &&
+                response.Result.status == '200'
+            ) {
+
+                alert(
+                    'BERHASIL\\n\\n' +
+                    'Status : ' +
+                    response.Result.status +
+                    '\\nKode : ' +
+                    response.Result.kode_response +
+                    '\\nPesan : ' +
+                    response.Result.message
+                );
+
+                location.reload();
+
+            } else {
+
+                dropdown.prop('disabled', false);
+
+            }
+
+        },
+
+
+        error: function(xhr, status, error) {
+
+            console.log('==============================');
+            console.log('AJAX ERROR');
+            console.log('HTTP STATUS :', xhr.status);
+            console.log('STATUS      :', status);
+            console.log('ERROR       :', error);
+            console.log('RESPONSE    :', xhr.responseText);
+            console.log('==============================');
+
+
+            alert(
+                'ERROR AJAX\\n\\n' +
+                'HTTP : ' + xhr.status +
+                '\\nError : ' + error +
+                '\\n\\nResponse:\\n' +
+                xhr.responseText
+            );
+
+
+            dropdown.prop('disabled', false);
+
+        }
+
     });
+
+});
+
 JS;
+
 $this->registerJs($script);
 ?>
+
+
+
+

@@ -127,99 +127,291 @@ class map_member_dokumen_medis extends \yii\db\ActiveRecord
     }
 	
 	
-	public function callAPIPostMemberLogin()
-    {
-		
-			 $url = 'https://reliancelife.ajrius.id/api/login';
+public function callAPIPostMemberLogin()
+{
+    $url = 'http://202.152.22.234:5005/token';
 
-		$data = [
-			'email'    => 'adminapi@gmail.com',
-			'password' => '12345678',
-		];
+    $data = [
+        'client_id'     => 'SIAP',
+        'client_secret' => '62bb0a61-1eaf-489e-b3f2-6a60ff8c8ffa',
+        'username'      => 'reliance',
+        'password'      => 'Brk$reliance',
+        'grand_type'    => 'password',
+    ];
 
-		$jsonData = json_encode($data);
+    $jsonData = json_encode($data);
 
-		$ch = curl_init();
+    $ch = curl_init();
 
-		curl_setopt_array($ch, [
-			CURLOPT_URL            => $url,
-			CURLOPT_POST           => true,
-			CURLOPT_POSTFIELDS     => $jsonData,
+    curl_setopt_array($ch, [
+        CURLOPT_URL            => $url,
+        CURLOPT_POST           => true,
+        CURLOPT_POSTFIELDS     => $jsonData,
 
-			CURLOPT_HTTPHEADER     => [
-				'Content-Type: application/json',
-				'Accept: application/json',
-			],
-
-			CURLOPT_RETURNTRANSFER => true,
-			CURLOPT_TIMEOUT        => 30,
-			CURLOPT_CONNECTTIMEOUT => 10,
-
-			// Untuk mengatasi SSL error
-			CURLOPT_SSL_VERIFYPEER => false,
-			CURLOPT_SSL_VERIFYHOST => false,
-		]);
-
-		$body = curl_exec($ch);
-
-		$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-		$curlNo   = curl_errno($ch);
-		$curlErr  = curl_error($ch);
-
-		curl_close($ch);
-
-		if ($curlNo !== 0) {
-			return [
-				'token'      => null,
-				'http_code'  => $httpCode,
-				'curl_errno' => $curlNo,
-				'curl_error' => $curlErr,
-			];
-		}
-
-		$response = json_decode($body, true);
-
-		return [
-			'token'      => isset($response['token']) ? $response['token'] : null,
-			'expired'    => isset($response['expired']) ? $response['expired'] : null,
-			'success'    => isset($response['success']) ? $response['success'] : false,
-			'user'       => isset($response['user']) ? $response['user'] : null,
-			'http_code'  => $httpCode,
-			'curl_errno' => $curlNo,
-			'curl_error' => $curlErr,
-			'body'       => $body,
-		];
-
-    }
-	
-	 public function callAPIPostConfirmationDocument()
-    {
-        // $ch = curl_init('https://api-gateway.aapialang.co.id/sandbox/bankjatim-service/h2h/webhook/insurance/akseptasi/draft/dokumen-underwriting/confirmation');
-		$ch = curl_init ('https://api-gateway.aapialang.co.id/bankjatim-service/h2h/webhook/insurance/akseptasi/draft/dokumen-underwriting/confirmation');
-
-        $headers = [
+        CURLOPT_HTTPHEADER     => [
             'Content-Type: application/json',
-            'Authorization: Bearer EiSsYqSqEJGv2EEiIYXP6d4HL3FBMFD2tdassSIEqje9p7TD0oFPcXkG1at7osvVZFzZJ0hlkWBxZEAaxfHYFvY0CiisK8S688y8xMhILidFO7IVCLxB7w1gHfb0O7oaesw7a0F0K5cTxaSdZ47T5YgF0XURbAeOYTtcKMcGOVJ3h5JlqavuWEQMVvbPjEOIKjwQ7ycf7WGLbii1Uz2qpTR9R40MuAUk0mVq0lzF'
+            'Accept: application/json',
+        ],
+
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_CONNECTTIMEOUT => 10,
+        CURLOPT_TIMEOUT        => 30,
+        CURLOPT_HEADER         => false,
+    ]);
+
+    $body = curl_exec($ch);
+
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $curlNo   = curl_errno($ch);
+    $curlErr  = curl_error($ch);
+
+    curl_close($ch);
+
+
+    // ==========================================
+    // CURL ERROR
+    // ==========================================
+    if ($curlNo !== 0) {
+
+        return [
+            'success'    => false,
+            'token'      => null,
+            'http_code'  => $httpCode,
+            'curl_errno' => $curlNo,
+            'curl_error' => $curlErr,
+            'body'       => $body,
         ];
-
-        $data = json_encode([
-            'nomor_transaksi' => $this->nomor_transaksi,
-            'code_dokumen' => $this->kode_dokumen,
-            'status_dokumen' => $this->approve,
-        ]);
-
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-        curl_setopt($ch, CURLOPT_HEADER, true);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-
-        $response = curl_exec($ch);
-        $body = substr($response, curl_getinfo($ch, CURLINFO_HEADER_SIZE));
-
-        curl_close($ch);
-        // var_dump($response);
-        return json_decode($body, true);
     }
+
+
+    // ==========================================
+    // DEBUG RESPONSE RAW
+    // ==========================================
+    Yii::error(
+        "===== DEBUG TOKEN BANK =====\n" .
+        "HTTP CODE : " . $httpCode . "\n" .
+        "RAW BODY  : " . $body,
+        'api'
+    );
+
+
+    // ==========================================
+    // JSON DECODE
+    // ==========================================
+    $response = json_decode($body, true);
+
+
+    if (!is_array($response)) {
+
+        return [
+            'success'    => false,
+            'token'      => null,
+            'http_code'  => $httpCode,
+            'curl_errno' => $curlNo,
+            'curl_error' => $curlErr,
+            'body'       => $body,
+            'json_error' => json_last_error_msg(),
+        ];
+    }
+
+
+    // ==========================================
+    // AMBIL TOKEN
+    // RESPONSE BANK:
+    //
+    // {
+    //   "result": {
+    //      "pesan": "BERHASIL",
+    //      "kode": "00",
+    //      "token": "JWT..."
+    //   }
+    // }
+    // ==========================================
+
+    $token = null;
+
+    if (
+        isset($response['result']) &&
+        is_array($response['result']) &&
+        isset($response['result']['token'])
+    ) {
+        $token = $response['result']['token'];
+    }
+
+
+    // ==========================================
+    // DEBUG TOKEN
+    // ==========================================
+    Yii::error(
+        "===== HASIL PARSING TOKEN =====\n" .
+        "TOKEN ADA : " . (!empty($token) ? 'YA' : 'TIDAK') . "\n" .
+        "TOKEN     : " . (!empty($token) ? 'ADA' : 'NULL') . "\n" .
+        "KODE      : " .
+            (isset($response['result']['kode'])
+                ? $response['result']['kode']
+                : 'NULL') . "\n" .
+        "PESAN     : " .
+            (isset($response['result']['pesan'])
+                ? $response['result']['pesan']
+                : 'NULL'),
+        'api'
+    );
+
+
+    // ==========================================
+    // RETURN
+    // PENTING:
+    // TOKEN HARUS DI LEVEL INI
+    //
+    // $loginResponse['token']
+    // ==========================================
+
+    return [
+        'success' => !empty($token),
+
+        'token' => $token,
+
+        'http_code' => $httpCode,
+
+        'curl_errno' => $curlNo,
+
+        'curl_error' => $curlErr,
+
+        'kode' => isset($response['result']['kode'])
+            ? $response['result']['kode']
+            : null,
+
+        'pesan' => isset($response['result']['pesan'])
+            ? $response['result']['pesan']
+            : null,
+
+        'body' => $body,
+
+        'response' => $response,
+    ];
+}
+
+
+
+
+
+
+	
+	
+public function callAPIPostConfirmationDocumentRiau($token, $document)
+{
+    $url = 'http://202.152.22.234:5008/callback/document';
+
+    if (empty($token)) {
+        throw new \Exception('Token Bank kosong');
+    }
+
+    if (!$document) {
+        throw new \Exception('Document tidak ditemukan');
+    }
+
+    $payload = [
+        'id_transaksi'      => $document->id_loan,
+        'id_transaksi_bank' => $document->id_transaksi_bank,
+        'id_pengajuan'      => $document->id_pengajuan,
+        'kode_cabang'       => $document->kode_cabang,
+        'kode_broker'       => $document->kode_broker,
+        'nama'              => $document->nama,
+        'ktp'               => $document->ktp,
+        'status_dokumen'    => ($document->approve === 'DISETUJUI') ? '1' : '0',
+        'premi_disetujui'   => $document->premi_disetujui,
+        'keterangan'        => $document->keterangan,
+        'benefit'           => $document->benefit,
+    ];
+
+    $jsonData = json_encode($payload);
+
+    $ch = curl_init();
+
+    curl_setopt_array($ch, [
+        CURLOPT_URL            => $url,
+        CURLOPT_POST           => true,
+        CURLOPT_POSTFIELDS     => $jsonData,
+
+        CURLOPT_HTTPHEADER     => [
+            'Content-Type: application/json',
+            'Accept: application/json',
+            'Authorization: Bearer ' . $token,
+        ],
+
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_CONNECTTIMEOUT => 10,
+        CURLOPT_TIMEOUT        => 30,
+        CURLOPT_HEADER         => false,
+    ]);
+
+    $body = curl_exec($ch);
+
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $curlNo   = curl_errno($ch);
+    $curlErr  = curl_error($ch);
+
+    curl_close($ch);
+
+    /*
+     * DEBUG
+     */
+    Yii::error(
+        "===== DEBUG BANK CBC =====\n" .
+        "URL:\n" . $url . "\n\n" .
+        "HTTP CODE:\n" . $httpCode . "\n\n" .
+        "CURL ERROR:\n" . $curlErr . "\n\n" .
+        "PAYLOAD:\n" . json_encode($payload, JSON_PRETTY_PRINT) . "\n\n" .
+        "RESPONSE RAW:\n" . $body . "\n" .
+        "==========================",
+        'api'
+    );
+
+    /*
+     * Jika CURL error
+     */
+    if ($curlNo !== 0) {
+        return [
+            'success'    => false,
+            'http_code'  => $httpCode,
+            'curl_errno' => $curlNo,
+            'curl_error' => $curlErr,
+            'body'       => $body,
+            'payload'    => $payload,
+        ];
+    }
+
+    /*
+     * Decode response Bank
+     */
+    $response = json_decode($body, true);
+
+    /*
+     * Response bukan JSON
+     */
+    if (!is_array($response)) {
+        return [
+            'success'   => ($httpCode >= 200 && $httpCode < 300),
+            'http_code' => $httpCode,
+            'body'      => $body,
+            'payload'   => $payload,
+            'json_error' => json_last_error_msg(),
+        ];
+    }
+
+    /*
+     * RETURN HASIL API BANK
+     */
+    return [
+        'success'   => ($httpCode >= 200 && $httpCode < 300),
+        'http_code' => $httpCode,
+        'response'  => $response,
+        'body'      => $body,
+        'payload'   => $payload,
+    ];
+}
+
+
+
+
 }
