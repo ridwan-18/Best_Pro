@@ -1197,10 +1197,10 @@ class PengajuanController extends Controller
 				'jenis_penjaminan' =>'Asuransi Jiwa',
 				'coverage' =>$coverage,
 				
-				 'sertifikat' => [
-				'file_name' => $sertifikat['file_name'],
-				'file_url' => $sertifikat['file_url'],
-				],
+				 // 'sertifikat' => [
+				// 'file_name' => $sertifikat['file_name'],
+				// 'file_url' => $sertifikat['file_url'],
+				// ],
 					
 				
 				'polis_jiwa' => [
@@ -3786,19 +3786,219 @@ class PengajuanController extends Controller
 			);
 		}
 
-		$zip->close();
 		
+		$zip->close();
+
 		if (!file_exists($zipPath)) {
 
 			throw new \Exception(
 				'File ZIP tidak berhasil dibuat'
 			);
 		}
-		
+
+
+		/*
+		 * ============================================================
+		 * UPLOAD ZIP KE SFTP
+		 * ============================================================
+		 */
+
+		$autoload = 'C:\xampp7.4\htdocs\BestPro_syariah\protected\sftp-lib\vendor\autoload.php';
+
+		if (!file_exists($autoload)) {
+
+			throw new \Exception(
+				'Autoload phpseclib tidak ditemukan: ' . $autoload
+			);
+		}
+
+		require_once $autoload;
+
+
+		/*
+		 * CHECK PHPSecLib
+		 */
+		if (!class_exists('\phpseclib3\Net\SFTP')) {
+
+			throw new \Exception(
+				'Class phpseclib3\\Net\\SFTP tidak tersedia'
+			);
+		}
+
+
+		/*
+		 * CONFIG SFTP
+		 */
+		$sftpHost = 'web.bestpro-id.com';
+		$sftpPort = 22;
+
+		$sftpUsername = 'bank_riau';
+		$sftpPassword = 'Thunderbolt5';
+
+		$sftpIncomingPath =
+			'/sftp/bank_riau/incoming';
+
+
+		/*
+		 * CONNECT
+		 */
+		$sftp = new \phpseclib3\Net\SFTP(
+			$sftpHost,
+			$sftpPort,
+			10
+		);
+
+
+		/*
+		 * LOGIN
+		 */
+		if (!$sftp->login(
+			$sftpUsername,
+			$sftpPassword
+		)) {
+
+			throw new \Exception(
+				'Gagal authentication SFTP'
+			);
+		}
+
+
+		/*
+		 * CHECK FOLDER INCOMING
+		 */
+		if (!$sftp->is_dir(
+			$sftpIncomingPath
+		)) {
+
+			throw new \Exception(
+				'Folder SFTP incoming tidak ditemukan: ' .
+				$sftpIncomingPath
+			);
+		}
+
+
+		/*
+		 * PATH FILE DI SFTP
+		 */
+		$sftpFilePath =
+			$sftpIncomingPath .
+			'/' .
+			$zipFileName;
+
+
+		/*
+		 * UPLOAD
+		 *
+		 * SOURCE:
+		 * C:\xampp7.4\htdocs\BestPro_syariah\uploads\incoming\xxx.zip
+		 *
+		 * DESTINATION:
+		 * /sftp/bank_riau/incoming/xxx.zip
+		 */
+		$uploadResult = $sftp->put(
+			$sftpFilePath,
+			$zipPath,
+			\phpseclib3\Net\SFTP::SOURCE_LOCAL_FILE
+		);
+
+
+		/*
+		 * CHECK UPLOAD
+		 */
+		if (!$uploadResult) {
+
+			$sftp->disconnect();
+
+			throw new \Exception(
+				'Gagal upload ZIP ke SFTP: ' .
+				$sftpFilePath
+			);
+		}
+
+
+		/*
+		 * VERIFY FILE DI SFTP
+		 */
+		$remoteFileSize =
+			$sftp->filesize(
+				$sftpFilePath
+			);
+
+
+		$sftp->disconnect();
+
+
+		/*
+		 * ============================================================
+		 * HAPUS PDF TEMPORARY
+		 * ============================================================
+		 */
 		if (file_exists($pdfPath)) {
 			unlink($pdfPath);
 		}
 
+
+		/*
+		 * ============================================================
+		 * RETURN
+		 * ============================================================
+		 */
+		return [
+
+			/*
+			 * File ZIP
+			 */
+			'file_name' =>
+				$zipFileName,
+
+			/*
+			 * File lokal
+			 */
+			'file_path' =>
+				$zipPath,
+
+			/*
+			 * URL lokal
+			 */
+			'file_url' =>
+				Yii::$app->request->hostInfo .
+				Yii::$app->request->baseUrl .
+				'/uploads/incoming/' .
+				$zipFileName,
+
+			/*
+			 * SFTP
+			 */
+			'sftp' => [
+
+				'success' => true,
+
+				'host' =>
+					$sftpHost,
+
+				'port' =>
+					$sftpPort,
+
+				'username' =>
+					$sftpUsername,
+
+				'folder' =>
+					$sftpIncomingPath,
+
+				'file_path' =>
+					$sftpFilePath,
+
+				'file_name' =>
+					$zipFileName,
+
+				'size' =>
+					$remoteFileSize
+			]
+		];
+
+		
+		
+		
 
 		return [
 			'file_name' => $zipFileName,
@@ -4335,10 +4535,9 @@ class PengajuanController extends Controller
 		Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
 
 		/*
+		 * ============================================================
 		 * LOAD PHPSecLib
-		 *
-		 * Lokasi:
-		 * C:\xampp7.4\htdocs\BestPro_syariah\protected\sftp-lib\vendor
+		 * ============================================================
 		 */
 		$autoload = 'C:\xampp7.4\htdocs\BestPro_syariah\protected\sftp-lib\vendor\autoload.php';
 
@@ -4356,9 +4555,11 @@ class PengajuanController extends Controller
 		try {
 
 			/*
-			 * CHECK PHPSecLib
+			 * ========================================================
+			 * CHECK CLASS
+			 * ========================================================
 			 */
-			if (!class_exists('phpseclib3\Net\SFTP')) {
+			if (!class_exists('\phpseclib3\Net\SFTP')) {
 
 				return [
 					'success' => false,
@@ -4368,12 +4569,9 @@ class PengajuanController extends Controller
 			}
 
 			/*
-			 * IMPORT CLASS
-			 */
-			$sftpClass = 'phpseclib3\Net\SFTP';
-
-			/*
+			 * ========================================================
 			 * CONFIG SFTP
+			 * ========================================================
 			 */
 			$host = 'web.bestpro-id.com';
 			$port = 22;
@@ -4384,66 +4582,89 @@ class PengajuanController extends Controller
 			$rootPath = '/sftp/bank_riau';
 			$incomingPath = '/sftp/bank_riau/incoming';
 
-
 			/*
-			 * CONNECT SFTP
+			 * ========================================================
+			 * CREATE SFTP OBJECT
+			 *
+			 * Jangan gunakan isConnected() sebelum login.
+			 * ========================================================
 			 */
-			$sftp = new $sftpClass(
+			$sftp = new \phpseclib3\Net\SFTP(
 				$host,
-				$port
+				$port,
+				10
 			);
 
 			/*
-			 * CHECK CONNECTION
-			 */
-			if (!$sftp->isConnected()) {
-
-				return [
-					'success' => false,
-					'step' => 'connect',
-					'message' => 'Gagal koneksi ke SFTP',
-					'host' => $host,
-					'port' => $port
-				];
-			}
-
-			/*
+			 * ========================================================
 			 * LOGIN
+			 * ========================================================
 			 */
-			if (!$sftp->login(
+			$login = $sftp->login(
 				$username,
 				$password
-			)) {
+			);
+
+			if (!$login) {
+
+				$log = '';
+
+				try {
+					$log = $sftp->getLog();
+				} catch (\Throwable $logException) {
+					$log = $logException->getMessage();
+				}
+
+				Yii::error(
+					'SFTP LOGIN FAILED' .
+					"\nHost: " . $host .
+					"\nPort: " . $port .
+					"\nUsername: " . $username .
+					"\nLog: " . print_r($log, true),
+					'cbc-sftp'
+				);
 
 				return [
 					'success' => false,
 					'step' => 'login',
 					'message' => 'Gagal authentication SFTP',
-					'username' => $username
+					'host' => $host,
+					'port' => $port,
+					'username' => $username,
+					'sftp_log' => $log
 				];
 			}
 
 			/*
-			 * LIST ROOT
+			 * ========================================================
+			 * CEK CURRENT DIRECTORY
+			 * ========================================================
 			 */
-			$rootFiles = $sftp->nlist($rootPath);
+			$pwd = $sftp->pwd();
 
-			if ($rootFiles === false) {
+			/*
+			 * ========================================================
+			 * LIST CURRENT DIRECTORY
+			 * ========================================================
+			 */
+			$currentFiles = $sftp->nlist('.');
+
+			if ($currentFiles === false) {
 
 				return [
 					'success' => false,
-					'step' => 'list_root',
-					'message' => 'Gagal membaca root SFTP',
-					'root_path' => $rootPath
+					'step' => 'list_current',
+					'message' => 'Login berhasil tetapi gagal membaca current directory',
+					'current_directory' => $pwd
 				];
 			}
 
 			/*
 			 * FILTER . DAN ..
 			 */
-			$rootFiles = array_values(
+			$currentFiles = array_values(
 				array_filter(
-					$rootFiles,
+					$currentFiles,
 					function ($file) {
 						return $file !== '.'
 							&& $file !== '..';
@@ -4452,27 +4673,50 @@ class PengajuanController extends Controller
 			);
 
 			/*
-			 * CHECK INCOMING
+			 * ========================================================
+			 * CEK ROOT PATH
+			 * ========================================================
 			 */
-			$incomingExists =
-				$sftp->is_dir($incomingPath);
+			$rootExists = $sftp->is_dir($rootPath);
+
+			$rootFiles = [];
+
+			if ($rootExists) {
+
+				$rootFiles = $sftp->nlist($rootPath);
+
+				if ($rootFiles === false) {
+					$rootFiles = [];
+				}
+
+				$rootFiles = array_values(
+					array_filter(
+						$rootFiles,
+						function ($file) {
+							return $file !== '.'
+								&& $file !== '..';
+						}
+					)
+				);
+			}
+
+			/*
+			 * ========================================================
+			 * CEK INCOMING
+			 * ========================================================
+			 */
+			$incomingExists = $sftp->is_dir($incomingPath);
 
 			$incomingFiles = [];
 
 			/*
+			 * ========================================================
 			 * LIST INCOMING
+			 * ========================================================
 			 */
 			if ($incomingExists) {
 
-				/*
-				 * detailed list
-				 *
-				 * Menggunakan rawlist agar
-				 * mendapatkan informasi file.
-				 */
-				$items = $sftp->rawlist(
-					$incomingPath
-				);
+				$items = $sftp->rawlist($incomingPath);
 
 				if ($items !== false) {
 
@@ -4489,19 +4733,26 @@ class PengajuanController extends Controller
 						}
 
 						/*
-						 * Tentukan type
+						 * Default type
 						 */
 						$type = 'file';
 
+						/*
+						 * phpseclib:
+						 *
+						 * NET_SFTP_TYPE_REGULAR   = 1
+						 * NET_SFTP_TYPE_DIRECTORY = 2
+						 * NET_SFTP_TYPE_SYMLINK   = 3
+						 */
 						if (
 							isset($itemData['type']) &&
-							$itemData['type'] === 2
+							$itemData['type'] == 2
 						) {
 							$type = 'directory';
 						}
 
 						/*
-						 * Ukuran file
+						 * Size
 						 */
 						$size = null;
 
@@ -4519,7 +4770,7 @@ class PengajuanController extends Controller
 
 						if (
 							isset($itemData['mtime']) &&
-							$itemData['mtime']
+							!empty($itemData['mtime'])
 						) {
 							$modified = date(
 								'Y-m-d H:i:s',
@@ -4538,18 +4789,22 @@ class PengajuanController extends Controller
 			}
 
 			/*
+			 * ========================================================
 			 * DISCONNECT
+			 * ========================================================
 			 */
 			$sftp->disconnect();
 
 			/*
-			 * RESPONSE
+			 * ========================================================
+			 * SUCCESS
+			 * ========================================================
 			 */
 			return [
 				'success' => true,
 
 				'message' =>
-					'SFTP berhasil diakses menggunakan phpseclib3',
+					'SFTP berhasil terhubung menggunakan phpseclib3',
 
 				'connection' => [
 					'host' => $host,
@@ -4559,17 +4814,28 @@ class PengajuanController extends Controller
 
 				'authentication' => true,
 
-				'root_path' =>
-					$rootPath,
+				/*
+				 * Directory saat login
+				 */
+				'current_directory' => $pwd,
 
-				'root_files' =>
-					$rootFiles,
+				'current_files' => $currentFiles,
 
-				'incoming_path' =>
-					$incomingPath,
+				/*
+				 * Root
+				 */
+				'root_path' => $rootPath,
 
-				'incoming_exists' =>
-					$incomingExists,
+				'root_exists' => $rootExists,
+
+				'root_files' => $rootFiles,
+
+				/*
+				 * Incoming
+				 */
+				'incoming_path' => $incomingPath,
+
+				'incoming_exists' => $incomingExists,
 
 				'total_incoming_file' =>
 					count($incomingFiles),
@@ -4581,20 +4847,22 @@ class PengajuanController extends Controller
 		} catch (\Throwable $e) {
 
 			Yii::error(
-				'List SFTP Incoming Error: ' .
-				$e->getMessage() .
-				"\n" .
-				$e->getTraceAsString(),
+				'List SFTP Incoming Error:' .
+				"\nMessage: " . $e->getMessage() .
+				"\nFile: " . $e->getFile() .
+				"\nLine: " . $e->getLine() .
+				"\nTrace: " . $e->getTraceAsString(),
 				'cbc-sftp'
 			);
 
 			return [
 				'success' => false,
 				'step' => 'exception',
-				'message' => $e->getMessage()
+				'message' => $e->getMessage(),
+				'file' => $e->getFile(),
+				'line' => $e->getLine()
 			];
 		}
 	}
-
 
 }
