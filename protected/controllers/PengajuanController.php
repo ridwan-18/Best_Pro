@@ -1118,8 +1118,8 @@ class PengajuanController extends Controller
 			$member->basic_premium = $nettPremium;
 			$member->nett_premium = $nettPremium;
 			$member->medical_code = $medicalCode;
-			$member->status =Member::MEMBER_STATUS_PENDING;
-			$member->member_status =Member::MEMBER_STATUS_PENDING;
+			$member->status ='Inforce';
+			$member->member_status ='Inforce';
 			$member->created_at =date('Y-m-d H:i:s');
 			$member->created_by =$this->createdBy;
 			$member->contract_date =$tglBuka;
@@ -1499,58 +1499,64 @@ class PengajuanController extends Controller
 					json_encode($personal->errors)
 				);
 			}
+			
+			
+			$member = member::findOne([
+				'no_ktp' => $ktp
+			]);
 
-			$member = new Member();
+			if (empty($member)) {
+
+				Yii::$app->response->statusCode = 200;
+
+				return [
+					'Result' => [
+						'status' => '200',
+						'kode_response' => '89',
+						'message' => 'Peserta tidak ditemukan'
+					]
+				];
+			}
+			
+			$existingMemberTotal = Member::find()
+			->where([
+				'and',
+				['policy_no' => $policybyproduk->policy_no],
+				['!=', 'member_no', '']
+			])
+			->count();
+			
+			$runningNo = $existingMemberTotal + 1;
+			var_dump($existingMemberTotal);
+
+			// $member = new Member();
 
 			$member->policy_no = $policybyproduk->policy_no;
 			$member->batch_no = $batchNo;
-			$member->member_no = $memberNo;
+			$member->member_no = Member::generateMemberNo($runningNo, $policybyproduk->policy_no);
 			$member->personal_no = $personalNo;
-
 			$member->age = $age;
 			$member->term = $tenorPertanggungan;
-
 			$member->start_date = $tglBuka;
 			$member->end_date = $tglAkhir;
-
 			$member->sum_insured = $plafonPertanggungan;
 			$member->total_si = $plafonPertanggungan;
-
 			$member->total_premium = $nettPremium;
 			$member->rate_premi = $ratePolis;
 			$member->gross_premium = $nettPremium;
 			$member->basic_premium = $nettPremium;
 			$member->nett_premium = $nettPremium;
-
 			$member->medical_code = $medicalCode;
-
-			$member->status =
-				Member::MEMBER_STATUS_PENDING;
-
-			$member->member_status =
-				Member::MEMBER_STATUS_PENDING;
-
-			$member->created_at =
-				date('Y-m-d H:i:s');
-
-			$member->created_by =
-				$this->createdBy;
-
-			$member->contract_date =
-				$tglBuka;
-
-			$member->produk =
-				$policybyproduk->produk;
-
-			$member->id_loan =
-				$idTransaksi;
-
-			$member->status_uw =
-				$medicalCode;
-
+			$member->status ='Inforce';
+			$member->member_status ='Inforce';
+			$member->created_at =date('Y-m-d H:i:s');
+			$member->created_by =$this->createdBy;
+			$member->contract_date =$tglBuka;
+			$member->produk =$policybyproduk->produk;
+			$member->id_loan =$idTransaksi;
+			$member->status_uw =$medicalCode;
 			$member->no_ktp = $ktp;
 			$member->pekerjaan = $pekerjaan;
-
 			$member->id_transaksi = $idTransaksi;
 			$member->id_pengajuan = $idPengajuan;
 			$member->kode_broker = $kodeBroker;
@@ -3948,53 +3954,25 @@ class PengajuanController extends Controller
 		try {
 
 			$model = new Restitusi();
-
-
 			$model->id_transaksi = $body['id_transaksi'];
-
 			$model->id_pengajuan = $body['id_pengajuan'];
-
 			$model->kode_broker = $body['kode_broker'];
-
 			$model->kode_cabang = $body['kode_cabang'];
-
 			$model->nomor_rekening = $body['nomor_rekening'];
-
 			$model->tanggal_pembiayaan = $tanggalPembiayaanDb;
-
 			$model->old_nomor_akad = $body['old_nomor_akad'];
-
 			$model->nomor_akad = $body['nomor_akad'];
-
-			$model->plafon_pembiayaan =
-				$body['plafond_pembiayaan'];
-
+			$model->plafon_pembiayaan =body['plafond_pembiayaan'];
 			$model->tenor = $body['tenor'];
-
 			$model->benefit = $body['benefit'];
-
 			$model->restitusi_jiwa = $restitusiJiwaJson;
-
-			$model->plafon_penjaminan =
-				$restitusiJiwa['plafon_penjaminan'];
-
-			$model->tenor_berjalan =
-				$restitusiJiwa['tenor_berjalan'];
-
-			$model->sisa_tenor =
-				$restitusiJiwa['sisa_tenor'];
-
-			$model->premi =
-				$restitusiJiwa['premi'];
-
-			$model->asuransi =
-				$restitusiJiwa['asuransi'];
-
-			$model->tujuan_pembayaran =
-				$restitusiJiwa['tujuan_pembayaran'];
+			$model->plafon_penjaminan =$restitusiJiwa['plafon_penjaminan'];
+			$model->tenor_berjalan =$restitusiJiwa['tenor_berjalan'];
+			$model->sisa_tenor =$restitusiJiwa['sisa_tenor'];
+			$model->premi =$restitusiJiwa['premi'];
+			$model->asuransi =$restitusiJiwa['asuransi'];
+			$model->tujuan_pembayaran =$restitusiJiwa['tujuan_pembayaran'];
 			$model->created_at =date('Y-m-d H:i:s');
-
-
 			$model->status_restitusi = '1';
 
 			if (!$model->save()) {
@@ -4285,9 +4263,7 @@ class PengajuanController extends Controller
 				];
 			}
 
-
 			$transaction->commit();
-
 
 			return [
 				'Result' => [
