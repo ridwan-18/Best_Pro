@@ -4539,7 +4539,8 @@ class PengajuanController extends Controller
 		 * LOAD PHPSecLib
 		 * ============================================================
 		 */
-		$autoload = 'C:\xampp7.4\htdocs\BestPro_syariah\protected\sftp-lib\vendor\autoload.php';
+		// $autoload = 'C:\xampp7.4\htdocs\BestPro_syariah\protected\sftp-lib\vendor\autoload.php';
+		$autoload = dirname(__DIR__) . '/sftp-lib/vendor/autoload.php';
 
 		if (!file_exists($autoload)) {
 			return [
