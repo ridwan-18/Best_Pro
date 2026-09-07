@@ -4534,11 +4534,6 @@ class PengajuanController extends Controller
 	{
 		Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
 
-		/*
-		 * ============================================================
-		 * LOAD PHPSecLib
-		 * ============================================================
-		 */
 		// $autoload = 'C:\xampp7.4\htdocs\BestPro_syariah\protected\sftp-lib\vendor\autoload.php';
 		$autoload = dirname(__DIR__) . '/sftp-lib/vendor/autoload.php';
 
@@ -4555,11 +4550,6 @@ class PengajuanController extends Controller
 
 		try {
 
-			/*
-			 * ========================================================
-			 * CHECK CLASS
-			 * ========================================================
-			 */
 			if (!class_exists('\phpseclib3\Net\SFTP')) {
 
 				return [
@@ -4569,11 +4559,6 @@ class PengajuanController extends Controller
 				];
 			}
 
-			/*
-			 * ========================================================
-			 * CONFIG SFTP
-			 * ========================================================
-			 */
 			$host = 'web.bestpro-id.com';
 			$port = 22;
 
@@ -4583,24 +4568,12 @@ class PengajuanController extends Controller
 			$rootPath = '/sftp/bank_riau';
 			$incomingPath = '/sftp/bank_riau/incoming';
 
-			/*
-			 * ========================================================
-			 * CREATE SFTP OBJECT
-			 *
-			 * Jangan gunakan isConnected() sebelum login.
-			 * ========================================================
-			 */
 			$sftp = new \phpseclib3\Net\SFTP(
 				$host,
 				$port,
 				10
 			);
 
-			/*
-			 * ========================================================
-			 * LOGIN
-			 * ========================================================
-			 */
 			$login = $sftp->login(
 				$username,
 				$password
@@ -4636,18 +4609,8 @@ class PengajuanController extends Controller
 				];
 			}
 
-			/*
-			 * ========================================================
-			 * CEK CURRENT DIRECTORY
-			 * ========================================================
-			 */
 			$pwd = $sftp->pwd();
 
-			/*
-			 * ========================================================
-			 * LIST CURRENT DIRECTORY
-			 * ========================================================
-			 */
 			$currentFiles = $sftp->nlist('.');
 
 			if ($currentFiles === false) {
@@ -4660,9 +4623,6 @@ class PengajuanController extends Controller
 				];
 			}
 
-			/*
-			 * FILTER . DAN ..
-			 */
 			$currentFiles = array_values(
 				array_filter(
 					$currentFiles,
@@ -4673,11 +4633,6 @@ class PengajuanController extends Controller
 				)
 			);
 
-			/*
-			 * ========================================================
-			 * CEK ROOT PATH
-			 * ========================================================
-			 */
 			$rootExists = $sftp->is_dir($rootPath);
 
 			$rootFiles = [];
@@ -4701,20 +4656,10 @@ class PengajuanController extends Controller
 				);
 			}
 
-			/*
-			 * ========================================================
-			 * CEK INCOMING
-			 * ========================================================
-			 */
 			$incomingExists = $sftp->is_dir($incomingPath);
 
 			$incomingFiles = [];
 
-			/*
-			 * ========================================================
-			 * LIST INCOMING
-			 * ========================================================
-			 */
 			if ($incomingExists) {
 
 				$items = $sftp->rawlist($incomingPath);
@@ -4723,9 +4668,6 @@ class PengajuanController extends Controller
 
 					foreach ($items as $itemName => $itemData) {
 
-						/*
-						 * Skip . dan ..
-						 */
 						if (
 							$itemName === '.' ||
 							$itemName === '..'
@@ -4733,18 +4675,8 @@ class PengajuanController extends Controller
 							continue;
 						}
 
-						/*
-						 * Default type
-						 */
 						$type = 'file';
 
-						/*
-						 * phpseclib:
-						 *
-						 * NET_SFTP_TYPE_REGULAR   = 1
-						 * NET_SFTP_TYPE_DIRECTORY = 2
-						 * NET_SFTP_TYPE_SYMLINK   = 3
-						 */
 						if (
 							isset($itemData['type']) &&
 							$itemData['type'] == 2
@@ -4752,9 +4684,6 @@ class PengajuanController extends Controller
 							$type = 'directory';
 						}
 
-						/*
-						 * Size
-						 */
 						$size = null;
 
 						if (
@@ -4764,9 +4693,6 @@ class PengajuanController extends Controller
 							$size = $itemData['size'];
 						}
 
-						/*
-						 * Modified
-						 */
 						$modified = null;
 
 						if (
@@ -4789,18 +4715,8 @@ class PengajuanController extends Controller
 				}
 			}
 
-			/*
-			 * ========================================================
-			 * DISCONNECT
-			 * ========================================================
-			 */
 			$sftp->disconnect();
 
-			/*
-			 * ========================================================
-			 * SUCCESS
-			 * ========================================================
-			 */
 			return [
 				'success' => true,
 
@@ -4815,25 +4731,16 @@ class PengajuanController extends Controller
 
 				'authentication' => true,
 
-				/*
-				 * Directory saat login
-				 */
 				'current_directory' => $pwd,
 
 				'current_files' => $currentFiles,
 
-				/*
-				 * Root
-				 */
 				'root_path' => $rootPath,
 
 				'root_exists' => $rootExists,
 
 				'root_files' => $rootFiles,
 
-				/*
-				 * Incoming
-				 */
 				'incoming_path' => $incomingPath,
 
 				'incoming_exists' => $incomingExists,
