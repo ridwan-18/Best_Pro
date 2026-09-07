@@ -126,6 +126,7 @@ $this->title = 'Data Produksi - ' . Yii::$app->name;
 								<th>Uang Pertanggungan</th>
 								<th>Status</th>
 								<th>User</th>
+								<th width="1">Action</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -138,8 +139,8 @@ $this->title = 'Data Produksi - ' . Yii::$app->name;
                                         <td><?= $i; ?></td>
                                         <td><?= $model['policy_no']; ?></td>
                                         <td><?= $model['batch_no']; ?></td>
-										<td><?= $model['name']; ?></td>
-										<td><?= Utils::convertDateTodMy($model['birth_date']); ?></td>
+										<td><?= $model['nama']; ?></td>
+										<td><?= $model['tgl_lahir']; ?></td>
 										 <td><?= $model['member_no']; ?></td>
 										 <td><?= Utils::convertDateTodMy($model['start_date']); ?></td>
 										 <td><?= Utils::convertDateTodMy($model['end_date']); ?></td>
@@ -147,6 +148,34 @@ $this->title = 'Data Produksi - ' . Yii::$app->name;
 										 <td><?= number_format($model['sum_insured']); ?></td>
 										<td><?= $model['status']; ?></td>
 										<td><?= $model['username']; ?></td>
+										 <td>
+                                            <div class="btn-group mb-2">
+                                                <?= Html::a(
+                                                    '<i class="fa fa-search"></i>',
+                                                    [
+                                                        'data-produksi/view',
+                                                        'id' => $model['id'],
+                                                    ],
+                                                    [
+                                                        'class' => 'btn btn-light btn-sm waves-effect',
+                                                        'title' => 'View',
+                                                    ]
+                                                ); ?>
+                                                <?= Html::a(
+                                                    '<i class="fa fa-trash"></i>',
+                                                    [
+                                                        'member/delete',
+                                                        'id' => $model['id'],
+                                                    ],
+                                                    [
+                                                        'class' => 'btn btn-light btn-sm waves-effect',
+                                                        'title' => 'Delete',
+                                                        'data-confirm' => 'Are you sure want to delete?',
+                                                        'data-method' => 'post',
+                                                    ]
+                                                ); ?>
+                                            </div>
+                                        </td>
                                     </tr>
                             <?php
                                     $i++;

@@ -31,7 +31,7 @@ use yii\web\UploadedFile;
 use Da\QrCode\QrCode;
 use yii\helpers\Url;
 use app\models\BatchByPeserta;
-
+use app\models\map_member_dokumen_medis;
 /**
  * MemberController implements the CRUD actions for BatchByPeserta model.
  */
@@ -94,10 +94,16 @@ class DataProduksiController  extends Controller
 		]);
 
 		$models = BatchByPeserta::getAllProductionParticipant($paramsGetAllProduksi);
+		
+		$members = Member::getAll([
+			'policy_no' => $models->policy_no,
+			'batch_no' => $models->batch_no,
+		]);
 
 		return $this->render('index', [
 			'models' => $models,
 			'pagination' => $pagination,
+			'members' => $members,
 		]);
 	}
 
@@ -406,45 +412,80 @@ class DataProduksiController  extends Controller
 	 */
 	public function actionView($id)
 	{
-		$batch = Batch::findOne(['id' => $id]);
-		$policy = Policy::findOne(['policy_no' => $batch->policy_no]);
-		$quotationProduct = QuotationProduct::findOne(['quotation_id' => $policy->quotation_id]);
-		$product = Product::findOne(['id' => $quotationProduct->product_id]);
-		$partner = Partner::findOne(['id' => $policy->partner_id]);
-		$personals = $this->findPersonal($batch->policy_no, $batch->batch_no);
+		$batch = Member::findOne(['id' => $id]);
+
+		if ($batch === null) {
+			throw new \yii\web\NotFoundHttpException('Member tidak ditemukan.');
+		}
+
+		$policy = Policy::findOne([
+			'policy_no' => $batch->policy_no
+		]);
+
+		$quotationProduct = QuotationProduct::findOne([
+			'quotation_id' => $policy->quotation_id
+		]);
+
+		$product = Product::findOne([
+			'id' => $quotationProduct->product_id
+		]);
+
+		$partner = Partner::findOne([
+			'id' => $policy->partner_id
+		]);
+
+		$personals = $this->findPersonal(
+			$batch->policy_no,
+			$batch->batch_no
+		);
+
+		// ID MEMBER yang dipilih dari Search
+		$memberId = Yii::$app->request->get('member_id');
 		
-		// var_dump($personals);
+		$model = Member::findOne(['policy_no' => $batch->policy_no, 'batch_no' => $batch->batch_no]);
+		$filecbc = [];
 		
+		// var_dump($model);
+		
+		if ($model !== null && $model->id_transaksi != null) {
+			$filecbc = map_member_dokumen_medis::find()
+				->asArray()
+				->where(['id_loan' => $model->id_transaksi])
+				->all();
+		}
+		
+
 		$params = [
-			'policy_no' => $batch->policy_no,
-			'batch_no' => $batch->batch_no,
-			'member_id' => Yii::$app->request->get('member_id'),
-			'birth_date' => Yii::$app->request->get('birth_date'),
-			'start_date' => Yii::$app->request->get('start_date'),
-			'end_date' => Yii::$app->request->get('end_date'),
-			'status' => Yii::$app->request->get('status'),
-			'member_status' => Yii::$app->request->get('member_status'),
-			'reas_status' => Yii::$app->request->get('reas_status'),
+			'policy_no'  => $batch->policy_no,
+			'batch_no'   => $batch->batch_no,
+			'member_id'  => $memberId,
+
+			'birth_date'     => Yii::$app->request->get('birth_date'),
+			'start_date'     => Yii::$app->request->get('start_date'),
+			'end_date'       => Yii::$app->request->get('end_date'),
+			'status'         => Yii::$app->request->get('status'),
+			'member_status'  => Yii::$app->request->get('member_status'),
+			'reas_status'    => Yii::$app->request->get('reas_status'),
 			'is_accumulated' => Yii::$app->request->get('is_accumulated'),
-			'total_show' => Yii::$app->request->get('total_show'),
+			'total_show'     => Yii::$app->request->get(
+				'total_show',
+				Member::PAGE_SIZE
+			),
 		];
 
-		$totalMember = ViewMember::countAll($params);
+		$totalMember = BatchByPeserta::countAllDataproduksi($params);
 
-		$pageSize = ($params['total_show'] > 100) ? ViewMember::PAGE_SIZE : $params['total_show'];
 		$pagination = new Pagination([
 			'totalCount' => $totalMember,
-			'pageSize' => $pageSize,
+			'pageSize' => $params['total_show'],
 			'pageSizeParam' => false,
 		]);
 
-		$params = array_merge($params, [
-			'offset' => $pagination->offset,
-			'limit' => $pagination->limit,
-			'sort' => SORT_ASC,
-		]);
+		$params['offset'] = $pagination->offset;
+		$params['limit'] = $pagination->limit;
+		$params['sort'] = SORT_ASC;
 
-		$members = ViewMember::getAll($params);
+		$members = BatchByPeserta::getAllProductionParticipant($params);
 
 		return $this->render('view', [
 			'batch' => $batch,
@@ -453,6 +494,7 @@ class DataProduksiController  extends Controller
 			'partner' => $partner,
 			'personals' => $personals,
 			'pagination' => $pagination,
+			'filecbc' => $filecbc,
 		]);
 	}
 
@@ -1648,5 +1690,86 @@ class DataProduksiController  extends Controller
 				Member::tableName() . '.batch_no' => $batchNo,
 			])
 			->all();
+	}
+	
+	
+	public function actionApprovedoc($id_loan)
+	{
+		Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
+
+		if (!Yii::$app->request->isPost) {
+			throw new \yii\web\MethodNotAllowedHttpException();
+		}
+
+		$action = Yii::$app->request->post('action');
+
+		// Ambil dokumen berdasarkan transaksi dan kode
+		$document = map_member_dokumen_medis::findOne([
+			'id_loan' => $id_loan,
+		]);
+
+		$model = new map_member_dokumen_medis();
+		$response = $model->callAPIPostMemberLogin();
+		
+		if (empty($response['token'])) {
+
+				Yii::$app->session->setFlash(
+					'error',
+					'Login API gagal'
+				);
+
+				return $this->redirect(['create']);
+			}
+
+			$token = $response['token'];
+		
+		// $response_member = $model->callAPIPostConfirmationDocument(
+				// $token,
+				// $policyNo,
+				// $pesertaApi
+			// );
+
+		if (!$document) {
+			return ['success' => false, 'message' => 'Document not found'];
+		}
+
+		// Set status dokumen
+		$document->approve = ($action === 'approve') ? 'DISETUJUI' : 'REVISI';
+
+		// Simpan dokumen
+		try {
+			if (!$document->save(false)) {
+				Yii::error("Failed to save document: " . json_encode($document->errors), 'api');
+				return ['success' => false, 'message' => 'Failed to save document'];
+			}
+		} catch (\Exception $e) {
+			Yii::error("Exception while saving document: " . $e->getMessage(), 'api');
+			return ['success' => false, 'message' => 'Exception while saving document'];
+		}
+
+		// Set data untuk API
+		$model->id_loan = $document->id_loan;
+		$model->approve = $document->approve;
+
+		// Panggil API
+		try {
+			$apiResponse = $model->callAPIPostConfirmationDocument();
+		} catch (\Exception $e) {
+			Yii::error("Exception during API call: " . $e->getMessage(), 'api');
+			return [
+				'success' => false,
+				'message' => 'Exception during API call',
+				'api_response' => $e->getMessage()
+			];
+		}
+
+		var_dump($apiResponse);
+
+		// Kembalikan JSON lengkap untuk AJAX
+		return [
+			'success' => true,
+			'document_status' => $document->approve,
+			'api_response' => $apiResponse
+		];
 	}
 }

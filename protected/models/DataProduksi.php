@@ -476,4 +476,35 @@ class DataProduksi extends \yii\db\ActiveRecord
         $suffix = substr($policyNo, -3, 3);
         return $prefix . '-' . date("ym") . str_pad($id, 7, '0', STR_PAD_LEFT) . '-' . $suffix;
     }
+	
+	 public function callAPIPostConfirmationDocument()
+    {
+        // $ch = curl_init('https://api-gateway.aapialang.co.id/sandbox/bankjatim-service/h2h/webhook/insurance/akseptasi/draft/dokumen-underwriting/confirmation');
+		$ch = curl_init ('https://api-gateway.aapialang.co.id/bankjatim-service/h2h/webhook/insurance/akseptasi/draft/dokumen-underwriting/confirmation');
+
+        $headers = [
+            'Content-Type: application/json',
+            'Authorization: Bearer EiSsYqSqEJGv2EEiIYXP6d4HL3FBMFD2tdassSIEqje9p7TD0oFPcXkG1at7osvVZFzZJ0hlkWBxZEAaxfHYFvY0CiisK8S688y8xMhILidFO7IVCLxB7w1gHfb0O7oaesw7a0F0K5cTxaSdZ47T5YgF0XURbAeOYTtcKMcGOVJ3h5JlqavuWEQMVvbPjEOIKjwQ7ycf7WGLbii1Uz2qpTR9R40MuAUk0mVq0lzF'
+        ];
+
+        $data = json_encode([
+            'nomor_transaksi' => $this->nomor_transaksi,
+            'code_dokumen' => $this->kode_dokumen,
+            'status_dokumen' => $this->approve,
+        ]);
+
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($ch, CURLOPT_HEADER, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+        $response = curl_exec($ch);
+        $body = substr($response, curl_getinfo($ch, CURLINFO_HEADER_SIZE));
+
+        curl_close($ch);
+        // var_dump($response);
+        return json_decode($body, true);
+    }
 }

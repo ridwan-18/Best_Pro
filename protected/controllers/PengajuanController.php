@@ -285,97 +285,38 @@ class PengajuanController extends Controller
 
 
 
-		$idTransaksi =
-			$payload['id_transaksi'] ?? null;
-
-		$idPengajuan =
-			$payload['id_pengajuan'] ?? null;
-
-		$kodeBroker =
-			$payload['kode_broker'] ?? null;
-
-		$kodeCabang =
-			$payload['kode_cabang'] ?? null;
-
-		$nama =
-			$payload['nama'] ?? null;
-
-		$ktp =
-			$payload['ktp'] ?? null;
-
-		$jenisKelamin =
-			$payload['jenis_kelamin'] ?? null;
-
-		$tglLahirRaw =
-			$payload['tgl_lahir'] ?? null;
-
-		$tenor =
-			(int)($payload['tenor'] ?? 0);
-
-		$coverage =
-			(float)($payload['coverage'] ?? 0);
-
-		$jenisPembiayaan =
-			$payload['jenis_pembiayaan'] ?? null;
-
-		$plafond =
-			(float)($payload['plafond'] ?? 0);
-
-		$benefit =
-			$payload['benefit'] ?? null;
-
-		$pekerjaan =
-			$payload['pekerjaan'] ?? null;
-
-		$benefitPembiayaan =
-			$payload['benefit_pembiayaan'] ?? null;
-
+		$idTransaksi =$payload['id_transaksi'] ?? null;
+		$idPengajuan =$payload['id_pengajuan'] ?? null;
+		$kodeBroker =$payload['kode_broker'] ?? null;
+		$kodeCabang =$payload['kode_cabang'] ?? null;
+		$nama =$payload['nama'] ?? null;
+		$ktp =$payload['ktp'] ?? null;
+		$jenisKelamin =$payload['jenis_kelamin'] ?? null;
+		$tglLahirRaw =$payload['tgl_lahir'] ?? null;
+		$tenor =(int)($payload['tenor'] ?? 0);
+		$coverage =(float)($payload['coverage'] ?? 0);
+		$jenisPembiayaan =$payload['jenis_pembiayaan'] ?? null;
+		$plafond =(float)($payload['plafond'] ?? 0);
+		$benefit =$payload['benefit'] ?? null;
+		$pekerjaan =$payload['pekerjaan'] ?? null;
+		$benefitPembiayaan =$payload['benefit_pembiayaan'] ?? null;
 
 		$requiredFields = [
-			'id_transaksi' =>
-				$idTransaksi,
-
-			'id_pengajuan' =>
-				$idPengajuan,
-
-			'kode_broker' =>
-				$kodeBroker,
-
-			'kode_cabang' =>
-				$kodeCabang,
-
-			'nama' =>
-				$nama,
-
-			'ktp' =>
-				$ktp,
-
-			'jenis_kelamin' =>
-				$jenisKelamin,
-
-			'tgl_lahir' =>
-				$tglLahirRaw,
-
-			'tenor' =>
-				$tenor,
-
-			'coverage' =>
-				$coverage,
-
-			'jenis_pembiayaan' =>
-				$jenisPembiayaan,
-
-			'plafond' =>
-				$plafond,
-
-			'benefit' =>
-				$benefit,
-
-			'pekerjaan' =>
-				$pekerjaan,
-
-			'benefit_pembiayaan' =>
-				$benefitPembiayaan,
+			'id_transaksi' =>$idTransaksi,
+			'id_pengajuan' =>$idPengajuan,
+			'kode_broker' =>$kodeBroker,
+			'kode_cabang' =>$kodeCabang,
+			'nama' =>$nama,
+			'ktp' =>$ktp,
+			'jenis_kelamin' =>$jenisKelamin,
+			'tgl_lahir' =>$tglLahirRaw,
+			'tenor' =>$tenor,
+			'coverage' =>$coverage,
+			'jenis_pembiayaan' =>$jenisPembiayaan,
+			'plafond' =>$plafond,
+			'benefit' =>$benefit,
+			'pekerjaan' =>$pekerjaan,
+			'benefit_pembiayaan' =>$benefitPembiayaan,
 		];
 
 
@@ -544,11 +485,7 @@ class PengajuanController extends Controller
 					'UW limit tidak ditemukan'
 			];
 		}
-
-
 		$medicalCode =$quotationUwLimit->medical_code;
-
-
 		$existingMember =Member::find()
 				->where([
 					'no_ktp' =>$ktp,
@@ -558,7 +495,6 @@ class PengajuanController extends Controller
 
 
 		$akumulasi = 'False';
-
 		$nilaiAkumulasi =$plafond;
 
 
@@ -612,10 +548,8 @@ class PengajuanController extends Controller
 				];
 			}
 
-
 			$medicalCode =$quotationUwLimit->medical_code;
 		}
-
 
 		$personalNo =Personal::generatePersonalNo(
 				$nama,
@@ -825,7 +759,43 @@ class PengajuanController extends Controller
 				]
 			];
 		}
+		
+		
+		$dokumenMedis = new \app\models\map_member_dokumen_medis(); 
+		$dokumenMedis->id_loan =$idTransaksi; 
+		$dokumenMedis->kode_dokumen = $codeDoc; 
+		$dokumenMedis->files = $sftpResult['file_name']; 
+		$dokumenMedis->approve = 0; 
+		$dokumenMedis->nomor_transaksi = $idTransaksi;
+		$dokumenMedis->created_at = date('Y-m-d H:i:s');
+		$dokumenMedis->created_by = 1;
+		
+		if (!$dokumenMedis->save()) {
+			Yii::error( 'Gagal menyimpan mapping dokumen CBC: ' . 
+			json_encode (
+			$dokumenMedis->errors ), 
+			'cbc-sftp' );
 
+		return [ 
+		'Result' => [ 'status' => '200',
+		'kode_response' => '00',
+		'message' => 'Pengajuan berhasil, tetapi dokumen gagal disimpan', 
+		'status_dokumen' => 0, 
+		'premi_disetujui' => $nettPremium, 
+		'coverage' => (string)$coverage,
+		'keterangan' => json_encode( $dokumenMedis->errors ),
+		]
+		];
+		}
+		
+				
+		Yii::info( 
+		'Mapping dokumen CBC berhasil disimpan. ' . 
+		'id_loan=' .
+		$idTransaksi . 
+		', kode_dokumen=' . $codeDoc . 
+		', file=' . $sftpResult['local_path'],
+		'cbc-sftp' );		
 
 		return [
 			'Result' => [
@@ -836,7 +806,9 @@ class PengajuanController extends Controller
 				'status_dokumen' => 1,
 				'premi_disetujui' => $nettPremium,
 				'coverage' => (string)$coverage,
-				'keterangan' => '-',
+				'keterangan' => 
+				json_encode( $dokumenMedis->errors ),
+
 
 				// 'dokumen' => [
 					// 'file_name' =>
@@ -1099,10 +1071,40 @@ class PengajuanController extends Controller
 				);
 			}
 
-			$member = new Member();
+			// $member = new Member();
+			
+			
+			$member = member::findOne([
+				'no_ktp' => $ktp
+			]);
+
+			if (empty($member)) {
+
+				Yii::$app->response->statusCode = 200;
+
+				return [
+					'Result' => [
+						'status' => '200',
+						'kode_response' => '89',
+						'message' => 'Peserta tidak ditemukan'
+					]
+				];
+			}
+			
+			$existingMemberTotal = Member::find()
+			->where([
+				'and',
+				['policy_no' => $batch->policy_no],
+				['!=', 'member_no', '']
+			])
+			->count();
+			
+			$runningNo = $existingMemberTotal + 1;
+			
 			$member->policy_no = $policybyproduk->policy_no;
 			$member->batch_no = $batchNo;
-			$member->member_no = $memberNo;
+			// $member->member_no = $memberNo;
+			$member->member_no = Member::generateMemberNo($runningNo, $policybyproduk->policy_no);
 			$member->personal_no = $personalNo;
 			$member->age = $age;
 			$member->term = $tenorPertanggungan;
@@ -2592,9 +2594,6 @@ class PengajuanController extends Controller
 
 		try {
 
-			// =========================
-			// CEK SSH2
-			// =========================
 			if (!function_exists('ssh2_connect')) {
 				return [
 					'success' => false,
@@ -2603,9 +2602,6 @@ class PengajuanController extends Controller
 				];
 			}
 
-			// =========================
-			// CONNECT
-			// =========================
 			$connection = \ssh2_connect(
 				$host,
 				$port
@@ -2619,9 +2615,6 @@ class PengajuanController extends Controller
 				];
 			}
 
-			// =========================
-			// LOGIN
-			// =========================
 			if (!\ssh2_auth_password(
 				$connection,
 				$username,
@@ -2634,9 +2627,6 @@ class PengajuanController extends Controller
 				];
 			}
 
-			// =========================
-			// SFTP
-			// =========================
 			$sftp = \ssh2_sftp($connection);
 
 			if (!$sftp) {
@@ -2647,17 +2637,12 @@ class PengajuanController extends Controller
 				];
 			}
 
-			// =========================
-			// ROOT SFTP
-			// =========================
 			$rootPath =
 				'ssh2.sftp://' .
 				intval($sftp) .
 				'/';
 
-			// =========================
-			// LIST ROOT
-			// =========================
+
 			$rootFiles = scandir($rootPath);
 
 			if ($rootFiles === false) {
@@ -2679,9 +2664,6 @@ class PengajuanController extends Controller
 				)
 			);
 
-			// =========================
-			// CEK OUTGOING
-			// =========================
 			$outgoingPath =
 				'ssh2.sftp://' .
 				intval($sftp) .
@@ -2689,9 +2671,6 @@ class PengajuanController extends Controller
 
 			$outgoingExists = is_dir($outgoingPath);
 
-			// =========================
-			// JIKA OUTGOING ADA
-			// =========================
 			$outgoingFiles = [];
 
 			if ($outgoingExists) {

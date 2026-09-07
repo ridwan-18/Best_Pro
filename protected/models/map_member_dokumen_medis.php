@@ -125,4 +125,101 @@ class map_member_dokumen_medis extends \yii\db\ActiveRecord
 
         return $query->all();
     }
+	
+	
+	public function callAPIPostMemberLogin()
+    {
+		
+			 $url = 'https://reliancelife.ajrius.id/api/login';
+
+		$data = [
+			'email'    => 'adminapi@gmail.com',
+			'password' => '12345678',
+		];
+
+		$jsonData = json_encode($data);
+
+		$ch = curl_init();
+
+		curl_setopt_array($ch, [
+			CURLOPT_URL            => $url,
+			CURLOPT_POST           => true,
+			CURLOPT_POSTFIELDS     => $jsonData,
+
+			CURLOPT_HTTPHEADER     => [
+				'Content-Type: application/json',
+				'Accept: application/json',
+			],
+
+			CURLOPT_RETURNTRANSFER => true,
+			CURLOPT_TIMEOUT        => 30,
+			CURLOPT_CONNECTTIMEOUT => 10,
+
+			// Untuk mengatasi SSL error
+			CURLOPT_SSL_VERIFYPEER => false,
+			CURLOPT_SSL_VERIFYHOST => false,
+		]);
+
+		$body = curl_exec($ch);
+
+		$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+		$curlNo   = curl_errno($ch);
+		$curlErr  = curl_error($ch);
+
+		curl_close($ch);
+
+		if ($curlNo !== 0) {
+			return [
+				'token'      => null,
+				'http_code'  => $httpCode,
+				'curl_errno' => $curlNo,
+				'curl_error' => $curlErr,
+			];
+		}
+
+		$response = json_decode($body, true);
+
+		return [
+			'token'      => isset($response['token']) ? $response['token'] : null,
+			'expired'    => isset($response['expired']) ? $response['expired'] : null,
+			'success'    => isset($response['success']) ? $response['success'] : false,
+			'user'       => isset($response['user']) ? $response['user'] : null,
+			'http_code'  => $httpCode,
+			'curl_errno' => $curlNo,
+			'curl_error' => $curlErr,
+			'body'       => $body,
+		];
+
+    }
+	
+	 public function callAPIPostConfirmationDocument()
+    {
+        // $ch = curl_init('https://api-gateway.aapialang.co.id/sandbox/bankjatim-service/h2h/webhook/insurance/akseptasi/draft/dokumen-underwriting/confirmation');
+		$ch = curl_init ('https://api-gateway.aapialang.co.id/bankjatim-service/h2h/webhook/insurance/akseptasi/draft/dokumen-underwriting/confirmation');
+
+        $headers = [
+            'Content-Type: application/json',
+            'Authorization: Bearer EiSsYqSqEJGv2EEiIYXP6d4HL3FBMFD2tdassSIEqje9p7TD0oFPcXkG1at7osvVZFzZJ0hlkWBxZEAaxfHYFvY0CiisK8S688y8xMhILidFO7IVCLxB7w1gHfb0O7oaesw7a0F0K5cTxaSdZ47T5YgF0XURbAeOYTtcKMcGOVJ3h5JlqavuWEQMVvbPjEOIKjwQ7ycf7WGLbii1Uz2qpTR9R40MuAUk0mVq0lzF'
+        ];
+
+        $data = json_encode([
+            'nomor_transaksi' => $this->nomor_transaksi,
+            'code_dokumen' => $this->kode_dokumen,
+            'status_dokumen' => $this->approve,
+        ]);
+
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($ch, CURLOPT_HEADER, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+        $response = curl_exec($ch);
+        $body = substr($response, curl_getinfo($ch, CURLINFO_HEADER_SIZE));
+
+        curl_close($ch);
+        // var_dump($response);
+        return json_decode($body, true);
+    }
 }
