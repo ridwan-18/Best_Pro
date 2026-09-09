@@ -2740,12 +2740,19 @@ class PengajuanController extends Controller
 	{
 		$folder = Yii::getAlias('@webroot/uploads/incoming');
 
+    // Folder harus sudah tersedia
 		if (!is_dir($folder)) {
-			if (!mkdir($folder, 0777, true) && !is_dir($folder)) {
+			if (!mkdir($folder, 0775, true) && !is_dir($folder)) {
 				throw new \RuntimeException(
-					'Gagal membuat folder: ' . $folder
+					'Folder incoming tidak dapat dibuat: ' . $folder
 				);
 			}
+		}
+		
+		if (!is_writable($folder)) {
+        throw new \RuntimeException(
+            'Folder incoming tidak writable: ' . $folder
+        );
 		}
 		
 		$norek   = $member->nomor_rekening;
