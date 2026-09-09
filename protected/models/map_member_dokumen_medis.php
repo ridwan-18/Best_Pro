@@ -74,19 +74,14 @@ class map_member_dokumen_medis extends \yii\db\ActiveRecord
     /**
      * {@inheritdoc}
      */
-    public function rules()
-    {
-        return [
-            [['policy_no', 'batch_no', 'personal_no', 'term', 'start_date', 'end_date', 'sum_insured'], 'required'],
-            [['age', 'term', 'em_type', 'created_by', 'updated_by'], 'integer'],
-            [['start_date', 'end_date', 'stnc_date', 'created_at', 'updated_at'], 'safe'],
-            [['sum_insured', 'total_si', 'total_premium', 'rate_premi', 'rate_saving', 'gross_premium', 'basic_premium', 'saving_premium', 'percentage_discount', 'discount_premium', 'nett_premium', 'percentage_extra_premium', 'extra_premium', 'percentage_em', 'rate_em', 'em_premium'], 'number'],
-            [['policy_no', 'batch_no', 'medical_code'], 'string', 'max' => 50],
-            [['member_no'], 'string', 'max' => 100],
-            [['personal_no', 'branch', 'branch_code', 'account_no', 'bank_branch', 'status_reason', 'stnc_status', 'stnc_reason', 'acc_status', 'em_notes', 'uw_notes'], 'string', 'max' => 255],
-            [['status', 'member_status', 'reas_status'], 'string', 'max' => 20],
-        ];
-    }
+	  public function rules()
+	{
+		return [
+			[['id_loan', 'kode_dokumen', 'files', 'approve'], 'string', 'max' => 255],
+			[['created_at'], 'safe'],
+			[['created_by'], 'integer'],
+		];
+	}
 
     /**
      * {@inheritdoc}
