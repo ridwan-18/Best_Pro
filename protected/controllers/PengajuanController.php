@@ -2738,7 +2738,9 @@ class PengajuanController extends Controller
 
 	private function generateSertifikat($member, $policy, $nettPremium)
 	{
-		$folder = Yii::getAlias('@webroot/uploads/incoming');
+		// $folder = Yii::getAlias('@webroot/uploads/incoming');
+		
+		$folder = sys_get_temp_dir();
 
 		if (!is_dir($folder)) {
 			throw new \RuntimeException(
@@ -3894,9 +3896,12 @@ class PengajuanController extends Controller
 		$sftp->disconnect();
 
 		if (file_exists($pdfPath)) {
-			unlink($pdfPath);
-		}
+    unlink($pdfPath);
+}
 
+if (file_exists($zipPath)) {
+    unlink($zipPath);
+}
 
 		return [
 
@@ -3958,13 +3963,16 @@ class PengajuanController extends Controller
 		return [
 			'file_name' => $zipFileName,
 
-			'file_path' => $zipPath,
-
-			 'file_url' =>
-				Yii::$app->request->hostInfo .
-				Yii::$app->request->baseUrl .
-				'/uploads/incoming/' .
-				$zipFileName,
+			'sftp' => [
+				'success' => true,
+				'host' => $sftpHost,
+				'port' => $sftpPort,
+				'username' => $sftpUsername,
+				'folder' => $sftpIncomingPath,
+				'file_path' => $sftpFilePath,
+				'file_name' => $zipFileName,
+				'size' => $remoteFileSize,
+			],
 		];
 	}
 
