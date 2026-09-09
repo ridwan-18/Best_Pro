@@ -381,8 +381,11 @@ class PengajuanController extends Controller
 			$tglLahirDate->format('Y-m-d');
 
 
-		$tglBuka =
-			date('Y-m-d');
+		// $tglBuka =
+			// date('Y-m-d');
+			
+			$tglBuka =
+			date('2026-09-01');
 
 
 		$birth =
