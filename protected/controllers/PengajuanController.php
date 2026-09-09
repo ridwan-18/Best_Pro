@@ -3797,13 +3797,9 @@ class PengajuanController extends Controller
 		}
 
 
-		/*
-		 * ============================================================
-		 * UPLOAD ZIP KE SFTP
-		 * ============================================================
-		 */
 
-		$autoload = 'C:\xampp7.4\htdocs\BestPro_syariah\protected\sftp-lib\vendor\autoload.php';
+		// $autoload = 'C:\xampp7.4\htdocs\BestPro_syariah\protected\sftp-lib\vendor\autoload.php';
+			$autoload = Yii::getAlias('@webroot/protected/sftp-lib/vendor/autoload.php');
 
 		if (!file_exists($autoload)) {
 
@@ -3814,10 +3810,6 @@ class PengajuanController extends Controller
 
 		require_once $autoload;
 
-
-		/*
-		 * CHECK PHPSecLib
-		 */
 		if (!class_exists('\phpseclib3\Net\SFTP')) {
 
 			throw new \Exception(
@@ -3825,10 +3817,6 @@ class PengajuanController extends Controller
 			);
 		}
 
-
-		/*
-		 * CONFIG SFTP
-		 */
 		$sftpHost = 'web.bestpro-id.com';
 		$sftpPort = 22;
 
@@ -3839,19 +3827,12 @@ class PengajuanController extends Controller
 			'/sftp/bank_riau/incoming';
 
 
-		/*
-		 * CONNECT
-		 */
 		$sftp = new \phpseclib3\Net\SFTP(
 			$sftpHost,
 			$sftpPort,
 			10
 		);
 
-
-		/*
-		 * LOGIN
-		 */
 		if (!$sftp->login(
 			$sftpUsername,
 			$sftpPassword
@@ -3862,10 +3843,6 @@ class PengajuanController extends Controller
 			);
 		}
 
-
-		/*
-		 * CHECK FOLDER INCOMING
-		 */
 		if (!$sftp->is_dir(
 			$sftpIncomingPath
 		)) {
@@ -3877,34 +3854,19 @@ class PengajuanController extends Controller
 		}
 
 
-		/*
-		 * PATH FILE DI SFTP
-		 */
 		$sftpFilePath =
 			$sftpIncomingPath .
 			'/' .
 			$zipFileName;
 
 
-		/*
-		 * UPLOAD
-		 *
-		 * SOURCE:
-		 * C:\xampp7.4\htdocs\BestPro_syariah\uploads\incoming\xxx.zip
-		 *
-		 * DESTINATION:
-		 * /sftp/bank_riau/incoming/xxx.zip
-		 */
+
 		$uploadResult = $sftp->put(
 			$sftpFilePath,
 			$zipPath,
 			\phpseclib3\Net\SFTP::SOURCE_LOCAL_FILE
 		);
 
-
-		/*
-		 * CHECK UPLOAD
-		 */
 		if (!$uploadResult) {
 
 			$sftp->disconnect();
@@ -3915,10 +3877,6 @@ class PengajuanController extends Controller
 			);
 		}
 
-
-		/*
-		 * VERIFY FILE DI SFTP
-		 */
 		$remoteFileSize =
 			$sftp->filesize(
 				$sftpFilePath
@@ -3927,22 +3885,11 @@ class PengajuanController extends Controller
 
 		$sftp->disconnect();
 
-
-		/*
-		 * ============================================================
-		 * HAPUS PDF TEMPORARY
-		 * ============================================================
-		 */
 		if (file_exists($pdfPath)) {
 			unlink($pdfPath);
 		}
 
 
-		/*
-		 * ============================================================
-		 * RETURN
-		 * ============================================================
-		 */
 		return [
 
 			/*
