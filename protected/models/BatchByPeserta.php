@@ -156,37 +156,8 @@ class BatchByPeserta extends \yii\db\ActiveRecord
         return $query->all();
     }
 
-    public static function countAll($params = [])
-    {
-        $query = self::find();
 
-        if (isset($params['policy_no']) && $params['policy_no'] != null) {
-            $query->andFilterWhere(['=', self::tableName() . '.policy_no', $params['policy_no']]);
-        }
-
-        if (isset($params['batch_no']) && $params['batch_no'] != null) {
-            $query->andFilterWhere(['=', self::tableName() . '.batch_no', $params['batch_no']]);
-        }
-
-        $query->groupBy(['policy_no', 'batch_no']);
-
-        return $query->count();
-    }
-
-    public static function statuses($selected = null)
-    {
-        $data = [
-            self::STATUS_OPEN => self::STATUS_OPEN,
-            self::STATUS_PENDING => self::STATUS_PENDING,
-            self::STATUS_CLOSED => self::STATUS_CLOSED,
-        ];
-
-        if ($selected == null) {
-            return $data;
-        }
-
-        return $data[$selected];
-    }
+    
 	
 	public static function getAllParticipantByFilter($params = [])
     {
@@ -246,79 +217,155 @@ class BatchByPeserta extends \yii\db\ActiveRecord
     }
 	
 	public static function getAllProductionParticipant($paramsGetAllProduksi = [])
-    {
-        $query = self::find()
-            ->select([
-                self::tableName() . '.id',
-                self::tableName() . '.policy_no',
-                self::tableName() . '.member_no',
-                self::tableName() . '.batch_no',
-                Personal::tableName() . '.name',
-				Personal::tableName() . '.birth_date',
-				Personal::tableName() . '.gender',
-				self::tableName() . '.status',
-				self::tableName() . '.id_loan',
-				self::tableName() . '.refund_premi',
-				self::tableName() . '.no_ktp',
-				self::tableName() . '.start_date',
-				self::tableName() . '.end_date',
-				self::tableName() . '.sum_insured',
-				USER::tableName() . '.username',
-				self::tableName() . '.gross_premium',
-				self::tableName() . '.id_loan',
-            ])
-          
-			 ->innerJoin(Personal::tableName(), Personal::tableName() . '.personal_no = ' . self::tableName() . '.personal_no')
-			 ->innerJoin(USER::tableName(), USER::tableName() . '.id = ' . self::tableName() . '.created_by')
-			   ->asArray();
-		
+	{
+		$table = self::tableName();
+		$personalTable = Personal::tableName();
+		$userTable = User::tableName();
+
+		$query = self::find()
+			->select([
+				$table . '.id',
+				$table . '.policy_no',
+				$table . '.member_no',
+				$table . '.batch_no',
+				$table . '.status',
+				$table . '.id_loan',
+				$table . '.refund_premi',
+				$table . '.no_ktp',
+				$table . '.start_date',
+				$table . '.end_date',
+				$table . '.sum_insured',
+				$table . '.nama',
+				$table . '.tgl_lahir',
+				$table . '.gross_premium',
+			])
+			->asArray();
+
+		/*
+		 * Filter berdasarkan user login
+		 */
 		if (!Yii::$app->user->isGuest) {
 			if (Yii::$app->user->identity->role == User::ROLE_UW) {
-				$query->andWhere(['=', self::tableName() . '.created_by', Yii::$app->user->identity->id]);
+				$query->andWhere([
+					$table . '.created_by' => Yii::$app->user->identity->id
+				]);
 			}
 		}
-		
-		if (isset($paramsGetAllProduksi['status']) && $paramsGetAllProduksi['status'] != null) {
-            $query->andFilterWhere(['=', self::tableName() . '.status', $paramsGetAllProduksi['status']]);
-        }
-		
-        if (isset($paramsGetAllProduksi['batch_no']) && $paramsGetAllProduksi['batch_no'] != null) {
-            $query->andFilterWhere(['=', self::tableName() . '.batch_no', $paramsGetAllProduksi['batch_no']]);
-        }
-		if (isset($paramsGetAllProduksi['id_loan']) && $paramsGetAllProduksi['id_loan'] != null) {
-            $query->andFilterWhere(['=', self::tableName() . '.id_loan', $paramsGetAllProduksi['id_loan']]);
-        }
-		
-		if (isset($paramsGetAllProduksi['username']) && $paramsGetAllProduksi['username'] != null) {
-            $query->andFilterWhere(['=', USER::tableName() . '.username', $paramsGetAllProduksi['username']]);
-        }
-		
+
+		/*
+		 * FILTER ID MEMBER
+		 */
 		if (
-            isset($paramsGetAllProduksi['start_date'])
-            && $paramsGetAllProduksi['start_date'] != null
-            && isset($paramsGetAllProduksi['end_date'])
-            && $paramsGetAllProduksi['end_date'] != null
-        ) {
-            $query->andFilterWhere(['>=', self::tableName() . '.updated_at', $paramsGetAllProduksi['start_date']]);
-            $query->andFilterWhere(['<=', self::tableName() . '.updated_at', $paramsGetAllProduksi['end_date']]);
-        }
+			isset($paramsGetAllProduksi['member_id']) &&
+			$paramsGetAllProduksi['member_id'] !== '' &&
+			$paramsGetAllProduksi['member_id'] !== null
+		) {
+			$query->andWhere([
+				$table . '.id' => $paramsGetAllProduksi['member_id']
+			]);
+		}
 
-        if (isset($paramsGetAllProduksi['offset']) && $paramsGetAllProduksi['offset'] != null) {
-            $query->offset($paramsGetAllProduksi['offset']);
-        }
+		/*
+		 * Filter policy
+		 */
+		if (
+			isset($paramsGetAllProduksi['policy_no']) &&
+			$paramsGetAllProduksi['policy_no'] !== ''
+		) {
+			$query->andWhere([
+				$table . '.policy_no' => $paramsGetAllProduksi['policy_no']
+			]);
+		}
 
-        if (isset($paramsGetAllProduksi['limit']) && $paramsGetAllProduksi['limit'] != null) {
-            $query->limit($paramsGetAllProduksi['limit']);
-        }
-		
-         // $query->groupBy(['policy_no', 'batch_no']);
-       $query->orderBy(['id' => SORT_DESC]);
-		// echo $query;
-        return $query->all();
-		
-		
-		
-    }
+		/*
+		 * Filter batch
+		 */
+		if (
+			isset($paramsGetAllProduksi['batch_no']) &&
+			$paramsGetAllProduksi['batch_no'] !== ''
+		) {
+			$query->andWhere([
+				$table . '.batch_no' => $paramsGetAllProduksi['batch_no']
+			]);
+		}
+
+		/*
+		 * Filter status
+		 */
+		if (
+			isset($paramsGetAllProduksi['status']) &&
+			$paramsGetAllProduksi['status'] !== ''
+		) {
+			$query->andWhere([
+				$table . '.status' => $paramsGetAllProduksi['status']
+			]);
+		}
+
+		/*
+		 * Filter ID Loan
+		 */
+		if (
+			isset($paramsGetAllProduksi['id_loan']) &&
+			$paramsGetAllProduksi['id_loan'] !== ''
+		) {
+			$query->andWhere([
+				$table . '.id_loan' => $paramsGetAllProduksi['id_loan']
+			]);
+		}
+
+		/*
+		 * Filter username
+		 */
+		if (
+			isset($paramsGetAllProduksi['username']) &&
+			$paramsGetAllProduksi['username'] !== ''
+		) {
+			$query->andWhere([
+				$userTable . '.username' => $paramsGetAllProduksi['username']
+			]);
+		}
+
+		/*
+		 * Filter tanggal
+		 */
+		if (
+			!empty($paramsGetAllProduksi['start_date']) &&
+			!empty($paramsGetAllProduksi['end_date'])
+		) {
+			$query->andWhere([
+				'between',
+				$table . '.updated_at',
+				$paramsGetAllProduksi['start_date'],
+				$paramsGetAllProduksi['end_date']
+			]);
+		}
+
+		/*
+		 * Pagination
+		 */
+		if (
+			isset($paramsGetAllProduksi['offset']) &&
+			$paramsGetAllProduksi['offset'] !== ''
+		) {
+			$query->offset($paramsGetAllProduksi['offset']);
+		}
+
+		if (
+			isset($paramsGetAllProduksi['limit']) &&
+			$paramsGetAllProduksi['limit'] !== ''
+		) {
+			$query->limit($paramsGetAllProduksi['limit']);
+		}
+
+		/*
+		 * Sorting
+		 */
+		$query->orderBy([
+			$table . '.id' => SORT_DESC
+		]);
+
+		return $query->all();
+	}
 	
 		
 	public static function countAllDataproduksi($paramsGetAllProduksi = [])
@@ -338,7 +385,233 @@ class BatchByPeserta extends \yii\db\ActiveRecord
 		$query->groupBy(['policy_no', 'batch_no']);
 
 		return $query->count();
-	}		
+	}	
+
+public static function countAll($params = [])
+    {
+        $query = self::find();
+
+        if (isset($params['member_id']) && $params['member_id'] != null) {
+            $query->andFilterWhere(['=', self::tableName() . '.id', $params['member_id']]);
+        }
+
+        if (isset($params['policy_no']) && $params['policy_no'] != null) {
+            $query->andFilterWhere(['=', self::tableName() . '.policy_no', $params['policy_no']]);
+        }
+
+        if (isset($params['batch_no']) && $params['batch_no'] != null) {
+            $query->andFilterWhere(['=', self::tableName() . '.batch_no', $params['batch_no']]);
+        }
+
+        if (
+            isset($params['start_date'])
+            && $params['start_date'] != null
+            && isset($params['end_date'])
+            && $params['end_date'] != null
+        ) {
+            $query->andFilterWhere(['>=', self::tableName() . '.start_date', $params['start_date']]);
+            $query->andFilterWhere(['<=', self::tableName() . '.end_date', $params['end_date']]);
+        }
+
+        if (isset($params['status']) && $params['status'] != null) {
+            $query->andFilterWhere(['=', self::tableName() . '.status', $params['status']]);
+        }
+
+        if (isset($params['member_status']) && $params['member_status'] != null) {
+            $query->andFilterWhere(['=', self::tableName() . '.member_status', $params['member_status']]);
+        }
+
+        if (isset($params['reas_status']) && $params['reas_status'] != null) {
+            $query->andFilterWhere(['=', self::tableName() . '.reas_status', $params['reas_status']]);
+        }
+
+        $query->groupBy([self::tableName() . '.id', self::tableName() . '.personal_no']);
+
+        return $query->count();
+    }
+
+    public static function getAccumulation($params = [])
+    {
+        $query = self::find()
+            ->select([
+                self::tableName() . '.id',
+                self::tableName() . '.policy_no',
+                self::tableName() . '.batch_no',
+                self::tableName() . '.member_no',
+                Personal::tableName() . '.name',
+                Personal::tableName() . '.birth_date',
+                self::tableName() . '.age',
+                self::tableName() . '.start_date',
+                self::tableName() . '.end_date',
+                self::tableName() . '.term',
+                self::tableName() . '.sum_insured',
+                self::tableName() . '.gross_premium',
+                self::tableName() . '.nett_premium',
+                self::tableName() . '.em_premium',
+            ])
+            ->asArray()
+            ->innerJoin(Personal::tableName(), Personal::tableName() . '.personal_no = ' . self::tableName() . '.personal_no');
+
+        if (isset($params['policy_no']) && $params['policy_no'] != null) {
+            $query->andFilterWhere(['=', self::tableName() . '.policy_no', $params['policy_no']]);
+        }
+
+        if (isset($params['name']) && $params['name'] != null) {
+            $query->andFilterWhere(['=', Personal::tableName() . '.name', $params['name']]);
+        }
+
+        if (isset($params['birth_date']) && $params['birth_date'] != null) {
+            $query->andFilterWhere(['=', Personal::tableName() . '.birth_date', $params['birth_date']]);
+        }
+
+        if (isset($params['offset']) && $params['offset'] != null) {
+            $query->offset($params['offset']);
+        }
+
+        if (isset($params['limit']) && $params['limit'] != null) {
+            $query->limit($params['limit']);
+        }
+
+        $query->groupBy([self::tableName() . '.id', self::tableName() . '.personal_no']);
+        $query->orderBy([self::tableName() . '.id' => $params['sort']]);
+
+        return $query->all();
+    }
+
+    public static function statuses($selected = null)
+    {
+        $data = [
+            self::STATUS_INFORCE => self::STATUS_INFORCE,
+            self::STATUS_LAPSED => self::STATUS_LAPSED,
+            self::STATUS_CLAIM => self::STATUS_CLAIM,
+            self::STATUS_SURRENDER => self::STATUS_SURRENDER,
+            self::STATUS_MATURITY => self::STATUS_MATURITY,
+            self::STATUS_CHANGE => self::STATUS_CHANGE,
+            self::STATUS_CANCEL => self::STATUS_CANCEL,
+        ];
+
+        if ($selected == null) {
+            return $data;
+        }
+
+        return $data[$selected];
+    }
+
+    public static function memberStatuses($selected = null)
+    {
+        $data = [
+            self::MEMBER_STATUS_INFORCE => self::MEMBER_STATUS_INFORCE,
+            self::MEMBER_STATUS_PENDING => self::MEMBER_STATUS_PENDING,
+            self::MEMBER_STATUS_DECLINED => self::MEMBER_STATUS_DECLINED,
+        ];
+
+        if ($selected == null) {
+            return $data;
+        }
+
+        return $data[$selected];
+    }
+
+    public static function reasStatuses($selected = null)
+    {
+        $data = [
+            self::REAS_STATUS_TREATY => self::REAS_STATUS_TREATY,
+            self::REAS_STATUS_OUT => self::REAS_STATUS_OUT,
+            self::REAS_STATUS_FACULTATIVE => self::REAS_STATUS_FACULTATIVE,
+        ];
+
+        if ($selected == null) {
+            return $data;
+        }
+
+        return $data[$selected];
+    }
+
+    public static function totalShows($selected = null)
+    {
+        $data = [
+            20 => 20,
+            50 => 50,
+            100 => 100,
+        ];
+
+        if ($selected == null) {
+            return $data;
+        }
+
+        return $data[$selected];
+    }
+
+    public static function accumulateOptions($selected = null)
+    {
+        $data = [
+            0 => 'No',
+            1 => 'Yes',
+        ];
+
+        if ($selected == null) {
+            return $data;
+        }
+
+        return $data[$selected];
+    }
+
+    public static function getTerm($rateType, $startDate, $endDate)
+    {
+        $date1 = date_create($startDate);
+        $date2 = date_create($endDate);
+        $diff = date_diff($date1, $date2);
+
+        $term = ($diff->y * 12) + $diff->m;
+        if ($rateType == RateType::RATE_ROUND_UP && $diff->d > 0) {
+            $term = $term + 1;
+        }
+
+        return $term;
+    }
+	
+	public static function getTermJatim($rateType, $startDate, $endDate)
+    {
+        $date1 = date_create($startDate);
+        $date2 = date_create($endDate);
+        $diff = date_diff($date1, $date2);
+
+        $term =($diff->y * 12) + $diff->m;
+      
+
+        return $term;
+    }
+
+    public static function getAge($ageCalculate, $birthDate, $startDate)
+    {
+        $date1 = date_create($startDate);
+        $date2 = date_create($birthDate);
+        $diff = date_diff($date1, $date2);
+
+        $age = $diff->y;
+        if ($ageCalculate == AgeCalculate::NEAREST_BIRTHDAY && (($diff->m == 6 && $diff->d > 0) || $diff->m > 6)) {
+            $age = $diff->y + 1;
+        }
+
+        return $age;
+    }
+
+    public static function getStnc($startDate, $retroactive)
+    {
+        $currentDate = date('Y-m-d');
+        $validDate = date('Y-m-d', strtotime('+' . $retroactive . ' day', strtotime($startDate)));
+        if ($currentDate > $validDate) {
+            return $currentDate;
+        }
+        return null;
+    }
+
+    public static function generateMemberNo($id, $policyNo)
+    {
+        $prefix = substr($policyNo, 0, 3);
+        $suffix = substr($policyNo, -3, 3);
+        return $prefix . '-' . date('ym') . str_pad($id, 7, '0', STR_PAD_LEFT) . '-' . $suffix;
+    }	
 
 }
 
