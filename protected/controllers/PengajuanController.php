@@ -769,7 +769,7 @@ class PengajuanController extends Controller
 		$dokumenMedis->id_loan =$idTransaksi; 
 		$dokumenMedis->kode_dokumen = $codeDoc; 
 		$dokumenMedis->files = $sftpResult['file_name']; 
-		$dokumenMedis->approve = 0; 
+		$dokumenMedis->approve = '-'; 
 		// $dokumenMedis->nomor_transaksi = $idTransaksi;
 		$dokumenMedis->created_at = date('Y-m-d H:i:s');
 		$dokumenMedis->created_by = 1;
