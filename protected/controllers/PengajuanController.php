@@ -2740,19 +2740,56 @@ class PengajuanController extends Controller
 	{
 		$folder = Yii::getAlias('@webroot/uploads/incoming');
 
-    // Folder harus sudah tersedia
-		if (!is_dir($folder)) {
-			if (!mkdir($folder, 0775, true) && !is_dir($folder)) {
+		Yii::error('=== GENERATE SERTIFIKAT ===');
+		Yii::error('WEBROOT: ' . Yii::getAlias('@webroot'));
+		Yii::error('FOLDER: ' . $folder);
+		Yii::error('EXISTS: ' . (file_exists($folder) ? 'YES' : 'NO'));
+		Yii::error('IS DIR: ' . (is_dir($folder) ? 'YES' : 'NO'));
+		Yii::error('WRITABLE: ' . (is_writable($folder) ? 'YES' : 'NO'));
+
+		/*
+		 * Folder incoming harus berupa directory.
+		 */
+		if (file_exists($folder)) {
+
+			if (!is_dir($folder)) {
 				throw new \RuntimeException(
-					'Folder incoming tidak dapat dibuat: ' . $folder
+					'Path incoming bukan directory: ' . $folder
 				);
 			}
+
+		} else {
+
+			/*
+			 * Folder belum ada.
+			 */
+			if (!@mkdir($folder, 0775, true)) {
+
+				/*
+				 * Bisa saja request lain sudah membuat folder
+				 * pada saat yang sama.
+				 */
+				if (!is_dir($folder)) {
+					throw new \RuntimeException(
+						'Gagal membuat folder incoming: ' . $folder
+					);
+				}
+			}
 		}
-		
+
+		/*
+		 * Final validation.
+		 */
+		if (!is_dir($folder)) {
+			throw new \RuntimeException(
+				'Folder incoming tidak tersedia: ' . $folder
+			);
+		}
+
 		if (!is_writable($folder)) {
-        throw new \RuntimeException(
-            'Folder incoming tidak writable: ' . $folder
-        );
+			throw new \RuntimeException(
+				'Folder incoming tidak writable: ' . $folder
+			);
 		}
 		
 		$norek   = $member->nomor_rekening;
