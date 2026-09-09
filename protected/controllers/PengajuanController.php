@@ -2741,7 +2741,11 @@ class PengajuanController extends Controller
 		$folder = Yii::getAlias('@webroot/uploads/incoming');
 
 		if (!is_dir($folder)) {
-			mkdir($folder, 0777, true);
+			if (!mkdir($folder, 0777, true) && !is_dir($folder)) {
+				throw new \RuntimeException(
+					'Gagal membuat folder: ' . $folder
+				);
+			}
 		}
 		
 		$norek   = $member->nomor_rekening;
