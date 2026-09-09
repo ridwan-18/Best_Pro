@@ -1241,29 +1241,24 @@ class Member extends \yii\db\ActiveRecord
 		 */
 		$response = json_decode($body, true);
 
-		/*
-		 * Response bukan JSON
-		 */
-		if (!is_array($response)) {
+			if (json_last_error() !== JSON_ERROR_NONE) {
+
+				return [
+					'success'    => false,
+					'http_code'  => $httpCode,
+					'body'       => $body,
+					'payload'    => $payload,
+					'json_error' => json_last_error_msg(),
+				];
+			}
+
 			return [
 				'success'   => ($httpCode >= 200 && $httpCode < 300),
 				'http_code' => $httpCode,
+				'response'  => $response,
 				'body'      => $body,
 				'payload'   => $payload,
-				'json_error' => json_last_error_msg(),
 			];
-		}
-
-		/*
-		 * RETURN HASIL API BANK
-		 */
-		return [
-			'success'   => ($httpCode >= 200 && $httpCode < 300),
-			'http_code' => $httpCode,
-			'response'  => $response,
-			'body'      => $body,
-			'payload'   => $payload,
-		];
 	}
 
 }
