@@ -771,7 +771,7 @@ $this->title = 'View Member - ' . Yii::$app->name;
 									[
 										'' => 'Select Action',
 										'approve' => 'Approve',
-										'revisi' => 'Revisi',
+										'DITOLAK' => 'DITOLAK',
 										'diproses' => 'DIPROSES',
 										'menunggu' => 'Menunggu kelengkapan dokumen',
 									],

@@ -1742,9 +1742,9 @@ class DataProduksiController  extends Controller
 			{ 
 			$document->approve = 'DISETUJUI'; 
 			}
-			 elseif ($action === 'revisi')
+			 elseif ($action === 'DITOLAK')
 			 {
-			 $document->approve = 'REVISI'; 
+			 $document->approve = 'DITOLAK'; 
 			}
 			 elseif ($action === 'diproses') 
 			{ 
