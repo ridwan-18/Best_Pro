@@ -317,7 +317,6 @@ class PengajuanController extends Controller
 			'plafond' =>$plafond,
 			'benefit' =>$benefit,
 			'pekerjaan' =>$pekerjaan,
-			'benefit_pembiayaan' =>$benefitPembiayaan,
 		];
 
 
