@@ -422,7 +422,6 @@ class PengajuanController extends Controller
 					$pekerjaan,
 			]);
 
-
 		if (!$policybyproduk) {
 
 			return [
@@ -433,7 +432,97 @@ class PengajuanController extends Controller
 					$pekerjaan
 			];
 		}
+		
+		
+		$quotationtc = QuotationTc::findOne([
+			'quotation_id' => $policybyproduk->quotation_id,
+		]);
 
+		if (!$quotationtc) {
+			Yii::$app->response->statusCode = 400;
+
+			return [
+				'status_code' => 400,
+				'error' => true,
+				'message' => 'Data ketentuan usia untuk quotation tidak ditemukan.',
+				'data' => [
+					'quotation_id' => $policybyproduk->quotation_id,
+				]
+			];
+		}
+
+		$termYear = $tenor / 12;
+
+		$endAge = $age + $termYear;
+
+		// Batas usia akhir dari tabel quotation_tc
+		$maxEndAge = (int) $quotationtc->age_term;
+		$minAge = (int) $quotationtc->min_age;
+		$maxup =  $quotationtc->max_si;
+
+
+		if ($age < $minAge) {
+			Yii::$app->response->statusCode = 400;
+
+			return [
+				'status_code' => 400,
+				'error' => true,
+				'message' => 'Usia peserta tidak memenuhi batas minimum.',
+				'data' => [
+					'usia_sekarang' => $age,
+					'minimal_usia' => $minAge,
+				]
+			];
+		}
+
+		$maxEntryAge = (int) $quotationtc->max_age;
+
+		if ($age > $maxEntryAge) {
+			Yii::$app->response->statusCode = 400;
+
+			return [
+				'status_code' => 400,
+				'error' => true,
+				'message' => 'Usia peserta melebihi batas usia masuk.',
+				'data' => [
+					'maksimal_usia_masuk' => $maxEntryAge,
+					'usia_akhir_maksimal' => $maxEndAge,
+				]
+			];
+		}
+
+		if ($endAge > $maxEndAge) {
+			Yii::$app->response->statusCode = 400;
+
+			return [
+				'status_code' => 400,
+				'error' => true,
+				'message' => 'Usia pada akhir masa pertanggungan tidak boleh melebihi '
+					. $maxEndAge . ' tahun.',
+				'data' => [
+					'tenor_bulan' => $tenor,
+					'tenor_tahun' => $termYear,
+					'usia_akhir' => $endAge,
+					'maksimal_usia_akhir' => $maxEndAge,
+				]
+			];
+		}
+		
+		
+		if ($plafond > $maxup) {
+			Yii::$app->response->statusCode = 400;
+
+			return [
+				'status_code' => 400,
+				'error' => true,
+				'message' => 'Platfon pada produk ini melebihi limit',
+				'data' => [
+					'Max plafond Pada Produk ini' => $maxup,
+					
+				]
+			];
+		}
+		
 
 		$quotation =
 			Quotation::findOne([
