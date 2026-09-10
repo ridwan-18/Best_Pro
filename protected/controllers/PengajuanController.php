@@ -1154,7 +1154,7 @@ class PengajuanController extends Controller
 			'id_loan' => $idTransaksi,
 		]);
 
-		if ($cekdokumen->approve != 'DISETUJU') {
+		if ($cekdokumen->approve != 'DISETUJUI') {
 			return [
 				'Result' => [
 					'status' => '400',
