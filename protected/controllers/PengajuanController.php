@@ -380,11 +380,11 @@ class PengajuanController extends Controller
 			$tglLahirDate->format('Y-m-d');
 
 
-		$tglBuka =
-			date('Y-m-d');
+		// $tglBuka =
+			// date('Y-m-d');
 			
-			// $tglBuka =
-			// date('2026-09-01');
+			$tglBuka =
+			date('2026-09-01');
 
 
 		$birth =
@@ -515,7 +515,7 @@ class PengajuanController extends Controller
 			return [
 				'status_code' => 400,
 				'error' => true,
-				'message' => 'Platfon pada produk ini melebihi limit',
+				'message' => 'Platfon pada produk ini melebihi ketentuan',
 				'data' => [
 					'Max plafond Pada Produk ini' => $maxup,
 					
