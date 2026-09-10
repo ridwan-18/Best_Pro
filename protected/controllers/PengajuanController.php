@@ -4347,38 +4347,55 @@ if (file_exists($zipPath)) {
 				]
 			];
 		}
+		
+		$member = member::findOne([
+			'nomor_akad' => $body['nomor_akad']
+		]);
 
+		if (empty($member)) {
+
+			Yii::$app->response->statusCode = 200;
+
+			return [
+				'Result' => [
+					'status' => '200',
+					'kode_response' => '22',
+					'message' => 'Pengajuan Restitusi Nomor Akad Tidak ditemukan'
+				]
+			];
+		}
+		
+		
+		if ($body['benefit'] != 2) {
+
+			Yii::$app->response->statusCode = 200;
+
+			return [
+				'Result' => [
+					'status' => '200',
+					'kode_response' => '22',
+					'message' => 'Pengajuan Benefit Restitusi bukan Asuransi Jiwa'
+				]
+			];
+		}
 
 		$transaction = Yii::$app->db->beginTransaction();
 
 		try {
 
 			$model = new Restitusi();
-
-
 			$model->id_transaksi = $body['id_transaksi'];
-
 			$model->id_pengajuan = $body['id_pengajuan'];
-
 			$model->kode_broker = $body['kode_broker'];
-
 			$model->kode_cabang = $body['kode_cabang'];
-
 			$model->nomor_rekening = $body['nomor_rekening'];
-
 			$model->tanggal_pembiayaan = $tanggalPembiayaanDb;
-
 			$model->old_nomor_akad = $body['old_nomor_akad'];
-
 			$model->nomor_akad = $body['nomor_akad'];
-
-			$model->plafon_pembiayaan =
-				$body['plafond_pembiayaan'];
-
+			$model->plafon_pembiayaan =$body['plafond_pembiayaan'];
 			$model->tenor = $body['tenor'];
-
 			$model->benefit = $body['benefit'];
-
+			
 			$model->restitusi_jiwa = $restitusiJiwaJson;
 
 			$model->plafon_penjaminan =
