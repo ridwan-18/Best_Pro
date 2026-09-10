@@ -1173,9 +1173,9 @@ class Member extends \yii\db\ActiveRecord
 			'kode_broker'       => $model->kode_broker,
 			'nama'              => $model->nama,
 			'ktp'               => $model->ktp,
-			'status_dokumen'    => ($document->approve === 'DISETUJUI') ? '1' : '0',
+			'status_dokumen' => ($document->approve === 'PROSES') ? '1' : (($document->approve === 'DISETUJUI') ? '2' : (($document->approve === 'DITOLAK') ? '3' : (($document->approve === 'MENUNGGU_KELENGKAPAN') ? '4' : '1'))),
 			'premi_disetujui'   => $model->gross_premium,
-			'keterangan'        => ($document->approve === 'DISETUJUI')? 'Dokumen disetujui': 'Dokumen perlu direvisi',
+			'keterangan'        => $document->keterangan,
 			'benefit'           => $model->benefit,
 		];
 
@@ -1241,24 +1241,29 @@ class Member extends \yii\db\ActiveRecord
 		 */
 		$response = json_decode($body, true);
 
-			if (json_last_error() !== JSON_ERROR_NONE) {
-
-				return [
-					'success'    => false,
-					'http_code'  => $httpCode,
-					'body'       => $body,
-					'payload'    => $payload,
-					'json_error' => json_last_error_msg(),
-				];
-			}
-
+		/*
+		 * Response bukan JSON
+		 */
+		if (!is_array($response)) {
 			return [
 				'success'   => ($httpCode >= 200 && $httpCode < 300),
 				'http_code' => $httpCode,
-				'response'  => $response,
 				'body'      => $body,
 				'payload'   => $payload,
+				'json_error' => json_last_error_msg(),
 			];
+		}
+
+		/*
+		 * RETURN HASIL API BANK
+		 */
+		return [
+			'success'   => ($httpCode >= 200 && $httpCode < 300),
+			'http_code' => $httpCode,
+			'response'  => $response,
+			'body'      => $body,
+			'payload'   => $payload,
+		];
 	}
 
 }

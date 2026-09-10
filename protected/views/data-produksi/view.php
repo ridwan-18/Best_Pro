@@ -726,6 +726,7 @@ $this->title = 'View Member - ' . Yii::$app->name;
                             <td>Nama Dokumen</td>
                             <td>Files</td>
                             <td>Action</td>
+							<td>Keterangan</td>
                             <td>Status</td>
                         </tr>
                     </thead>
@@ -760,6 +761,7 @@ $this->title = 'View Member - ' . Yii::$app->name;
 
                                     <?php endif; ?>
                                 </td>
+								
 
                                 <td>
                                    
@@ -770,7 +772,8 @@ $this->title = 'View Member - ' . Yii::$app->name;
 										'' => 'Select Action',
 										'approve' => 'Approve',
 										'revisi' => 'Revisi',
-										'reject' => 'Reject',
+										'diproses' => 'DIPROSES',
+										'menunggu' => 'Menunggu kelengkapan dokumen',
 									],
 									[
 										'class' => 'form-control action-dropdown',
@@ -783,6 +786,18 @@ $this->title = 'View Member - ' . Yii::$app->name;
 								); ?>
 
                                 </td>
+								
+								 <td>
+								<?= Html::textInput(
+									'keterangan[' . $cd['id_loan'] . ']',
+									'',
+									[
+										'class' => 'form-control keterangan-input',
+										'placeholder' => 'Masukkan keterangan',
+										'autocomplete' => 'off',
+									]
+								); ?>
+							</td>
 
                                 <td>
                                     <?= Html::encode($cd['approve']); ?>
@@ -817,7 +832,9 @@ $this->title = 'View Member - ' . Yii::$app->name;
 
 
 
+
 <?php
+
 $script = <<< JS
 
 $(document).on('change', '.action-dropdown', function() {
@@ -828,11 +845,16 @@ $(document).on('change', '.action-dropdown', function() {
 
     var url = dropdown.attr('data-url');
 
+    // ==========================================
+    // AMBIL ID LOAN DARI URL
+    // ==========================================
+    var idLoan = dropdown.attr('name');
 
     console.log('==============================');
     console.log('DEBUG CBC');
     console.log('URL    :', url);
     console.log('ACTION :', action);
+    console.log('NAME   :', idLoan);
     console.log('==============================');
 
 
@@ -841,6 +863,50 @@ $(document).on('change', '.action-dropdown', function() {
     }
 
 
+    // ==========================================
+    // AMBIL ID LOAN DARI DATA URL
+    // ==========================================
+    var idLoanMatch = url.match(/id_loan=([^&]+)/);
+
+    var loanId = null;
+
+    if (idLoanMatch) {
+        loanId = decodeURIComponent(idLoanMatch[1]);
+    }
+
+
+    // ==========================================
+    // AMBIL KETERANGAN
+    // ==========================================
+    var keteranganInput = $('input[name="keterangan[' + loanId + ']"]');
+
+    var keterangan = keteranganInput.val();
+
+
+    console.log('ID LOAN    :', loanId);
+    console.log('KETERANGAN :', keterangan);
+
+
+    // ==========================================
+    // VALIDASI KETERANGAN
+    // ==========================================
+    if (!keterangan || $.trim(keterangan) === '') {
+
+        alert('Keterangan wajib diisi.');
+
+        // Reset dropdown
+        dropdown.val('');
+
+        // Fokus ke input keterangan
+        keteranganInput.focus();
+
+        return;
+    }
+
+
+    // ==========================================
+    // AJAX
+    // ==========================================
     $.ajax({
 
         url: url,
@@ -850,7 +916,8 @@ $(document).on('change', '.action-dropdown', function() {
         dataType: 'json',
 
         data: {
-            action: action
+            action: action,
+            keterangan: keterangan
         },
 
 
@@ -859,6 +926,8 @@ $(document).on('change', '.action-dropdown', function() {
             console.log('REQUEST DIKIRIM');
 
             dropdown.prop('disabled', true);
+
+            keteranganInput.prop('disabled', true);
 
         },
 
@@ -869,11 +938,6 @@ $(document).on('change', '.action-dropdown', function() {
             console.log('RESPONSE CONTROLLER');
             console.log(response);
             console.log('==============================');
-
-
-            alert(
-                JSON.stringify(response, null, 4)
-            );
 
 
             if (
@@ -888,14 +952,41 @@ $(document).on('change', '.action-dropdown', function() {
                     '\\nKode : ' +
                     response.Result.kode_response +
                     '\\nPesan : ' +
-                    response.Result.message
+                    response.Result.message +
+                    '\\n\\nKeterangan : ' +
+                    response.Result.data.keterangan
                 );
 
                 location.reload();
 
             } else {
 
+                alert(
+                    'GAGAL\\n\\n' +
+                    'Status : ' +
+                    (
+                        response.Result
+                        ? response.Result.status
+                        : '-'
+                    ) +
+                    '\\nKode : ' +
+                    (
+                        response.Result
+                        ? response.Result.kode_response
+                        : '-'
+                    ) +
+                    '\\nPesan : ' +
+                    (
+                        response.Result
+                        ? response.Result.message
+                        : 'Response tidak valid'
+                    )
+                );
+
+
                 dropdown.prop('disabled', false);
+
+                keteranganInput.prop('disabled', false);
 
             }
 
@@ -924,6 +1015,8 @@ $(document).on('change', '.action-dropdown', function() {
 
             dropdown.prop('disabled', false);
 
+            keteranganInput.prop('disabled', false);
+
         }
 
     });
@@ -933,7 +1026,9 @@ $(document).on('change', '.action-dropdown', function() {
 JS;
 
 $this->registerJs($script);
+
 ?>
+
 
 
 

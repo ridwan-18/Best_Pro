@@ -1035,11 +1035,11 @@ class PengajuanController extends Controller
 		$tahunSekarang = (int) date('Y');
 
 		if ($tahunLahir >= $tahunSekarang) {
-			Yii::$app->response->statusCode = 400;
+			Yii::$app->response->statusCode = 200;
 
 			return [
-				'status_code' => 400,
-				'error' => true,
+				'status_code' => 200,
+				'kode_response' => "08",
 				'message' => 'Tahun Lahir tidak boleh tahun ini',
 			];
 		}
@@ -1069,11 +1069,11 @@ class PengajuanController extends Controller
 		]);
 
 		if (!$quotationtc) {
-			Yii::$app->response->statusCode = 400;
+			Yii::$app->response->statusCode = 200;
 
 			return [
-				'status_code' => 400,
-				'error' => true,
+				'status_code' => 200,
+				'kode_response' => "08",
 				'message' => 'Data ketentuan usia untuk quotation tidak ditemukan.',
 				'data' => [
 					'quotation_id' => $policybyproduk->quotation_id,
@@ -1092,11 +1092,11 @@ class PengajuanController extends Controller
 
 
 		if ($age < $minAge) {
-			Yii::$app->response->statusCode = 400;
+			Yii::$app->response->statusCode = 200;
 
 			return [
-				'status_code' => 400,
-				'error' => true,
+				'status_code' => 200,
+				'kode_response' => "08",
 				'message' => 'Usia peserta tidak memenuhi batas minimum.',
 				'data' => [
 					'usia_sekarang' => $age,
@@ -1108,11 +1108,11 @@ class PengajuanController extends Controller
 		$maxEntryAge = (int) $quotationtc->max_age;
 
 		if ($age > $maxEntryAge) {
-			Yii::$app->response->statusCode = 400;
+			Yii::$app->response->statusCode = 200;
 
 			return [
-				'status_code' => 400,
-				'error' => true,
+				'status_code' => 200,
+				'kode_response' => "08",
 				'message' => 'Usia peserta melebihi batas usia masuk.',
 				'data' => [
 					'maksimal_usia_masuk' => $maxEntryAge,
@@ -1122,11 +1122,11 @@ class PengajuanController extends Controller
 		}
 
 		if ($endAge > $maxEndAge) {
-			Yii::$app->response->statusCode = 400;
+			Yii::$app->response->statusCode = 200;
 
 			return [
-				'status_code' => 400,
-				'error' => true,
+				'status_code' => 200,
+				'kode_response' => "08",
 				'message' => 'Usia pada akhir masa pertanggungan tidak boleh melebihi '
 					. $maxEndAge . ' tahun.',
 				'data' => [
@@ -1140,11 +1140,11 @@ class PengajuanController extends Controller
 		
 		
 		if ($plafond > $maxup) {
-			Yii::$app->response->statusCode = 400;
+			Yii::$app->response->statusCode = 200;
 
 			return [
-				'status_code' => 400,
-				'error' => true,
+				'status_code' => 200,
+				'kode_response' => "08",
 				'message' => 'Platfon pada produk ini melebihi limit',
 				'data' => [
 					'Max plafond Pada Produk ini' => $maxup,
@@ -1160,8 +1160,8 @@ class PengajuanController extends Controller
 		if ($cekdokumen->approve != 'DISETUJUI') {
 			return [
 				'Result' => [
-					'status' => '400',
-					'kode_response' => '04',
+					'status_code' => 200,
+				'	kode_response' => "08",
 					'message' => 'Status Dokumen CBC belum disetujui',
 				]
 			];
@@ -1174,8 +1174,8 @@ class PengajuanController extends Controller
 		if (!$quotation) {
 			return [
 				'Result' => [
-					'status' => '400',
-					'kode_response' => '04',
+					'status_code' => 200,
+					'kode_response' => "08",
 					'message' => 'Quotation tidak ditemukan',
 				]
 			];

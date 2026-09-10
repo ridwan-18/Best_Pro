@@ -1694,270 +1694,173 @@ class DataProduksiController  extends Controller
 	
 	
 	public function actionApprovedoc($id_loan)
-{
-    Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
+	{
+		Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
 
-    try {
+		try {
 
-        // ==========================================
-        // STEP 1 - CHECK REQUEST
-        // ==========================================
-        if (!Yii::$app->request->isPost) {
+			// ==========================================
+			// STEP 1 - CHECK REQUEST
+			// ==========================================
+			if (!Yii::$app->request->isPost) {
+				return [
+					'Result' => [
+						'message' => 'Request harus POST',
+						'kode_response' => '01',
+						'status' => '405',
+					],
+				];
+			}
 
-            return [
-                'Result' => [
-                    'message' => 'Request harus POST',
-                    'kode_response' => '01',
-                    'status' => '405',
-                ],
-            ];
-        }
+			$action = Yii::$app->request->post('action');
+			$keterangan = Yii::$app->request->post('keterangan');
+			$keterangan = trim($keterangan);
 
-        $action = Yii::$app->request->post('action');
+			// ==========================================
+			// STEP 2 - CARI DOCUMENT
+			// ==========================================
+			$document = map_member_dokumen_medis::findOne([
+				'id_loan' => $id_loan,
+			]);
 
-        // ==========================================
-        // VALIDASI ACTION
-        // ==========================================
-        if (!in_array($action, ['approve', 'revisi'], true)) {
+			if (!$document) {
+				return [
+					'Result' => [
+						'message' => 'Document tidak ditemukan',
+						'kode_response' => '02',
+						'status' => '404',
+					],
+				];
+			}
+			
+			if (empty($keterangan)) { return [ 'Result' => [ 'message' => 'Keterangan wajib diisi', 'kode_response' => '04', 'status' => '400', ], ]; }
 
-            return [
-                'Result' => [
-                    'message' => 'Action tidak valid',
-                    'kode_response' => '01',
-                    'status' => '400',
-                ],
-            ];
-        }
+			// ==========================================
+			// STEP 3 - UPDATE STATUS
+			// ==========================================
+			if ($action === 'approve') 
+			{ 
+			$document->approve = 'DISETUJUI'; 
+			}
+			 elseif ($action === 'revisi')
+			 {
+			 $document->approve = 'REVISI'; 
+			}
+			 elseif ($action === 'diproses') 
+			{ 
+			$document->approve = 'DIPROSES'; 
+			}
+			 elseif ($action === 'menunggu') 
+			{ 
+			$document->approve = 'Menunggu kelengkapan dokumen'; 
+			}
+			
+			
+			$document->keterangan = $keterangan;
+			if (!$document->save(false)) {
+				return [
+					'Result' => [
+						'message' => 'Gagal menyimpan status dokumen',
+						'kode_response' => '03',
+						'status' => '500',
+					],
+				];
+			}
 
-
-        // ==========================================
-        // STEP 2 - CARI DOCUMENT
-        // ==========================================
-        $document = map_member_dokumen_medis::findOne([
-            'id_loan' => $id_loan,
-        ]);
-
-        if (!$document) {
-
-            return [
-                'Result' => [
-                    'message' => 'Document tidak ditemukan',
-                    'kode_response' => '02',
-                    'status' => '404',
-                ],
-            ];
-        }
-
-
-        // ==========================================
-        // STEP 3 - UPDATE STATUS
-        // ==========================================
-        if ($action === 'approve') {
-
-            $document->approve = 'DISETUJUI';
-
-        } else {
-
-            $document->approve = 'REVISI';
-        }
-
-
-        if (!$document->save(false)) {
-
-            return [
-                'Result' => [
-                    'message' => 'Gagal menyimpan status dokumen',
-                    'kode_response' => '03',
-                    'status' => '500',
-                ],
-            ];
-        }
+			$model = member::findOne([
+				'id_loan' => $id_loan,
+			]);
 
 
-        // ==========================================
-        // STEP 4 - CARI MEMBER
-        // ==========================================
-        $model = member::findOne([
-            'id_loan' => $id_loan,
-        ]);
+			$loginResponse = $model->callAPIPostMemberLoginRiau();
 
-        if (!$model) {
+			// DEBUG LOGIN
+			if (empty($loginResponse['token'])) {
 
-            return [
-                'Result' => [
-                    'message' => 'Data member tidak ditemukan',
-                    'kode_response' => '04',
-                    'status' => '404',
-                ],
-            ];
-        }
+				return [
+					'Result' => [
+						'message' => 'Token Bank tidak didapat',
+						'kode_response' => '04',
+						'status' => '401',
+					],
 
+					'debug' => [
+						'login_response' => $loginResponse,
+					],
+				];
+			}
 
-        // ==========================================
-        // STEP 5 - LOGIN BANK
-        // ==========================================
-        $loginResponse = $model->callAPIPostMemberLoginRiau();
+			$token = $loginResponse['token'];
 
+			$apiResponse = $model->callAPIPostConfirmationDocumentRiau(
+				$token,
+				$model,
+				$document
+			);
+			
+			echo '<pre>';
+print_r($apiResponse);
+echo '</pre>';
+exit;
 
-        // ==========================================
-        // DEBUG LOGIN
-        // ==========================================
-        Yii::error(
-            "===== APPROVEDOC LOGIN BANK =====\n" .
-            print_r($loginResponse, true),
-            'api'
-        );
+			if (
+				isset($apiResponse['response']['Result'])
+			) {
 
+				return [
+					'Result' => [
+						'message' =>
+							$apiResponse['response']['Result']['message']
+							?? 'Response Bank',
 
-        // ==========================================
-        // CHECK TOKEN
-        // ==========================================
-        if (
-            !is_array($loginResponse) ||
-            empty($loginResponse['token'])
-        ) {
+						'kode_response' =>
+							$apiResponse['response']['Result']['kode_response']
+							?? '00',
 
-            return [
-                'Result' => [
-                    'message' => 'Token Bank tidak didapat',
-                    'kode_response' => '04',
-                    'status' => '401',
-                ],
+						'status' =>
+							$apiResponse['response']['Result']['status']
+							?? '500',
+					],
 
-                'debug' => [
-                    'http_code' => $loginResponse['http_code'] ?? null,
-                    'curl_error' => $loginResponse['curl_error'] ?? null,
-                    'kode' => $loginResponse['kode'] ?? null,
-                    'pesan' => $loginResponse['pesan'] ?? null,
-                    'body' => $loginResponse['body'] ?? null,
-                ],
-            ];
-        }
+					'debug' => [
+						'payload' => $apiResponse['payload'] ?? null,
+						'http_code' => $apiResponse['http_code'] ?? null,
+						'body' => $apiResponse['body'] ?? null,
+					],
+				];
+			}
+	
+			return [
+				'Result' => [
+					'message' => 'Bank tidak memberikan response Result',
+					'kode_response' => '07',
+					'status' => '500',
+				],
 
+				'debug' => [
+					'api_response' => $apiResponse,
+				],
+			];
 
-        $token = $loginResponse['token'];
+		} catch (\Throwable $e) {
 
+			Yii::error(
+				'Approvedoc Error: ' .
+				$e->getMessage() .
+				"\n" .
+				$e->getTraceAsString(),
+				'api'
+			);
 
-        // ==========================================
-        // STEP 6 - CALLBACK BANK
-        // ==========================================
-        $apiResponse = $model->callAPIPostConfirmationDocumentRiau(
-            $token,
-            $model,
-            $document
-        );
-
-
-        // ==========================================
-        // DEBUG CALLBACK
-        // JANGAN echo / print_r ke browser
-        // ==========================================
-        Yii::error(
-            "===== DEBUG APPROVE DOCUMENT =====\n" .
-            print_r($apiResponse, true),
-            'api'
-        );
-
-
-        // ==========================================
-        // STEP 7 - CHECK CURL ERROR
-        // ==========================================
-        if (
-            isset($apiResponse['success']) &&
-            $apiResponse['success'] === false &&
-            !empty($apiResponse['curl_error'])
-        ) {
-
-            return [
-                'Result' => [
-                    'message' => 'Gagal menghubungi Bank: ' .
-                        $apiResponse['curl_error'],
-                    'kode_response' => '05',
-                    'status' => '500',
-                ],
-
-                'debug' => [
-                    'http_code' => $apiResponse['http_code'] ?? null,
-                    'curl_errno' => $apiResponse['curl_errno'] ?? null,
-                    'curl_error' => $apiResponse['curl_error'] ?? null,
-                ],
-            ];
-        }
-
-
-        // ==========================================
-        // STEP 8 - RESPONSE BANK
-        // ==========================================
-        if (
-            isset($apiResponse['response']) &&
-            is_array($apiResponse['response']) &&
-            isset($apiResponse['response']['Result'])
-        ) {
-
-            $bankResult = $apiResponse['response']['Result'];
-
-            return [
-                'Result' => [
-                    'message' =>
-                        $bankResult['message']
-                        ?? 'Response Bank',
-
-                    'kode_response' =>
-                        $bankResult['kode_response']
-                        ?? '00',
-
-                    'status' =>
-                        $bankResult['status']
-                        ?? '500',
-                ],
-
-                'debug' => [
-                    'payload' => $apiResponse['payload'] ?? null,
-                    'http_code' => $apiResponse['http_code'] ?? null,
-                    'body' => $apiResponse['body'] ?? null,
-                ],
-            ];
-        }
-
-
-        // ==========================================
-        // STEP 9 - BANK TIDAK MEMBERIKAN RESULT
-        // ==========================================
-        return [
-            'Result' => [
-                'message' => 'Bank tidak memberikan response Result',
-                'kode_response' => '07',
-                'status' => '500',
-            ],
-
-            'debug' => [
-                'api_response' => $apiResponse,
-            ],
-        ];
-
-
-    } catch (\Throwable $e) {
-
-        // ==========================================
-        // CATCH ERROR
-        // ==========================================
-        Yii::error(
-            'Approvedoc Error: ' .
-            $e->getMessage() .
-            "\n" .
-            $e->getTraceAsString(),
-            'api'
-        );
-
-        return [
-            'Result' => [
-                'message' => $e->getMessage(),
-                'kode_response' => '99',
-                'status' => '500',
-            ],
-        ];
-    }
-}
+			return [
+				'Result' => [
+					'message' => $e->getMessage(),
+					'kode_response' => '99',
+					'status' => '500',
+				],
+			];
+		}
+	}
 
 
 
