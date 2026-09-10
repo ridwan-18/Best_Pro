@@ -236,12 +236,12 @@ class CalculateController extends Controller
 		);
 
 		if (!$tanggalLahirFormatted) {
-			Yii::$app->response->statusCode = 400;
+			Yii::$app->response->statusCode = 200;
 
 			return [
 				'Result' => [
-					'status' => '400',
-					'kode_response' => '02',
+					'status' => '200',
+					'kode_response' => '08',
 					'message' => 'Format tgl_lahir tidak valid. Gunakan YYYYMMDD.'
 				]
 			];
@@ -254,33 +254,45 @@ class CalculateController extends Controller
 		// } else {
 			// $produk = 'pegawai aktif';
 		// }
+		$tahunLahir = (int) substr($tanggalLahir, 0, 4);
+		$tahunSekarang = (int) date('Y');
 
-		$policybyproduk = Policy::findOne([
-			'produk_code' => $pekerjaan,
-		]);
-
-		if ($policybyproduk === null) {
-			Yii::$app->response->statusCode = 400;
+		if ($tahunLahir >= $tahunSekarang) {
+			Yii::$app->response->statusCode = 200;
 
 			return [
-				'Result' => [
-					'status' => '400',
-					'kode_response' => '03',
-					'message' => 'Produk/policy tidak ditemukan.'
-				]
+				'status_code' => 200,
+				'kode_response' => "08",
+				'message' => 'Tahun Lahir tidak boleh tahun ini',
 			];
 		}
+		
+		
+		$policybyproduk =
+			Policy::findOne([
+				'produk_code' =>
+					$pekerjaan,
+			]);
+
+		if (!$policybyproduk) {
+
+			return [
+				'status' => 200,
+				'kode_response' => "08",
+				'message' => 'Data Pekerjaan tidak di temukan',
+			];
+		}
+		
 		$quotation = Quotation::findOne([
 			'id' => $policybyproduk->quotation_id,
 		]);
 
-		if ($quotation === null) {
-			Yii::$app->response->statusCode = 400;
-
+		if (!$quotation) {
+			Yii::$app->response->statusCode = 200;
 			return [
 				'Result' => [
-					'status' => '400',
-					'kode_response' => '03',
+					'status' => 200,
+					'kode_response' => "08",
 					'message' => 'Quotation tidak ditemukan.'
 				]
 			];
@@ -291,6 +303,100 @@ class CalculateController extends Controller
 			$tanggalLahir,
 			date('Y-m-d')
 		);
+		
+		
+		
+		
+		$quotationtc = QuotationTc::findOne([
+			'quotation_id' => $policybyproduk->quotation_id,
+		]);
+
+		if (!$quotationtc) {
+			Yii::$app->response->statusCode = 200;
+
+			return [
+				'status' => 200,
+				'kode_response' => "08",
+				'message' => 'Data ketentuan usia untuk quotation tidak ditemukan.'
+				
+			];
+		}
+
+		$termYear = $tenor / 12;
+
+		$endAge = $age + $termYear;
+
+		// Batas usia akhir dari tabel quotation_tc
+		$maxEndAge = (int) $quotationtc->age_term;
+		$minAge = (int) $quotationtc->min_age;
+		$maxup =  $quotationtc->max_si;
+
+
+		if ($age < $minAge) {
+			Yii::$app->response->statusCode = 200;
+
+			return [
+				'status_code' => 200,
+				'kode_response' => "08",
+				'message' => 'Usia peserta tidak memenuhi batas minimum.',
+				'data' => [
+					'usia_sekarang' => $age,
+					'minimal_usia' => $minAge,
+				]
+			];
+		}
+
+		$maxEntryAge = (int) $quotationtc->max_age;
+
+		if ($age > $maxEntryAge) {
+			Yii::$app->response->statusCode = 200;
+
+			return [
+				'status' => 200,
+				'kode_response' => "08",
+				'message' => 'Usia peserta melebihi batas usia masuk.',
+				'data' => [
+					'maksimal_usia_masuk' => $maxEntryAge,
+					'usia_akhir_maksimal' => $maxEndAge,
+				]
+			];
+		}
+
+		if ($endAge > $maxEndAge) {
+			Yii::$app->response->statusCode = 200;
+
+			return [
+				'status' => 200,
+				'kode_response' => "08",
+				'message' => 'Usia pada akhir masa pertanggungan tidak boleh melebihi '
+					. $maxEndAge . ' tahun.',
+				'data' => [
+					'tenor_bulan' => $tenor,
+					'tenor_tahun' => $termYear,
+					'usia_akhir' => $endAge,
+					'maksimal_usia_akhir' => $maxEndAge,
+				]
+			];
+		}
+		
+		
+		if ($uangPertanggungan > $maxup) {
+			Yii::$app->response->statusCode = 200;
+
+			return [
+				'status' => 200,
+				'kode_response' => "08",
+				'message' => 'Platfon pada produk ini melebihi ketentuan',
+				'data' => [
+					'Max plafond Pada Produk ini' => $maxup,
+					
+				]
+			];
+		}
+		
+		
+		
+		
 		
 		$quotationUwLimit = QuotationUwLimit::find()
 						->where(['quotation_id' => $policybyproduk->quotation_id])
