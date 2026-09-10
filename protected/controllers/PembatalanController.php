@@ -742,9 +742,6 @@ class PembatalanController extends Controller
 
 		$request = Yii::$app->request->post();
 
-		// ==============================
-		// Ambil payload
-		// ==============================
 		$id_transaksi     = $request['id_transaksi'] ?? null;
 		$id_pengajuan     = $request['id_pengajuan'] ?? null;
 		$id_pengajuan_cbc = $request['id_pengajuan_cbc'] ?? null;
@@ -772,7 +769,7 @@ class PembatalanController extends Controller
 		}
 
 		$member = member::findOne([
-			'id_loan' => $id_transaksi
+			'id_pengajuan' => $id_pengajuan
 		]);
 
 		if (empty($member)) {
@@ -788,13 +785,25 @@ class PembatalanController extends Controller
 			];
 		}
 		
+		if ($member->ktp !=$ktp ) {
+
+			Yii::$app->response->statusCode = 200;
+
+			return [
+				'Result' => [
+					'status' => '200',
+					'kode_response' => '89',
+					'message' => ' No KTP tidak sesuai'
+				]
+			];
+		}
+		
+		
 		
 		$member_cancel = member::findOne([
-			'id_loan' => $id_transaksi,
+			'id_pengajuan' => $id_pengajuan,
 			'status' => 'cancel'
 		]);
-		
-		// var_dump($member_cancel);
 
 		if ($member_cancel != null) {
 
