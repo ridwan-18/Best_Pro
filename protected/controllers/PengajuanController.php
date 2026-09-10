@@ -46,6 +46,7 @@ use app\models\claim_banding;
 use app\models\User;
 use app\models\Restitusi;
 use app\models\claim_riau;
+use app\models\map_member_dokumen_medis;
 
 
 require_once __DIR__ . '/fpdf.php';
@@ -1026,17 +1027,139 @@ class PengajuanController extends Controller
 		}
 
 		// $produk = 'non pegawai';
+		
+		$tahunLahir = (int) substr($tglLahirRaw, 0, 4);
+		$tahunSekarang = (int) date('Y');
+
+		if ($tahunLahir >= $tahunSekarang) {
+			Yii::$app->response->statusCode = 400;
+
+			return [
+				'status_code' => 400,
+				'error' => true,
+				'message' => 'Tahun Lahir tidak boleh tahun ini',
+			];
+		}
+		
 
 		$policybyproduk = Policy::findOne([
 			'produk_code' => $pekerjaan,
 		]);
-			// var_dump($quotationUwLimit);
+	
+	
+		//kondisi kode pekerjaan
 		if (!$policybyproduk) {
 			return [
 				'Result' => [
 					'status' => '400',
 					'kode_response' => '03',
-					'message' => 'Policy produk tidak ditemukan',
+					'message' => 'Data Pekerjaan tidak di temukan',
+				]
+			];
+		}
+		
+		
+			// validate usia + masa & UP
+			
+		$quotationtc = QuotationTc::findOne([
+			'quotation_id' => $policybyproduk->quotation_id,
+		]);
+
+		if (!$quotationtc) {
+			Yii::$app->response->statusCode = 400;
+
+			return [
+				'status_code' => 400,
+				'error' => true,
+				'message' => 'Data ketentuan usia untuk quotation tidak ditemukan.',
+				'data' => [
+					'quotation_id' => $policybyproduk->quotation_id,
+				]
+			];
+		}
+
+		$termYear = $tenorPertanggungan / 12;
+
+		$endAge = $age + $termYear;
+
+		// Batas usia akhir dari tabel quotation_tc
+		$maxEndAge = (int) $quotationtc->age_term;
+		$minAge = (int) $quotationtc->min_age;
+		$maxup =  $quotationtc->max_si;
+
+
+		if ($age < $minAge) {
+			Yii::$app->response->statusCode = 400;
+
+			return [
+				'status_code' => 400,
+				'error' => true,
+				'message' => 'Usia peserta tidak memenuhi batas minimum.',
+				'data' => [
+					'usia_sekarang' => $age,
+					'minimal_usia' => $minAge,
+				]
+			];
+		}
+
+		$maxEntryAge = (int) $quotationtc->max_age;
+
+		if ($age > $maxEntryAge) {
+			Yii::$app->response->statusCode = 400;
+
+			return [
+				'status_code' => 400,
+				'error' => true,
+				'message' => 'Usia peserta melebihi batas usia masuk.',
+				'data' => [
+					'maksimal_usia_masuk' => $maxEntryAge,
+					'usia_akhir_maksimal' => $maxEndAge,
+				]
+			];
+		}
+
+		if ($endAge > $maxEndAge) {
+			Yii::$app->response->statusCode = 400;
+
+			return [
+				'status_code' => 400,
+				'error' => true,
+				'message' => 'Usia pada akhir masa pertanggungan tidak boleh melebihi '
+					. $maxEndAge . ' tahun.',
+				'data' => [
+					'tenor_bulan' => $tenorPertanggungan,
+					'tenor_tahun' => $termYear,
+					'usia_akhir' => $endAge,
+					'maksimal_usia_akhir' => $maxEndAge,
+				]
+			];
+		}
+		
+		
+		if ($plafond > $maxup) {
+			Yii::$app->response->statusCode = 400;
+
+			return [
+				'status_code' => 400,
+				'error' => true,
+				'message' => 'Platfon pada produk ini melebihi limit',
+				'data' => [
+					'Max plafond Pada Produk ini' => $maxup,
+					
+				]
+			];
+		}
+		
+		$cekdokumen = map_member_dokumen_medis::findOne([
+			'id_loan' => $idTransaksi,
+		]);
+
+		if ($cekdokumen->approve != 'SETUJU') {
+			return [
+				'Result' => [
+					'status' => '400',
+					'kode_response' => '04',
+					'message' => 'Status Dokumen CBC belum disetujui',
 				]
 			];
 		}
@@ -1179,6 +1302,19 @@ class PengajuanController extends Controller
 						'status' => '200',
 						'kode_response' => '89',
 						'message' => 'Peserta tidak ditemukan'
+					]
+				];
+			}
+			
+			if ($nominalPremi != $member->gross_premium) {
+
+				Yii::$app->response->statusCode = 200;
+
+				return [
+					'Result' => [
+						'status' => '200',
+						'kode_response' => '89',
+						'message' => 'Premi Tidak sesuai'
 					]
 				];
 			}
