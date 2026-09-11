@@ -1069,7 +1069,6 @@ class PengajuanController extends Controller
 			];
 		}
 		
-		
 			// validate usia + masa & UP
 			
 		$quotationtc = QuotationTc::findOne([
