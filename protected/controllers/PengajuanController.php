@@ -701,10 +701,13 @@ class PengajuanController extends Controller
 		
 		$fileNik = $ktp;
 
-		$fileTanggal = date(
-			'dmy',
-			strtotime($tglBuka)
-		);
+		$fileTanggal = '010926';
+		
+		
+		// $fileTanggal = date(
+			// 'dmy',
+			// strtotime($tglBuka)
+		// );
 
 		$codeDoc = '001';
 
