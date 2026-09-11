@@ -54,6 +54,7 @@ class DataProduksiController  extends Controller
 			]
 		);
 	}
+	
 
 	/**
 	 * Lists all Member models.
