@@ -800,7 +800,7 @@ $this->title = 'View Member - ' . Yii::$app->name;
 							</td>
 
                                 <td>
-                                    <?= Html::encode($cd['approve']); ?>
+                                    <?= Html::encode($cd['keterangan']); ?>
                                 </td>
 
                             </tr>
