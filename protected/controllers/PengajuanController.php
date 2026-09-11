@@ -826,90 +826,98 @@ class PengajuanController extends Controller
 			]);
 
 
-		$sftpResult =
-			$this->downloadFileFromBankSftp(
-				$fileName
+		$sftpResult = $this->downloadFileFromBankSftp($fileName);
+
+		// =====================================================
+		// Tetap simpan mapping dokumen meskipun file belum ada
+		// =====================================================
+
+		$dokumenMedis = new \app\models\map_member_dokumen_medis();
+
+		$dokumenMedis->id_loan = $idTransaksi;
+		$dokumenMedis->kode_dokumen = $codeDoc;
+
+		// Jika SFTP berhasil, simpan nama file.
+		// Jika belum tersedia, kosongkan.
+		$dokumenMedis->files = !empty($sftpResult['success'])
+			? $sftpResult['file_name']
+			: null;
+
+		$dokumenMedis->approve = '';
+		$dokumenMedis->jenis_dokumen = 'Pengajuan';
+		$dokumenMedis->created_at = date('Y-m-d H:i:s');
+		$dokumenMedis->created_by = 1;
+
+		if (!$dokumenMedis->save()) {
+
+			Yii::error(
+				'Gagal menyimpan mapping dokumen CBC: ' .
+				json_encode($dokumenMedis->errors),
+				'cbc-sftp'
 			);
-
-
-		if (!$sftpResult['success']) {
 
 			return [
 				'Result' => [
 					'status' => '200',
 					'kode_response' => '00',
-					'message' =>
-						'Pengajuan berhasil, dokumen belum tersedia di SFTP Bank',
+					'message' => 'Pengajuan berhasil, tetapi mapping dokumen gagal disimpan',
 					'status_dokumen' => 0,
 					'premi_disetujui' => $nettPremium,
 					'coverage' => (string)$coverage,
-					'keterangan' =>
-						$sftpResult['message'],
+					'keterangan' => json_encode($dokumenMedis->errors),
 				]
 			];
 		}
-		
-		
-		$dokumenMedis = new \app\models\map_member_dokumen_medis(); 
-		$dokumenMedis->id_loan =$idTransaksi; 
-		$dokumenMedis->kode_dokumen = $codeDoc; 
-		$dokumenMedis->files = $sftpResult['file_name']; 
-		$dokumenMedis->approve = ''; 
-		// $dokumenMedis->nomor_transaksi = $idTransaksi;
-		$dokumenMedis->jenis_dokumen = 'Pengajuan';
-		$dokumenMedis->created_at = date('Y-m-d H:i:s');
-		$dokumenMedis->created_by = 1;
-		
-		if (!$dokumenMedis->save()) {
-			Yii::error( 'Gagal menyimpan mapping dokumen CBC: ' . 
-			json_encode (
-			$dokumenMedis->errors ), 
-			'cbc-sftp' );
 
-		return [ 
-		'Result' => [ 'status' => '200',
-		'kode_response' => '00',
-		'message' => 'Pengajuan berhasil, tetapi dokumen gagal disimpan', 
-		'status_dokumen' => 0, 
-		'premi_disetujui' => $nettPremium, 
-		'coverage' => (string)$coverage,
-		'keterangan' => json_encode( $dokumenMedis->errors ),
-		]
-		];
+
+		// =====================================================
+		// Kondisi 1: Dokumen belum tersedia di SFTP
+		// =====================================================
+
+		if (!$sftpResult['success']) {
+
+			Yii::info(
+				'Mapping dokumen berhasil disimpan, tetapi file belum tersedia di SFTP. ' .
+				'id_loan=' . $idTransaksi .
+				', kode_dokumen=' . $codeDoc,
+				'cbc-sftp'
+			);
+
+			return [
+				'Result' => [
+					'status' => '200',
+					'kode_response' => '00',
+					'message' => 'Pengajuan berhasil, dokumen belum tersedia di SFTP Bank',
+					'status_dokumen' => 0,
+					'premi_disetujui' => $nettPremium,
+					'coverage' => (string)$coverage,
+					'keterangan' => $sftpResult['message'],
+				]
+			];
 		}
-		
-				
-		Yii::info( 
-		'Mapping dokumen CBC berhasil disimpan. ' . 
-		'id_loan=' .
-		$idTransaksi . 
-		', kode_dokumen=' . $codeDoc . 
-		', file=' . $sftpResult['local_path'],
-		'cbc-sftp' );		
+
+
+		// =====================================================
+		// Kondisi 2: Dokumen tersedia di SFTP
+		// =====================================================
+
+		Yii::info(
+			'Mapping dokumen CBC berhasil disimpan. ' .
+			'id_loan=' . $idTransaksi .
+			', kode_dokumen=' . $codeDoc .
+			', file=' . $sftpResult['local_path'],
+			'cbc-sftp'
+		);
 
 		return [
 			'Result' => [
 				'status' => '200',
 				'kode_response' => '00',
-				'message' =>
-					'Berhasil kirim pengajuan dokumen CBC',
+				'message' => 'Berhasil kirim pengajuan dokumen CBC',
 				'status_dokumen' => 1,
 				'premi_disetujui' => $nettPremium,
 				'coverage' => (string)$coverage,
-				'keterangan' => 
-				json_encode( $dokumenMedis->errors ),
-
-
-				// 'dokumen' => [
-					// 'file_name' =>
-						// $sftpResult['file_name'],
-
-					// 'local_path' =>
-						// $sftpResult['local_path'],
-
-					// 'remote_path' =>
-						// $sftpResult['remote_path'],
-				// ]
+				'keterangan' => 'Dokumen berhasil di-download dan mapping berhasil disimpan',
 			]
 		];
 	}

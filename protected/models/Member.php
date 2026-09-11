@@ -1173,7 +1173,7 @@ class Member extends \yii\db\ActiveRecord
 			'kode_broker'       => $model->kode_broker,
 			'nama'              => $model->nama,
 			'ktp'               => $model->ktp,
-			'status_dokumen' => ($document->approve === 'PROSES') ? '1' : (($document->approve === 'DISETUJUI') ? '2' : (($document->approve === 'DITOLAK') ? '3' : (($document->approve === 'MENUNGGU_KELENGKAPAN') ? '4' : '1'))),
+			'status_dokumen' => ($document->approve === 'PROSES') ? '1' : (($document->approve === 'DISETUJUI') ? '2' : (($document->approve === 'DITOLAK') ? '3' : (($document->approve === 'Menunggu kelengkapan dokumen') ? '4' : '1'))),
 			'premi_disetujui'   => $model->gross_premium,
 			'keterangan'        => $document->keterangan,
 			'benefit'           => $model->benefit,
