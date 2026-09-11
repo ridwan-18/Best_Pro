@@ -434,8 +434,8 @@ class PengajuanController extends Controller
 		if (!$policybyproduk) {
 			return [
 				'Result' => [
-					'status' => '400',
-					'kode_response' => '03',
+					'status' => '200',
+					'kode_response' => '08',
 					'message' => 'Data Pekerjaan tidak di temukan',
 				]
 			];
@@ -452,7 +452,7 @@ class PengajuanController extends Controller
 
 			return [
 				'status_code' => 200,
-				'kode_response' => '03',
+				'kode_response' => '08',
 				'message' => 'Data ketentuan usia untuk quotation tidak ditemukan.',
 				'data' => [
 					'quotation_id' => $policybyproduk->quotation_id,
@@ -475,7 +475,7 @@ class PengajuanController extends Controller
 
 			return [
 				'status_code' => 200,
-				'kode_response' => '03',
+				'kode_response' => '08',
 				'message' => 'Usia peserta tidak memenuhi batas minimum.',
 				'data' => [
 					'usia_sekarang' => $age,
@@ -491,7 +491,7 @@ class PengajuanController extends Controller
 
 			return [
 				'status_code' => 200,
-				'kode_response' => '03',
+				'kode_response' => '08',
 				'message' => 'Usia peserta melebihi batas usia masuk.',
 				'data' => [
 					'maksimal_usia_masuk' => $maxEntryAge,
@@ -505,7 +505,7 @@ class PengajuanController extends Controller
 
 			return [
 				'status_code' => 200,
-				'kode_response' => '03',
+				'kode_response' => '08',
 				'message' => 'Usia pada akhir masa pertanggungan tidak boleh melebihi '
 					. $maxEndAge . ' tahun.',
 				'data' => [
@@ -523,7 +523,7 @@ class PengajuanController extends Controller
 
 			return [
 				'status_code' => 200,
-				'kode_response' => '03',
+				'kode_response' => '08',
 				'message' => 'Platfon pada produk ini melebihi limit',
 				'data' => [
 					'Max plafond Pada Produk ini' => $maxup,
@@ -1065,7 +1065,7 @@ class PengajuanController extends Controller
 			return [
 				'Result' => [
 					'status' => '400',
-					'kode_response' => '03',
+					'kode_response' => '08',
 					'message' => 'Data Pekerjaan tidak di temukan',
 				]
 			];
