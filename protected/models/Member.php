@@ -1265,5 +1265,201 @@ class Member extends \yii\db\ActiveRecord
 			'payload'   => $payload,
 		];
 	}
+	
+	public function callAPIPostDebitur($token, $model, $document = null,$restitusi)
+	{
+		$url = '202.152.22.234:5008/callback/debitur';
+
+		if (empty($token)) {
+			throw new \Exception('Token Bank kosong');
+		}
+
+		if (!$model) {
+			throw new \Exception('Data member/debitur tidak ditemukan');
+		}
+		
+		
+		if (!$model) {
+			throw new \Exception('Data member restitusi/debitur tidak ditemukan');
+		}
+
+		$statusDokumen = '1';
+
+		if ($document) {
+
+			if ($document->approve === 'PROSES') {
+				$statusDokumen = '1';
+
+			} elseif ($document->approve === 'DISETUJUI') {
+				$statusDokumen = '2';
+
+			} elseif ($document->approve === 'DITOLAK') {
+				$statusDokumen = '3';
+
+			} elseif ($document->approve === 'MENUNGGU_KELENGKAPAN') {
+				$statusDokumen = '4';
+			}
+		}
+
+		$payload = [
+			'nama' => $model->nama,
+			'ktp'  => $model->ktp,
+
+			'benefit' => (string) $model->benefit,
+
+			'restitusi' => [
+				'id_transaksi_bank'   => $model->id_transaksi,
+				'id_pengajuan'        => $model->id_pengajuan,
+				'status_restitusi'    => (string) $restitusi->status_restitusi,
+				'tenor'               => (string) $model->term,
+				'premi'               => (string) $model->gross_premium,
+				'periode_awal'        => $model->start_date,
+				'periode_akhir'       => $model->end_date,
+				'tenor_berjalan'      => (string) $restitusi->tenor_berjalan,
+				'sisa_tenor'          => (string) $restitusi->sisa_tenor,
+				// 'status_bayar'        => (string) $restitusi->status_bayar,
+				'status_bayar'        => 1,
+				'premi_dikembalikan'  => (string) $restitusi->premi,
+				'asuransi'            => 'Reliance Life Unit Syariah',
+				'keterangan'        => $document->keterangan,
+			],
+
+			'klaim' => null,
+
+			'id_transaksi'   => $restitusi->id_transaksi,
+			'status_callback' => '1',
+			'nomor_rekening' => $restitusi->nomor_rekening,
+			'kode_broker'    => $restitusi->kode_broker,
+			'no_akad'        => $restitusi->nomor_akad,
+			'kode_cabang'    => $restitusi->kode_cabang,
+		];
+
+		$jsonData = json_encode($payload);
+
+		$ch = curl_init();
+
+		curl_setopt_array($ch, [
+			CURLOPT_URL            => $url,
+			CURLOPT_POST           => true,
+			CURLOPT_POSTFIELDS     => $jsonData,
+
+			CURLOPT_HTTPHEADER     => [
+				'Content-Type: application/json',
+				'Accept: application/json',
+				'Authorization: Bearer ' . $token,
+			],
+
+			CURLOPT_RETURNTRANSFER => true,
+			CURLOPT_CONNECTTIMEOUT => 10,
+			CURLOPT_TIMEOUT        => 30,
+			CURLOPT_HEADER         => false,
+		]);
+
+		$body = curl_exec($ch);
+
+		$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+		$curlNo   = curl_errno($ch);
+		$curlErr  = curl_error($ch);
+
+		curl_close($ch);
+
+		Yii::error(
+			"===== DEBUG CALLBACK RESTITUSI =====\n" .
+			"URL:\n" . $url . "\n\n" .
+			"HTTP CODE:\n" . $httpCode . "\n\n" .
+			"CURL ERROR:\n" . $curlErr . "\n\n" .
+			"PAYLOAD:\n" .
+			json_encode(
+				$payload,
+				JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE
+			) .
+			"\n\n" .
+			"RESPONSE RAW:\n" .
+			$body . "\n" .
+			"====================================",
+			'api'
+		);
+
+		if ($curlNo !== 0) {
+
+			return [
+				'success'    => false,
+				'http_code'  => $httpCode,
+				'curl_errno' => $curlNo,
+				'curl_error' => $curlErr,
+				'body'       => $body,
+				'payload'    => $payload,
+			];
+		}
+
+		$response = json_decode($body, true);
+
+		/*
+		 * RESPONSE BUKAN JSON
+		 */
+		if (!is_array($response)) {
+
+			return [
+				'success'    => false,
+				'http_code'  => $httpCode,
+				'body'       => $body,
+				'payload'    => $payload,
+				'json_error' => json_last_error_msg(),
+			];
+		}
+
+		/*
+		 * ==============================
+		 * CEK RESPONSE BANK
+		 * ==============================
+		 *
+		 * Response sukses:
+		 *
+		 * {
+		 *   "Result": {
+		 *       "message": "Berhasil",
+		 *       "kode_response": "00",
+		 *       "status": "200"
+		 *   }
+		 * }
+		 */
+
+		$result = isset($response['Result'])
+			? $response['Result']
+			: [];
+
+		$kodeResponse = isset($result['kode_response'])
+			? (string) $result['kode_response']
+			: null;
+
+		$statusResponse = isset($result['status'])
+			? (string) $result['status']
+			: null;
+
+		$success = (
+			$httpCode >= 200 &&
+			$httpCode < 300 &&
+			$kodeResponse === '00' &&
+			$statusResponse === '200'
+		);
+
+		/*
+		 * ==============================
+		 * RETURN
+		 * ==============================
+		 */
+		return [
+			'success'        => $success,
+			'http_code'      => $httpCode,
+			'kode_response'  => $kodeResponse,
+			'status'         => $statusResponse,
+			'message'        => isset($result['message'])
+				? $result['message']
+				: null,
+			'response'       => $response,
+			'body'           => $body,
+			'payload'        => $payload,
+		];
+	}
 
 }

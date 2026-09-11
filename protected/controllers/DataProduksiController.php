@@ -1717,12 +1717,12 @@ class DataProduksiController  extends Controller
 			$keterangan = Yii::$app->request->post('keterangan');
 			$keterangan = trim($keterangan);
 
-			// ==========================================
-			// STEP 2 - CARI DOCUMENT
-			// ==========================================
-			$document = map_member_dokumen_medis::findOne([
-				'id_loan' => $id_loan,
-			]);
+			$document = map_member_dokumen_medis::find()
+				->where([
+					'id_loan' => $id_loan,
+					'jenis_dokumen' => 'pengajuan',
+				])
+				->one();
 
 			if (!$document) {
 				return [

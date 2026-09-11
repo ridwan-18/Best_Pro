@@ -420,14 +420,24 @@ class PengajuanController extends Controller
 			]);
 
 
-		if (!$policybyproduk) {
+		// if (!$policybyproduk) {
 
+			// return [
+				// 'is_success' => 0,
+				// 'message' =>
+					// 'Policy produk tidak ditemukan',
+				// 'produk_code' =>
+					// $pekerjaan
+			// ];
+		// }
+		
+		if (!$policybyproduk) {
 			return [
-				'is_success' => 0,
-				'message' =>
-					'Policy produk tidak ditemukan',
-				'produk_code' =>
-					$pekerjaan
+				'Result' => [
+					'status' => '400',
+					'kode_response' => '03',
+					'message' => 'Data Pekerjaan tidak di temukan',
+				]
 			];
 		}
 		
@@ -438,11 +448,11 @@ class PengajuanController extends Controller
 		]);
 
 		if (!$quotationtc) {
-			Yii::$app->response->statusCode = 400;
+			Yii::$app->response->statusCode = 200;
 
 			return [
-				'status_code' => 400,
-				'error' => true,
+				'status_code' => 200,
+				'kode_response' => '03',
 				'message' => 'Data ketentuan usia untuk quotation tidak ditemukan.',
 				'data' => [
 					'quotation_id' => $policybyproduk->quotation_id,
@@ -461,11 +471,11 @@ class PengajuanController extends Controller
 
 
 		if ($age < $minAge) {
-			Yii::$app->response->statusCode = 400;
+			Yii::$app->response->statusCode = 200;
 
 			return [
-				'status_code' => 400,
-				'error' => true,
+				'status_code' => 200,
+				'kode_response' => '03',
 				'message' => 'Usia peserta tidak memenuhi batas minimum.',
 				'data' => [
 					'usia_sekarang' => $age,
@@ -477,11 +487,11 @@ class PengajuanController extends Controller
 		$maxEntryAge = (int) $quotationtc->max_age;
 
 		if ($age > $maxEntryAge) {
-			Yii::$app->response->statusCode = 400;
+			Yii::$app->response->statusCode = 200;
 
 			return [
-				'status_code' => 400,
-				'error' => true,
+				'status_code' => 200,
+				'kode_response' => '03',
 				'message' => 'Usia peserta melebihi batas usia masuk.',
 				'data' => [
 					'maksimal_usia_masuk' => $maxEntryAge,
@@ -491,11 +501,11 @@ class PengajuanController extends Controller
 		}
 
 		if ($endAge > $maxEndAge) {
-			Yii::$app->response->statusCode = 400;
+			Yii::$app->response->statusCode = 200;
 
 			return [
-				'status_code' => 400,
-				'error' => true,
+				'status_code' => 200,
+				'kode_response' => '03',
 				'message' => 'Usia pada akhir masa pertanggungan tidak boleh melebihi '
 					. $maxEndAge . ' tahun.',
 				'data' => [
@@ -509,11 +519,11 @@ class PengajuanController extends Controller
 		
 		
 		if ($plafond > $maxup) {
-			Yii::$app->response->statusCode = 400;
+			Yii::$app->response->statusCode = 200;
 
 			return [
-				'status_code' => 400,
-				'error' => true,
+				'status_code' => 200,
+				'kode_response' => '03',
 				'message' => 'Platfon pada produk ini melebihi limit',
 				'data' => [
 					'Max plafond Pada Produk ini' => $maxup,
@@ -700,10 +710,9 @@ class PengajuanController extends Controller
 			Yii::$app->db->beginTransaction();
 		
 		$fileNik = $ktp;
-
 		$fileTanggal = '010926';
-		
-		
+	
+
 		// $fileTanggal = date(
 			// 'dmy',
 			// strtotime($tglBuka)
@@ -861,8 +870,8 @@ class PengajuanController extends Controller
 		$dokumenMedis->id_loan =$idTransaksi; 
 		$dokumenMedis->kode_dokumen = $codeDoc; 
 		$dokumenMedis->files = $sftpResult['file_name']; 
-		$dokumenMedis->approve = 0; 
-		$dokumenMedis->nomor_transaksi = $idTransaksi;
+		$dokumenMedis->approve = ''; 
+		// $dokumenMedis->nomor_transaksi = $idTransaksi;
 		$dokumenMedis->jenis_dokumen = 'Pengajuan';
 		$dokumenMedis->created_at = date('Y-m-d H:i:s');
 		$dokumenMedis->created_by = 1;

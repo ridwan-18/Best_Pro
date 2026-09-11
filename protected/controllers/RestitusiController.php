@@ -1709,7 +1709,7 @@ class RestitusiController  extends Controller
 		try {
 
 			// ==========================================
-			// STEP 1 - CHECK REQUEST
+			// STEP 1 - VALIDASI METHOD
 			// ==========================================
 			if (!Yii::$app->request->isPost) {
 				return [
@@ -1721,18 +1721,61 @@ class RestitusiController  extends Controller
 				];
 			}
 
+			// ==========================================
+			// STEP 2 - INPUT
+			// ==========================================
 			$action = Yii::$app->request->post('action');
 			$keterangan = Yii::$app->request->post('keterangan');
-			$keterangan = trim($keterangan);
+
+			$keterangan = trim((string) $keterangan);
 
 			// ==========================================
-			// STEP 2 - CARI DOCUMENT
+			// STEP 3 - VALIDASI ACTION
 			// ==========================================
-			$document = map_member_dokumen_medis::findOne([
-				'id_loan' => $id_loan,
-			]);
+			$allowedAction = [
+				'approve',
+				'DITOLAK',
+				'diproses',
+				'menunggu',
+			];
 
-			if (!$document) {
+			if (!in_array($action, $allowedAction, true)) {
+				return [
+					'Result' => [
+						'message' => 'Action tidak valid',
+						'kode_response' => '05',
+						'status' => '400',
+					],
+				];
+			}
+
+			// ==========================================
+			// STEP 4 - VALIDASI KETERANGAN
+			// ==========================================
+			if (empty($keterangan)) {
+				return [
+					'Result' => [
+						'message' => 'Keterangan wajib diisi',
+						'kode_response' => '04',
+						'status' => '400',
+					],
+				];
+			}
+
+			// ==========================================
+			// STEP 5 - CARI DOCUMENT
+			// ==========================================
+			$document = map_member_dokumen_medis::find()
+				->where([
+					'id_loan' => $id_loan,
+					'jenis_dokumen' => 'restitusi',
+				])
+				->one();
+
+			// ==========================================
+			// VALIDASI DOCUMENT
+			// ==========================================
+			if ($document === null) {
 				return [
 					'Result' => [
 						'message' => 'Document tidak ditemukan',
@@ -1741,49 +1784,84 @@ class RestitusiController  extends Controller
 					],
 				];
 			}
-			
-			if (empty($keterangan)) { return [ 'Result' => [ 'message' => 'Keterangan wajib diisi', 'kode_response' => '04', 'status' => '400', ], ]; }
 
 			// ==========================================
-			// STEP 3 - UPDATE STATUS
+			// STEP 6 - UPDATE STATUS
 			// ==========================================
-			if ($action === 'approve') 
-			{ 
-			$document->approve = 'DISETUJUI'; 
+			switch ($action) {
+
+				case 'approve':
+					$document->approve = 'DISETUJUI';
+					break;
+
+				case 'DITOLAK':
+					$document->approve = 'DITOLAK';
+					break;
+
+				case 'diproses':
+					$document->approve = 'DIPROSES';
+					break;
+
+				case 'menunggu':
+					$document->approve = 'Menunggu kelengkapan dokumen';
+					break;
 			}
-			 elseif ($action === 'DITOLAK')
-			 {
-			 $document->approve = 'DITOLAK'; 
-			}
-			 elseif ($action === 'diproses') 
-			{ 
-			$document->approve = 'DIPROSES'; 
-			}
-			 elseif ($action === 'menunggu') 
-			{ 
-			$document->approve = 'Menunggu kelengkapan dokumen'; 
-			}
-			
-			
+
 			$document->keterangan = $keterangan;
+
+			// ==========================================
+			// STEP 7 - SAVE DOCUMENT
+			// ==========================================
 			if (!$document->save(false)) {
+
 				return [
 					'Result' => [
 						'message' => 'Gagal menyimpan status dokumen',
 						'kode_response' => '03',
 						'status' => '500',
 					],
+					'debug' => [
+						'errors' => $document->getErrors(),
+					],
 				];
 			}
 
+			// ==========================================
+			// STEP 8 - CARI MEMBER
+			// ==========================================
 			$model = member::findOne([
 				'id_loan' => $id_loan,
 			]);
 
+			if ($model === null) {
+				return [
+					'Result' => [
+						'message' => 'Data member tidak ditemukan',
+						'kode_response' => '06',
+						'status' => '404',
+					],
+				];
+			}
+			
+			$restitusi = Restitusi::findOne([
+				'id_transaksi' => $id_loan,
+			]);
 
+			if ($restitusi === null) {
+				return [
+					'Result' => [
+						'message' => 'Data member restitusi tidak ditemukan',
+						'kode_response' => '06',
+						'status' => '404',
+					],
+				];
+			}
+
+			// ==========================================
+			// STEP 9 - LOGIN BANK RIAU
+			// ==========================================
 			$loginResponse = $model->callAPIPostMemberLoginRiau();
 
-			// DEBUG LOGIN
 			if (empty($loginResponse['token'])) {
 
 				return [
@@ -1801,44 +1879,51 @@ class RestitusiController  extends Controller
 
 			$token = $loginResponse['token'];
 
-			$apiResponse = $model->callAPIPostConfirmationDocumentRiau(
+			// ==========================================
+			// STEP 10 - CALLBACK DEBITUR / RESTITUSI
+			// ==========================================
+			$apiResponse = $model->callAPIPostDebitur(
 				$token,
 				$model,
-				$document
+				$document,
+				$restitusi
 			);
-			
-			echo '<pre>';
-print_r($apiResponse);
-echo '</pre>';
-exit;
 
-			if (
-				isset($apiResponse['response']['Result'])
-			) {
+			// ==========================================
+			// STEP 11 - RESPONSE BANK
+			// ==========================================
+			if (isset($apiResponse['response']['Result'])) {
+
+				$result = $apiResponse['response']['Result'];
 
 				return [
 					'Result' => [
 						'message' =>
-							$apiResponse['response']['Result']['message']
-							?? 'Response Bank',
+							$result['message'] ?? 'Response Bank',
 
 						'kode_response' =>
-							$apiResponse['response']['Result']['kode_response']
-							?? '00',
+							$result['kode_response'] ?? '00',
 
 						'status' =>
-							$apiResponse['response']['Result']['status']
-							?? '500',
+							$result['status'] ?? '500',
 					],
 
 					'debug' => [
-						'payload' => $apiResponse['payload'] ?? null,
-						'http_code' => $apiResponse['http_code'] ?? null,
-						'body' => $apiResponse['body'] ?? null,
+						'payload' =>
+							$apiResponse['payload'] ?? null,
+
+						'http_code' =>
+							$apiResponse['http_code'] ?? null,
+
+						'body' =>
+							$apiResponse['body'] ?? null,
 					],
 				];
 			}
-	
+
+			// ==========================================
+			// BANK TIDAK MEMBERIKAN RESULT
+			// ==========================================
 			return [
 				'Result' => [
 					'message' => 'Bank tidak memberikan response Result',
