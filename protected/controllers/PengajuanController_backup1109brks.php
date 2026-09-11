@@ -694,13 +694,13 @@ class PengajuanController extends Controller
 			Yii::$app->db->beginTransaction();
 		
 		$fileNik = $ktp;
-		// $fileTanggal = '010926';
+		$fileTanggal = '010926';
 	
 
-		$fileTanggal = date(
-			'dmy',
-			strtotime($tglBuka)
-		);
+		// $fileTanggal = date(
+			// 'dmy',
+			// strtotime($tglBuka)
+		// );
 
 		$codeDoc = '001';
 
