@@ -747,61 +747,72 @@ class PengajuanController extends Controller
 					)
 				);
 			}
+			
+			$check_member = Member::findOne([
+					'id_pengajuan' => $idPengajuan
+				]);
 
-			$member =new Member();
-			$member->policy_no = $policybyproduk->policy_no;
-			$member->batch_no =$batchNo;
-			$member->member_no =$memberNo;
-			$member->personal_no =$personalNo;
-			$member->age =$age;
-			$member->term =$tenor;
-			$member->start_date =$tglBuka;
-			$member->end_date =$tglAkhir;
-			$member->sum_insured =$plafond;
-			$member->total_si =$plafond;
-			$member->total_premium =$nettPremium;
-			$member->rate_premi =$ratePolis->rate;
-			$member->gross_premium =$nettPremium;
-			$member->basic_premium =$nettPremium;
-			$member->nett_premium =$nettPremium;
-			$member->medical_code =$medicalCode;
-			$member->status =Member::MEMBER_STATUS_PENDING;
-			$member->member_status =Member::MEMBER_STATUS_PENDING;
-			$member->created_at =date('Y-m-d H:i:s');
-			$member->created_by =$this->createdBy;
-			$member->contract_date =$tglBuka;
-			$member->produk =$policybyproduk->produk;
-			$member->id_loan =$idTransaksi;
-			$member->status_uw =$medicalCode;
-			$member->no_ktp =$ktp;
-			$member->pekerjaan =$pekerjaan;
-			$member->id_transaksi =$idTransaksi;
-			$member->id_pengajuan =$idPengajuan;
-			$member->kode_broker =$kodeBroker;
-			$member->kode_cabang =$kodeCabang;
-			$member->nama =$nama;
-			$member->ktp =$ktp;
-			$member->jenis_kelamin =$jenisKelamin;
-			$member->tgl_lahir =$tglLahir;
-			$member->tgl_buka =$tglBuka;
-			$member->tenor =$tenor;
-			$member->jenis_pembiayaan =$jenisPembiayaan;
-			$member->benefit =$benefit;
-			$member->benefit_pembiayaan =$benefitPembiayaan;
-			$member->coverage =$coverage;
-			$member->polis_jiwa =$polisJiwaJson;
+				// Jika belum ada, buat data baru
+				if ($check_member === null) {
+					$member = new Member();
+					$member->id_pengajuan = $idPengajuan;
+					$member->created_at = date('Y-m-d H:i:s');
+					$member->created_by = $this->createdBy;
+				} else {
+					// Jika sudah ada, update data yang sudah ada
+					$member = $check_member;
+				}
 
+				// Isi / update data member
+				$member->policy_no = $policybyproduk->policy_no;
+				$member->batch_no = $batchNo;
+				$member->member_no = $memberNo;
+				$member->personal_no = $personalNo;
+				$member->age = $age;
+				$member->term = $tenor;
+				$member->start_date = $tglBuka;
+				$member->end_date = $tglAkhir;
+				$member->sum_insured = $plafond;
+				$member->total_si = $plafond;
+				$member->total_premium = $nettPremium;
+				$member->rate_premi = $ratePolis->rate;
+				$member->gross_premium = $nettPremium;
+				$member->basic_premium = $nettPremium;
+				$member->nett_premium = $nettPremium;
+				$member->medical_code = $medicalCode;
+				$member->status = Member::MEMBER_STATUS_PENDING;
+				$member->member_status = Member::MEMBER_STATUS_PENDING;
+				$member->contract_date = $tglBuka;
+				$member->produk = $policybyproduk->produk;
+				$member->id_loan = $idPengajuan;
+				$member->status_uw = $medicalCode;
+				$member->no_ktp = $ktp;
+				$member->pekerjaan = $pekerjaan;
+				$member->id_transaksi = $idTransaksi;
+				$member->kode_broker = $kodeBroker;
+				$member->kode_cabang = $kodeCabang;
+				$member->nama = $nama;
+				$member->ktp = $ktp;
+				$member->jenis_kelamin = $jenisKelamin;
+				$member->tgl_lahir = $tglLahir;
+				$member->tgl_buka = $tglBuka;
+				$member->tenor = $tenor;
+				$member->jenis_pembiayaan = $jenisPembiayaan;
+				$member->benefit = $benefit;
+				$member->benefit_pembiayaan = $benefitPembiayaan;
+				$member->coverage = $coverage;
+				$member->polis_jiwa = $polisJiwaJson;
 
-			if (!$member->save()) {
+				// Save: INSERT jika baru, UPDATE jika sudah ada
+				if (!$member->save()) {
 
-				throw new \Exception(
-					'Gagal insert Member: ' .
-					json_encode(
-						$member->errors
-					)
-				);
-			}
-			$transaction->commit();
+					throw new \Exception(
+						($check_member === null ? 'Gagal insert Member: ' : 'Gagal update Member: ') .
+						json_encode($member->errors)
+					);
+}
+
+$transaction->commit();
 		} catch (\Exception $e) {
 
 			$transaction->rollBack();
@@ -828,17 +839,10 @@ class PengajuanController extends Controller
 
 		$sftpResult = $this->downloadFileFromBankSftp($fileName);
 
-		// =====================================================
-		// Tetap simpan mapping dokumen meskipun file belum ada
-		// =====================================================
-
 		$dokumenMedis = new \app\models\map_member_dokumen_medis();
 
-		$dokumenMedis->id_loan = $idTransaksi;
+		$dokumenMedis->id_loan = $idPengajuan;
 		$dokumenMedis->kode_dokumen = $codeDoc;
-
-		// Jika SFTP berhasil, simpan nama file.
-		// Jika belum tersedia, kosongkan.
 		$dokumenMedis->files = !empty($sftpResult['success'])
 			? $sftpResult['file_name']
 			: null;
@@ -870,10 +874,6 @@ class PengajuanController extends Controller
 		}
 
 
-		// =====================================================
-		// Kondisi 1: Dokumen belum tersedia di SFTP
-		// =====================================================
-
 		if (!$sftpResult['success']) {
 
 			Yii::info(
@@ -895,11 +895,6 @@ class PengajuanController extends Controller
 				]
 			];
 		}
-
-
-		// =====================================================
-		// Kondisi 2: Dokumen tersedia di SFTP
-		// =====================================================
 
 		Yii::info(
 			'Mapping dokumen CBC berhasil disimpan. ' .
@@ -4210,7 +4205,7 @@ if (file_exists($zipPath)) {
 	}
 
 	
-			public function actionSubmitRestitusi()
+	public function actionSubmitRestitusi()
 		{
 		Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
 
