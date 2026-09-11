@@ -476,12 +476,14 @@ class PengajuanController extends Controller
 			Yii::$app->response->statusCode = 200;
 
 			return [
+			'Result' => [
 				'status_code' => 200,
 				'kode_response' => '08',
 				'message' => 'Usia peserta tidak memenuhi batas minimum.',
 				'data' => [
 					'usia_sekarang' => $age,
 					'minimal_usia' => $minAge,
+				]
 				]
 			];
 		}
@@ -492,12 +494,14 @@ class PengajuanController extends Controller
 			Yii::$app->response->statusCode = 200;
 
 			return [
+			'Result' => [
 				'status_code' => 200,
 				'kode_response' => '08',
 				'message' => 'Usia peserta melebihi batas usia masuk.',
 				'data' => [
 					'maksimal_usia_masuk' => $maxEntryAge,
 					'usia_akhir_maksimal' => $maxEndAge,
+				]
 				]
 			];
 		}
@@ -506,6 +510,7 @@ class PengajuanController extends Controller
 			Yii::$app->response->statusCode = 200;
 
 			return [
+			'Result' => [
 				'status_code' => 200,
 				'kode_response' => '08',
 				'message' => 'Usia pada akhir masa pertanggungan tidak boleh melebihi '
@@ -516,6 +521,7 @@ class PengajuanController extends Controller
 					'usia_akhir' => $endAge,
 					'maksimal_usia_akhir' => $maxEndAge,
 				]
+				]
 			];
 		}
 		
@@ -524,12 +530,14 @@ class PengajuanController extends Controller
 			Yii::$app->response->statusCode = 200;
 
 			return [
+			'Result' => [
 				'status_code' => 200,
 				'kode_response' => '08',
 				'message' => 'Platfon pada produk ini melebihi limit',
 				'data' => [
 					'Max plafond Pada Produk ini' => $maxup,
 					
+				]
 				]
 			];
 		}
