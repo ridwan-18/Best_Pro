@@ -1044,14 +1044,13 @@ class PengajuanController extends Controller
 			Yii::$app->response->statusCode = 200;
 
 			return [
-			'Result' => [
-				'status_code' => 200,
-				'kode_response' => "08",
-				'message' => 'Tahun Lahir tidak boleh tahun ini',
+				'Result' => [
+					'status_code' => 200,
+					'kode_response' => '08',
+					'message' => 'Tahun lahir tidak boleh tahun ini',
+				]
 			];
-			]
 		}
-		
 
 		$policybyproduk = Policy::findOne([
 			'produk_code' => $pekerjaan,
