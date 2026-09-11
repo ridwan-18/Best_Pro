@@ -451,12 +451,14 @@ class PengajuanController extends Controller
 			Yii::$app->response->statusCode = 200;
 
 			return [
+				'Result' => [
 				'status_code' => 200,
 				'kode_response' => '08',
 				'message' => 'Data ketentuan usia untuk quotation tidak ditemukan.',
 				'data' => [
 					'quotation_id' => $policybyproduk->quotation_id,
 				]
+			]
 			];
 		}
 
