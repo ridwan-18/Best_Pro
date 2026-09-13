@@ -247,82 +247,184 @@ class BatchByPeserta extends \yii\db\ActiveRecord
 		
     }
 	
+	
 	public static function getAllProductionParticipant($paramsGetAllProduksi = [])
-    {
-        $query = self::find()
-            ->select([
-                self::tableName() . '.id',
-                self::tableName() . '.policy_no',
-                self::tableName() . '.member_no',
-                self::tableName() . '.batch_no',
-                self::tableName() . '.medical_code',
-				// Personal::tableName() . '.birth_date',
-				// Personal::tableName() . '.gender',
-				self::tableName() . '.status',
-				self::tableName() . '.id_loan',
-				// self::tableName() . '.refund_premi',
-				self::tableName() . '.no_ktp',
-				self::tableName() . '.start_date',
-				self::tableName() . '.end_date',
-				self::tableName() . '.sum_insured',
-				USER::tableName() . '.username',
-				self::tableName() . '.gross_premium',
-				self::tableName() . '.id_loan',
-				self::tableName() . '.member_name',
-				self::tableName() . '.date_of_birth',
-            ])
-          
-			 // ->innerJoin(Personal::tableName(), Personal::tableName() . '.personal_no = ' . self::tableName() . '.personal_no')
-			 ->innerJoin(USER::tableName(), USER::tableName() . '.id = ' . self::tableName() . '.created_by')
-			   ->asArray();
-		
+	{
+		$tableMember = self::tableName();
+		$tableUser   = User::tableName();
+
+		$query = self::find()
+			->select([
+				$tableMember . '.id',
+				$tableMember . '.policy_no',
+				$tableMember . '.member_no',
+				$tableMember . '.batch_no',
+				$tableMember . '.medical_code',
+				$tableMember . '.status',
+				$tableMember . '.id_loan',
+				$tableMember . '.no_ktp',
+				$tableMember . '.start_date',
+				$tableMember . '.end_date',
+				$tableMember . '.sum_insured',
+				$tableUser . '.username',
+				$tableMember . '.gross_premium',
+				$tableMember . '.member_name',
+				$tableMember . '.date_of_birth',
+				$tableMember . '.partner_id',
+			])
+			->innerJoin(
+				$tableUser,
+				$tableUser . '.id = ' . $tableMember . '.created_by'
+			)
+			->asArray();
+
+		/*
+		 * ============================================================
+		 * PEMBAGIAN DATA BERDASARKAN ROLE
+		 * ============================================================
+		 */
+
 		if (!Yii::$app->user->isGuest) {
-			if (Yii::$app->user->identity->role == User::ROLE_UW) {
-				$query->andWhere(['=', self::tableName() . '.created_by', Yii::$app->user->identity->id]);
-			}
+
+    $user = Yii::$app->user->identity;
+
+    /*
+     * SUPER ADMIN
+     * Bisa melihat semua peserta
+     */
+		if ($user->role == User::ROLE_SUPERADMIN) {
+
+			// Tidak ada filter
+
 		}
-		
-		if (isset($paramsGetAllProduksi['status']) && $paramsGetAllProduksi['status'] != null) {
-            $query->andFilterWhere(['=', self::tableName() . '.status', $paramsGetAllProduksi['status']]);
-        }
-		
-        if (isset($paramsGetAllProduksi['batch_no']) && $paramsGetAllProduksi['batch_no'] != null) {
-            $query->andFilterWhere(['=', self::tableName() . '.batch_no', $paramsGetAllProduksi['batch_no']]);
-        }
-		if (isset($paramsGetAllProduksi['id_loan']) && $paramsGetAllProduksi['id_loan'] != null) {
-            $query->andFilterWhere(['=', self::tableName() . '.id_loan', $paramsGetAllProduksi['id_loan']]);
-        }
-		
-		if (isset($paramsGetAllProduksi['username']) && $paramsGetAllProduksi['username'] != null) {
-            $query->andFilterWhere(['=', USER::tableName() . '.username', $paramsGetAllProduksi['username']]);
-        }
-		
+
+		/*
+		 * CABANG / UW
+		 * Hanya melihat peserta dari partner_id sendiri
+		 */
+		elseif ($user->role == User::ROLE_UW) {
+
+			$query->andWhere([
+				$tableMember . '.partner_id' => $user->partner_id
+			]);
+
+		}
+
+		/*
+		 * PUSAT
+		 * Hanya melihat peserta berdasarkan partner_id sendiri
+		 */
+		elseif ($user->role == User::ROLE_PUSAT) {
+
+			$query->andWhere([
+				$tableMember . '.partner_id' => $user->partner_id
+			]);
+
+		}
+		}
+
+		/*
+		 * ============================================================
+		 * FILTER PARAMETER
+		 * ============================================================
+		 */
+
 		if (
-            isset($paramsGetAllProduksi['start_date'])
-            && $paramsGetAllProduksi['start_date'] != null
-            && isset($paramsGetAllProduksi['end_date'])
-            && $paramsGetAllProduksi['end_date'] != null
-        ) {
-            $query->andFilterWhere(['>=', self::tableName() . '.updated_at', $paramsGetAllProduksi['start_date']]);
-            $query->andFilterWhere(['<=', self::tableName() . '.updated_at', $paramsGetAllProduksi['end_date']]);
-        }
+			isset($paramsGetAllProduksi['status']) &&
+			$paramsGetAllProduksi['status'] !== null &&
+			$paramsGetAllProduksi['status'] !== ''
+		) {
+			$query->andFilterWhere([
+				'=',
+				$tableMember . '.status',
+				$paramsGetAllProduksi['status']
+			]);
+		}
 
-        if (isset($paramsGetAllProduksi['offset']) && $paramsGetAllProduksi['offset'] != null) {
-            $query->offset($paramsGetAllProduksi['offset']);
-        }
+		if (
+			isset($paramsGetAllProduksi['batch_no']) &&
+			$paramsGetAllProduksi['batch_no'] !== null &&
+			$paramsGetAllProduksi['batch_no'] !== ''
+		) {
+			$query->andFilterWhere([
+				'=',
+				$tableMember . '.batch_no',
+				$paramsGetAllProduksi['batch_no']
+			]);
+		}
 
-        if (isset($paramsGetAllProduksi['limit']) && $paramsGetAllProduksi['limit'] != null) {
-            $query->limit($paramsGetAllProduksi['limit']);
-        }
-		
-         // $query->groupBy(['policy_no', 'batch_no']);
-       $query->orderBy(['id' => SORT_DESC]);
-		// echo $query;
-        return $query->all();
-		
-		
-		
-    }
+		if (
+			isset($paramsGetAllProduksi['id_loan']) &&
+			$paramsGetAllProduksi['id_loan'] !== null &&
+			$paramsGetAllProduksi['id_loan'] !== ''
+		) {
+			$query->andFilterWhere([
+				'=',
+				$tableMember . '.id_loan',
+				$paramsGetAllProduksi['id_loan']
+			]);
+		}
+
+		if (
+			isset($paramsGetAllProduksi['username']) &&
+			$paramsGetAllProduksi['username'] !== null &&
+			$paramsGetAllProduksi['username'] !== ''
+		) {
+			$query->andFilterWhere([
+				'=',
+				$tableUser . '.username',
+				$paramsGetAllProduksi['username']
+			]);
+		}
+
+		/*
+		 * FILTER TANGGAL
+		 */
+		if (
+			isset($paramsGetAllProduksi['start_date']) &&
+			$paramsGetAllProduksi['start_date'] !== null &&
+			$paramsGetAllProduksi['start_date'] !== '' &&
+			isset($paramsGetAllProduksi['end_date']) &&
+			$paramsGetAllProduksi['end_date'] !== null &&
+			$paramsGetAllProduksi['end_date'] !== ''
+		) {
+			$query->andWhere([
+				'between',
+				$tableMember . '.updated_at',
+				$paramsGetAllProduksi['start_date'],
+				$paramsGetAllProduksi['end_date']
+			]);
+		}
+
+		/*
+		 * PAGINATION
+		 */
+		if (
+			isset($paramsGetAllProduksi['offset']) &&
+			$paramsGetAllProduksi['offset'] !== null &&
+			$paramsGetAllProduksi['offset'] !== ''
+		) {
+			$query->offset($paramsGetAllProduksi['offset']);
+		}
+
+		if (
+			isset($paramsGetAllProduksi['limit']) &&
+			$paramsGetAllProduksi['limit'] !== null &&
+			$paramsGetAllProduksi['limit'] !== ''
+		) {
+			$query->limit($paramsGetAllProduksi['limit']);
+		}
+
+		/*
+		 * ORDER
+		 */
+		$query->orderBy([
+			$tableMember . '.id' => SORT_DESC
+		]);
+
+		return $query->all();
+	}
+
 	
 		
 	public static function countAllDataproduksi($paramsGetAllProduksi = [])
