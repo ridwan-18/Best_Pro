@@ -88,6 +88,7 @@ class Batch extends \yii\db\ActiveRecord
 
    
 	
+	
 	public static function getAll($params = [])
 	{
 		$identity = Yii::$app->user->identity;
@@ -103,7 +104,6 @@ class Batch extends \yii\db\ActiveRecord
 				self::tableName() . '.created_by',
 				self::tableName() . '.files',
 
-				// Nama Partner
 				'(' .
 					'SELECT ' . Partner::tableName() . '.name
 					 FROM ' . Policy::tableName() . '
@@ -120,7 +120,7 @@ class Batch extends \yii\db\ActiveRecord
 
 		/*
 		 * ==========================================================
-		 * FILTER BERDASARKAN ROLE
+		 * ROLE ACCESS
 		 * ==========================================================
 		 */
 
@@ -128,9 +128,9 @@ class Batch extends \yii\db\ActiveRecord
 		// SUPER ADMIN
 		// role = 1
 		// ==========================================================
-		if ($identity->role == User::ROLE_SUPERADMIN) {
+		if ($identity->role == ROLE_SUPERADMIN) {
 
-			// Super Admin melihat semua data
+			// Semua data
 		}
 
 
@@ -138,15 +138,16 @@ class Batch extends \yii\db\ActiveRecord
 		// PUSAT
 		// role = 6
 		// ==========================================================
-		elseif ($identity->role == User::ROLE_PUSAT) {
+		elseif ($identity->role == ROLE_PUSAT) {
 
-			/*
-			 * Pusat hanya melihat data berdasarkan partner_id
-			 * milik user.
-			 */
+			$query->innerJoin(
+				User::tableName(),
+				User::tableName() . '.user_id = ' .
+				self::tableName() . '.created_by'
+			);
 
 			$query->andWhere([
-				self::tableName() . '.partner_id' => $identity->partner_id
+				User::tableName() . '.partner_id' => $identity->partner_id
 			]);
 		}
 
@@ -155,60 +156,41 @@ class Batch extends \yii\db\ActiveRecord
 		// CABANG
 		// role = 2
 		// ==========================================================
-		elseif ($identity->role == User::ROLE_UW) {
+		elseif ($identity->role == ROLE_UW) {
 
-			/*
-			 * Cabang hanya melihat data berdasarkan partner_id
-			 * milik user.
-			 */
-
-			$query->andWhere([
-				self::tableName() . '.partner_id' => $identity->partner_id
-			]);
-		}
-
-
-		// ==========================================================
-		// UNDERWRITING
-		// ==========================================================
-		elseif ($identity->role == User::ROLE_UW) {
+			$query->innerJoin(
+				User::tableName(),
+				User::tableName() . '.user_id = ' .
+				self::tableName() . '.created_by'
+			);
 
 			$query->andWhere([
-				self::tableName() . '.created_by' => $identity->id
+				User::tableName() . '.partner_id' => $identity->partner_id
 			]);
 		}
 
 
 		/*
 		 * ==========================================================
-		 * FILTER PARAMETER
+		 * FILTER
 		 * ==========================================================
 		 */
 
-		if (isset($params['policy_no']) && $params['policy_no'] != null) {
-
-			$query->andFilterWhere([
-				'=',
-				self::tableName() . '.policy_no',
-				$params['policy_no']
+		if (!empty($params['policy_no'])) {
+			$query->andWhere([
+				self::tableName() . '.policy_no' => $params['policy_no']
 			]);
 		}
 
-		if (isset($params['batch_no']) && $params['batch_no'] != null) {
-
-			$query->andFilterWhere([
-				'=',
-				self::tableName() . '.batch_no',
-				$params['batch_no']
+		if (!empty($params['batch_no'])) {
+			$query->andWhere([
+				self::tableName() . '.batch_no' => $params['batch_no']
 			]);
 		}
 
-		if (isset($params['status']) && $params['status'] != null) {
-
-			$query->andFilterWhere([
-				'=',
-				self::tableName() . '.status',
-				$params['status']
+		if (!empty($params['status'])) {
+			$query->andWhere([
+				self::tableName() . '.status' => $params['status']
 			]);
 		}
 
@@ -219,11 +201,11 @@ class Batch extends \yii\db\ActiveRecord
 		 * ==========================================================
 		 */
 
-		if (isset($params['offset']) && $params['offset'] != null) {
+		if (isset($params['offset']) && $params['offset'] !== '') {
 			$query->offset($params['offset']);
 		}
 
-		if (isset($params['limit']) && $params['limit'] != null) {
+		if (isset($params['limit']) && $params['limit'] !== '') {
 			$query->limit($params['limit']);
 		}
 
@@ -246,7 +228,7 @@ class Batch extends \yii\db\ActiveRecord
 		 * ==========================================================
 		 */
 
-		$sort = isset($params['sort']) && $params['sort'] != null
+		$sort = !empty($params['sort'])
 			? $params['sort']
 			: SORT_DESC;
 
@@ -254,9 +236,9 @@ class Batch extends \yii\db\ActiveRecord
 			self::tableName() . '.id' => $sort
 		]);
 
-
 		return $query->all();
 	}
+
 
 
     public static function countAll($params = [])
