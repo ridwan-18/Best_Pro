@@ -87,29 +87,38 @@ class Batch extends \yii\db\ActiveRecord
    
 	
 	
+	
 	public static function getAll($params = [])
 	{
+		$tableBatch   = self::tableName();
+		$tableUser    = User::tableName();
+		$tablePolicy  = Policy::tableName();
+		$tablePartner = Partner::tableName();
+
 		$identity = Yii::$app->user->identity;
 
 		$query = self::find()
 			->select([
-				self::tableName() . '.id',
-				self::tableName() . '.policy_no',
-				self::tableName() . '.batch_no',
-				self::tableName() . '.total_member',
-				self::tableName() . '.status',
-				self::tableName() . '.created_at',
-				self::tableName() . '.created_by',
-				self::tableName() . '.files',
+				$tableBatch . '.id',
+				$tableBatch . '.policy_no',
+				$tableBatch . '.batch_no',
+				$tableBatch . '.total_member',
+				$tableBatch . '.status',
+				$tableBatch . '.created_at',
+				$tableBatch . '.created_by',
+				$tableBatch . '.files',
 
+				/*
+				 * Ambil nama partner berdasarkan policy_no
+				 */
 				'(' .
-					'SELECT ' . Partner::tableName() . '.name
-					 FROM ' . Policy::tableName() . '
-					 INNER JOIN ' . Partner::tableName() . '
-						ON ' . Policy::tableName() . '.partner_id = ' .
-						   Partner::tableName() . '.id
-					 WHERE ' . Policy::tableName() . '.policy_no = ' .
-						   self::tableName() . '.policy_no
+					'SELECT ' . $tablePartner . '.name
+					 FROM ' . $tablePolicy . '
+					 INNER JOIN ' . $tablePartner . '
+						ON ' . $tablePolicy . '.partner_id = ' .
+						   $tablePartner . '.id
+					 WHERE ' . $tablePolicy . '.policy_no = ' .
+						   $tableBatch . '.policy_no
 					 LIMIT 1
 				) AS partner',
 			])
@@ -122,73 +131,119 @@ class Batch extends \yii\db\ActiveRecord
 		 * ==========================================================
 		 */
 
-		// ==========================================================
-		// SUPER ADMIN
-		// role = 1
-		// ==========================================================
+		/*
+		 * ==========================================================
+		 * SUPER ADMIN
+		 * ROLE = 1
+		 * ==========================================================
+		 *
+		 * Bisa melihat seluruh batch.
+		 */
 		if ($identity->role == User::ROLE_SUPERADMIN) {
 
-			// Semua data
-		}
+			// Tidak ada filter
 
 
-		// ==========================================================
-		// PUSAT
-		// role = 6
-		// ==========================================================
-		 elseif ($identity->role == User::ROLE_PUSAT) {
+		/*
+		 * ==========================================================
+		 * PUSAT
+		 * ROLE = 6
+		 * ==========================================================
+		 *
+		 * Pusat melihat seluruh batch yang dibuat oleh user
+		 * dengan partner_id yang sama.
+		 */
+		} elseif ($identity->role == User::ROLE_PUSAT) {
 
 			$query->innerJoin(
-				User::tableName(),
-				User::tableName() . '.id = ' .
-				self::tableName() . '.created_by'
+				$tableUser,
+				$tableUser . '.id = ' .
+				$tableBatch . '.created_by'
 			);
 
 			$query->andWhere([
-				User::tableName() . '.partner_id' => $identity->partner_id
+				$tableUser . '.partner_id' => $identity->partner_id
 			]);
+
+
+		/*
+		 * ==========================================================
+		 * CABANG / UW
+		 * ROLE = 2
+		 * ==========================================================
+		 *
+		 * Cabang hanya melihat batch yang dibuat oleh dirinya sendiri.
+		 *
+		 * PENTING:
+		 * Jangan menggunakan partner_id di sini.
+		 */
+		} elseif ($identity->role == User::ROLE_UW) {
+
+			$query->andWhere([
+				$tableBatch . '.created_by' => $identity->id
+			]);
+
+
+		/*
+		 * ==========================================================
+		 * ROLE TIDAK DIKENAL
+		 * ==========================================================
+		 *
+		 * Untuk keamanan, jangan tampilkan data.
+		 */
+		} else {
+
+			$query->andWhere('1 = 0');
 		}
 
 
-		// ==========================================================
-		// CABANG
-		// role = 2
-		// ==========================================================
-		elseif ($identity->role == User::ROLE_UW) {
+		/*
+		 * ==========================================================
+		 * FILTER POLICY
+		 * ==========================================================
+		 */
 
-			$query->innerJoin(
-				User::tableName(),
-				User::tableName() . '.id = ' .
-				self::tableName() . '.created_by'
-			);
-
+		if (
+			isset($params['policy_no']) &&
+			$params['policy_no'] !== null &&
+			$params['policy_no'] !== ''
+		) {
 			$query->andWhere([
-				User::tableName() . '.partner_id' => $identity->partner_id
+				$tableBatch . '.policy_no' => $params['policy_no']
 			]);
 		}
 
 
 		/*
 		 * ==========================================================
-		 * FILTER
+		 * FILTER BATCH
 		 * ==========================================================
 		 */
 
-		if (!empty($params['policy_no'])) {
+		if (
+			isset($params['batch_no']) &&
+			$params['batch_no'] !== null &&
+			$params['batch_no'] !== ''
+		) {
 			$query->andWhere([
-				self::tableName() . '.policy_no' => $params['policy_no']
+				$tableBatch . '.batch_no' => $params['batch_no']
 			]);
 		}
 
-		if (!empty($params['batch_no'])) {
-			$query->andWhere([
-				self::tableName() . '.batch_no' => $params['batch_no']
-			]);
-		}
 
-		if (!empty($params['status'])) {
+		/*
+		 * ==========================================================
+		 * FILTER STATUS
+		 * ==========================================================
+		 */
+
+		if (
+			isset($params['status']) &&
+			$params['status'] !== null &&
+			$params['status'] !== ''
+		) {
 			$query->andWhere([
-				self::tableName() . '.status' => $params['status']
+				$tableBatch . '.status' => $params['status']
 			]);
 		}
 
@@ -199,12 +254,20 @@ class Batch extends \yii\db\ActiveRecord
 		 * ==========================================================
 		 */
 
-		if (isset($params['offset']) && $params['offset'] !== '') {
-			$query->offset($params['offset']);
+		if (
+			isset($params['offset']) &&
+			$params['offset'] !== null &&
+			$params['offset'] !== ''
+		) {
+			$query->offset((int) $params['offset']);
 		}
 
-		if (isset($params['limit']) && $params['limit'] !== '') {
-			$query->limit($params['limit']);
+		if (
+			isset($params['limit']) &&
+			$params['limit'] !== null &&
+			$params['limit'] !== ''
+		) {
+			$query->limit((int) $params['limit']);
 		}
 
 
@@ -215,8 +278,8 @@ class Batch extends \yii\db\ActiveRecord
 		 */
 
 		$query->groupBy([
-			self::tableName() . '.policy_no',
-			self::tableName() . '.batch_no'
+			$tableBatch . '.policy_no',
+			$tableBatch . '.batch_no'
 		]);
 
 
@@ -231,11 +294,19 @@ class Batch extends \yii\db\ActiveRecord
 			: SORT_DESC;
 
 		$query->orderBy([
-			self::tableName() . '.id' => $sort
+			$tableBatch . '.id' => $sort
 		]);
+
+
+		/*
+		 * ==========================================================
+		 * RETURN
+		 * ==========================================================
+		 */
 
 		return $query->all();
 	}
+
 
 
 
