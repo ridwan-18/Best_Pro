@@ -190,106 +190,265 @@ class Member extends \yii\db\ActiveRecord
     }
 
     public static function getAll($params = [])
-    {
-        $query = self::find()
-            ->select([
-                self::tableName() . '.id',
-                self::tableName() . '.policy_no',
-                self::tableName() . '.batch_no',
-                self::tableName() . '.member_no',
-                self::tableName() . '.term',
-                self::tableName() . '.age',
-                self::tableName() . '.start_date',
-                self::tableName() . '.end_date',
-                self::tableName() . '.sum_insured',
-                self::tableName() . '.total_si',
-                self::tableName() . '.total_premium',
-                self::tableName() . '.rate_premi',
-                self::tableName() . '.rate_saving',
-                self::tableName() . '.gross_premium',
-                self::tableName() . '.basic_premium',
-                self::tableName() . '.saving_premium',
-                self::tableName() . '.percentage_discount',
-                self::tableName() . '.discount_premium',
-                self::tableName() . '.nett_premium',
-                self::tableName() . '.medical_code',
-                self::tableName() . '.status',
-                self::tableName() . '.member_status',
-                self::tableName() . '.reas_status',
-                self::tableName() . '.status_reason',
-                self::tableName() . '.stnc_date',
-                self::tableName() . '.stnc_status',
-                self::tableName() . '.stnc_reason',
-                self::tableName() . '.acc_status',
-                self::tableName() . '.percentage_extra_premium',
-                self::tableName() . '.extra_premium',
-                self::tableName() . '.em_type',
-                self::tableName() . '.percentage_em',
-                self::tableName() . '.rate_em',
-                self::tableName() . '.em_premium',
-                self::tableName() . '.em_notes',
-                self::tableName() . '.uw_notes',
-				self::tableName() . '.status_em',
-				self::tableName() . '.id_loan',
-				self::tableName() . '.file_medis',
-				self::tableName() . '.status_bmi',
-                '(SELECT ' . Personal::tableName() . '.name' .  ' FROM ' . Personal::tableName() . ' WHERE ' . Personal::tableName() . '.personal_no = ' . self::tableName() . '.personal_no GROUP BY ' . self::tableName() . '.personal_no) AS name',
-                '(SELECT ' . Personal::tableName() . '.birth_date' .  ' FROM ' . Personal::tableName() . ' WHERE ' . Personal::tableName() . '.personal_no = ' . self::tableName() . '.personal_no GROUP BY ' . self::tableName() . '.personal_no) AS birth_date',
-                '(SELECT ' . Personal::tableName() . '.gender' .  ' FROM ' . Personal::tableName() . ' WHERE ' . Personal::tableName() . '.personal_no = ' . self::tableName() . '.personal_no GROUP BY ' . self::tableName() . '.personal_no) AS gender',
-            ])
-            ->asArray();
+	{
+		$query = self::find()
+			->select([
+				self::tableName() . '.*',
 
-        if (isset($params['member_id']) && $params['member_id'] != null) {
-            $query->andFilterWhere(['=', self::tableName() . '.id', $params['member_id']]);
-        }
+				// Data Personal
+				'nama' => new \yii\db\Expression("
+					(
+						SELECT p.name
+						FROM " . Personal::tableName() . " p
+						WHERE p.personal_no = " . self::tableName() . ".personal_no
+						LIMIT 1
+					)
+				"),
 
-        if (isset($params['policy_no']) && $params['policy_no'] != null) {
-            $query->andFilterWhere(['=', self::tableName() . '.policy_no', $params['policy_no']]);
-        }
+				'ktp' => new \yii\db\Expression("
+					(
+						SELECT p.ktp
+						FROM " . Personal::tableName() . " p
+						WHERE p.personal_no = " . self::tableName() . ".personal_no
+						LIMIT 1
+					)
+				"),
 
-        if (isset($params['batch_no']) && $params['batch_no'] != null) {
-            $query->andFilterWhere(['=', self::tableName() . '.batch_no', $params['batch_no']]);
-        }
+				'date_of_birth' => new \yii\db\Expression("
+					(
+						SELECT p.date_of_birth
+						FROM " . Personal::tableName() . " p
+						WHERE p.personal_no = " . self::tableName() . ".personal_no
+						LIMIT 1
+					)
+				"),
+			])
+			->asArray();
 
-        if (
-            isset($params['start_date'])
-            && $params['start_date'] != null
-            && isset($params['end_date'])
-            && $params['end_date'] != null
-        ) {
-            $query->andFilterWhere(['>=', self::tableName() . '.start_date', $params['start_date']]);
-            $query->andFilterWhere(['<=', self::tableName() . '.end_date', $params['end_date']]);
-        }
+		/*
+		 * ============================================================
+		 * FILTER BERDASARKAN ROLE USER
+		 * ============================================================
+		 */
 
-        if (isset($params['status']) && $params['status'] != null) {
-            $query->andFilterWhere(['=', self::tableName() . '.status', $params['status']]);
-        }
+		if (!Yii::$app->user->isGuest) {
 
-        if (isset($params['member_status']) && $params['member_status'] != null) {
-            $query->andFilterWhere(['=', self::tableName() . '.member_status', $params['member_status']]);
-        }
+			$user = Yii::$app->user->identity;
 
-        if (isset($params['reas_status']) && $params['reas_status'] != null) {
-            $query->andFilterWhere(['=', self::tableName() . '.reas_status', $params['reas_status']]);
-        }
+			$role = (int) $user->role;
 
-        if (isset($params['is_accumulated']) && $params['is_accumulated'] == 1) {
-            $query->andFilterWhere(['like', self::tableName() . '.acc_status', 'Accumulated']);
-        }
+			// Partner user
+			$partnerId = $user->partner_id;
 
-        if (isset($params['offset']) && $params['offset'] != null) {
-            $query->offset($params['offset']);
-        }
+			// Branch user
+			$branch = $user->branch;
 
-        if (isset($params['limit']) && $params['limit'] != null) {
-            $query->limit($params['limit']);
-        }
 
-        $query->groupBy([self::tableName() . '.id', self::tableName() . '.personal_no']);
-        $query->orderBy([self::tableName() . '.id' => $params['sort']]);
+			/*
+			 * ROLE 1
+			 * SUPER ADMIN
+			 * Bisa melihat semua peserta
+			 */
+			if ($role == 1) {
 
-        return $query->all();
-    }
+				// Tidak perlu filter
+
+			}
+
+			/*
+			 * ROLE 6
+			 * PUSAT
+			 * Hanya melihat peserta berdasarkan partner_id
+			 */
+			elseif ($role == 6) {
+
+				if (!empty($partnerId)) {
+
+					$query->andWhere([
+						self::tableName() . '.partner_id' => $partnerId
+					]);
+
+				} else {
+
+					// Jika user pusat tidak mempunyai partner_id,
+					// jangan tampilkan data apapun
+					$query->andWhere('1 = 0');
+
+				}
+			}
+
+			/*
+			 * ROLE 2
+			 * CABANG
+			 * Hanya melihat peserta berdasarkan branch sendiri
+			 */
+			elseif ($role == 2) {
+
+				if (!empty($branch)) {
+
+					$query->andWhere([
+						self::tableName() . '.branch' => $branch
+					]);
+
+				} else {
+
+					// Jika user cabang tidak mempunyai branch,
+					// jangan tampilkan data apapun
+					$query->andWhere('1 = 0');
+
+				}
+			}
+
+			/*
+			 * ROLE LAIN
+			 * Tidak diberikan akses
+			 */
+			else {
+
+				$query->andWhere('1 = 0');
+
+			}
+		}
+
+
+		/*
+		 * ============================================================
+		 * FILTER PARAMETER
+		 * ============================================================
+		 */
+
+		if (!empty($params['member_id'])) {
+			$query->andWhere([
+				self::tableName() . '.id' => $params['member_id']
+			]);
+		}
+
+		if (!empty($params['policy_no'])) {
+			$query->andWhere([
+				self::tableName() . '.policy_no' => $params['policy_no']
+			]);
+		}
+
+		if (!empty($params['batch_no'])) {
+			$query->andWhere([
+				self::tableName() . '.batch_no' => $params['batch_no']
+			]);
+		}
+
+		if (!empty($params['member_no'])) {
+			$query->andWhere([
+				self::tableName() . '.member_no' => $params['member_no']
+			]);
+		}
+
+		if (!empty($params['status'])) {
+			$query->andWhere([
+				self::tableName() . '.status' => $params['status']
+			]);
+		}
+
+		if (!empty($params['member_status'])) {
+			$query->andWhere([
+				self::tableName() . '.member_status' => $params['member_status']
+			]);
+		}
+
+		if (!empty($params['reas_status'])) {
+			$query->andWhere([
+				self::tableName() . '.reas_status' => $params['reas_status']
+			]);
+		}
+
+		if (isset($params['is_accumulated']) && $params['is_accumulated'] !== '') {
+			$query->andWhere([
+				self::tableName() . '.is_accumulated' => $params['is_accumulated']
+			]);
+		}
+
+
+		/*
+		 * ============================================================
+		 * FILTER TANGGAL
+		 * ============================================================
+		 */
+
+		if (!empty($params['start_date'])) {
+
+			$query->andWhere([
+				'>=',
+				self::tableName() . '.start_date',
+				$params['start_date']
+			]);
+
+		}
+
+		if (!empty($params['end_date'])) {
+
+			$query->andWhere([
+				'<=',
+				self::tableName() . '.start_date',
+				$params['end_date']
+			]);
+
+		}
+
+
+		/*
+		 * ============================================================
+		 * GROUP BY
+		 * ============================================================
+		 */
+
+		$query->groupBy([
+			self::tableName() . '.id'
+		]);
+
+
+		/*
+		 * ============================================================
+		 * ORDER
+		 * ============================================================
+		 */
+
+		$query->orderBy([
+			self::tableName() . '.id' => SORT_DESC
+		]);
+
+
+		/*
+		 * ============================================================
+		 * OFFSET
+		 * ============================================================
+		 */
+
+		if (isset($params['offset']) && $params['offset'] !== '') {
+
+			$query->offset((int) $params['offset']);
+
+		}
+
+
+		/*
+		 * ============================================================
+		 * LIMIT
+		 * ============================================================
+		 */
+
+		if (isset($params['limit']) && $params['limit'] !== '') {
+
+			$query->limit((int) $params['limit']);
+
+		}
+
+
+		/*
+		 * ============================================================
+		 * RETURN
+		 * ============================================================
+		 */
+
+		return $query->all();
+	}
 
     public static function countAll($params = [])
     {
