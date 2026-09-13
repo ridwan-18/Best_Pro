@@ -195,7 +195,6 @@ class Member extends \yii\db\ActiveRecord
 			->select([
 				self::tableName() . '.*',
 
-				// Data Personal
 				'nama' => new \yii\db\Expression("
 					(
 						SELECT p.name
@@ -225,42 +224,35 @@ class Member extends \yii\db\ActiveRecord
 			])
 			->asArray();
 
-		/*
-		 * ============================================================
-		 * FILTER BERDASARKAN ROLE USER
-		 * ============================================================
-		 */
+
+		// =========================================================
+		// FILTER BERDASARKAN ROLE USER
+		// =========================================================
 
 		if (!Yii::$app->user->isGuest) {
 
 			$user = Yii::$app->user->identity;
 
 			$role = (int) $user->role;
-
-			// Partner user
 			$partnerId = $user->partner_id;
 
-			// Branch user
-			$branch = $user->branch;
 
+			// =====================================================
+			// ROLE 1 = SUPER ADMIN
+			// Bisa melihat seluruh peserta
+			// =====================================================
 
-			/*
-			 * ROLE 1
-			 * SUPER ADMIN
-			 * Bisa melihat semua peserta
-			 */
 			if ($role == 1) {
 
-				// Tidak perlu filter
+				// Tidak ada filter
 
-			}
 
-			/*
-			 * ROLE 6
-			 * PUSAT
-			 * Hanya melihat peserta berdasarkan partner_id
-			 */
-			elseif ($role == 6) {
+			// =====================================================
+			// ROLE 6 = PUSAT
+			// Hanya melihat peserta berdasarkan partner_id
+			// =====================================================
+
+			} elseif ($role == 6) {
 
 				if (!empty($partnerId)) {
 
@@ -270,52 +262,47 @@ class Member extends \yii\db\ActiveRecord
 
 				} else {
 
-					// Jika user pusat tidak mempunyai partner_id,
-					// jangan tampilkan data apapun
+					// Tidak mempunyai partner_id
+					// Jangan tampilkan data
 					$query->andWhere('1 = 0');
-
 				}
-			}
 
-			/*
-			 * ROLE 2
-			 * CABANG
-			 * Hanya melihat peserta berdasarkan branch sendiri
-			 */
-			elseif ($role == 2) {
 
-				if (!empty($branch)) {
+			// =====================================================
+			// ROLE 2 = CABANG
+			// Berdasarkan partner_id
+			// =====================================================
+
+			} elseif ($role == 2) {
+
+				if (!empty($partnerId)) {
 
 					$query->andWhere([
-						self::tableName() . '.branch' => $branch
+						self::tableName() . '.partner_id' => $partnerId
 					]);
 
 				} else {
 
-					// Jika user cabang tidak mempunyai branch,
-					// jangan tampilkan data apapun
+					// Tidak mempunyai partner_id
 					$query->andWhere('1 = 0');
-
 				}
-			}
 
-			/*
-			 * ROLE LAIN
-			 * Tidak diberikan akses
-			 */
-			else {
+
+			// =====================================================
+			// ROLE LAIN
+			// Tidak boleh melihat data
+			// =====================================================
+
+			} else {
 
 				$query->andWhere('1 = 0');
-
 			}
 		}
 
 
-		/*
-		 * ============================================================
-		 * FILTER PARAMETER
-		 * ============================================================
-		 */
+		// =========================================================
+		// FILTER PARAMETER
+		// =========================================================
 
 		if (!empty($params['member_id'])) {
 			$query->andWhere([
@@ -359,93 +346,78 @@ class Member extends \yii\db\ActiveRecord
 			]);
 		}
 
-		if (isset($params['is_accumulated']) && $params['is_accumulated'] !== '') {
+		if (
+			isset($params['is_accumulated']) &&
+			$params['is_accumulated'] !== ''
+		) {
 			$query->andWhere([
 				self::tableName() . '.is_accumulated' => $params['is_accumulated']
 			]);
 		}
 
 
-		/*
-		 * ============================================================
-		 * FILTER TANGGAL
-		 * ============================================================
-		 */
+		// =========================================================
+		// FILTER TANGGAL
+		// =========================================================
 
 		if (!empty($params['start_date'])) {
-
 			$query->andWhere([
 				'>=',
 				self::tableName() . '.start_date',
 				$params['start_date']
 			]);
-
 		}
 
 		if (!empty($params['end_date'])) {
-
 			$query->andWhere([
 				'<=',
 				self::tableName() . '.start_date',
 				$params['end_date']
 			]);
-
 		}
 
 
-		/*
-		 * ============================================================
-		 * GROUP BY
-		 * ============================================================
-		 */
+		// =========================================================
+		// GROUP BY
+		// =========================================================
 
 		$query->groupBy([
 			self::tableName() . '.id'
 		]);
 
 
-		/*
-		 * ============================================================
-		 * ORDER
-		 * ============================================================
-		 */
+		// =========================================================
+		// ORDER
+		// =========================================================
 
 		$query->orderBy([
 			self::tableName() . '.id' => SORT_DESC
 		]);
 
 
-		/*
-		 * ============================================================
-		 * OFFSET
-		 * ============================================================
-		 */
+		// =========================================================
+		// OFFSET
+		// =========================================================
 
-		if (isset($params['offset']) && $params['offset'] !== '') {
-
+		if (
+			isset($params['offset']) &&
+			$params['offset'] !== ''
+		) {
 			$query->offset((int) $params['offset']);
-
 		}
 
 
-		/*
-		 * ============================================================
-		 * LIMIT
-		 * ============================================================
-		 */
+		// =========================================================
+		// LIMIT
+		// =========================================================
 
-		if (isset($params['limit']) && $params['limit'] !== '') {
-
+		if (
+			isset($params['limit']) &&
+			$params['limit'] !== ''
+		) {
 			$query->limit((int) $params['limit']);
-
 		}
 
-
-		/*
-		 * ============================================================
-		 * RETURN
-		 * ============================================================
-		 */
 
 		return $query->all();
 	}
