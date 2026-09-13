@@ -140,7 +140,7 @@ class Batch extends \yii\db\ActiveRecord
 
 			$query->innerJoin(
 				User::tableName(),
-				User::tableName() . '.user_id = ' .
+				User::tableName() . '.id = ' .
 				self::tableName() . '.created_by'
 			);
 
@@ -158,7 +158,7 @@ class Batch extends \yii\db\ActiveRecord
 
 			$query->innerJoin(
 				User::tableName(),
-				User::tableName() . '.user_id = ' .
+				User::tableName() . '.id = ' .
 				self::tableName() . '.created_by'
 			);
 
