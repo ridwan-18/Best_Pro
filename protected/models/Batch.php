@@ -116,25 +116,25 @@ class Batch extends \yii\db\ActiveRecord
 		}
 		
 		
-		// if (!yii::$app->user->isguest) {
-			// if (yii::$app->user->identity->role == user::ROLE_PUSAT) {
-				// $query->andwhere(['=', user::tablename() . '.partner_id', $user->partner_id]);
-			// }
-		// }
+		if (!yii::$app->user->isguest) {
+			if (yii::$app->user->identity->role == user::ROLE_PUSAT) {
+				$query->andwhere(['=', user::tablename() . '.partner_id', $user->partner_id]);
+			}
+		}
 		
-		// $policies = Policy::find()
-    // ->asArray()
-    // ->select([
-        // Policy::tableName() . '.policy_no',
-        // Partner::tableName() . '.name AS partner'
-    // ])
-    // ->innerJoin(Partner::tableName(), Partner::tableName() . '.id = ' .  Policy::tableName() . '.partner_id')
-	// ->innerJoin(User::tableName(), Partner::tableName() . '.id = ' .  User::tableName() . '.partner_id')
-	// ->where([
-						// User::tableName() . '.partner_id' => $user->partner_id
-					// ])
-    // ->orderBy([Policy::tableName() . '.id' => SORT_ASC])
-    // ->all();
+		$policies = Policy::find()
+    ->asArray()
+    ->select([
+        Policy::tableName() . '.policy_no',
+        Partner::tableName() . '.name AS partner'
+    ])
+    ->innerJoin(Partner::tableName(), Partner::tableName() . '.id = ' .  Policy::tableName() . '.partner_id')
+	->innerJoin(User::tableName(), Partner::tableName() . '.id = ' .  User::tableName() . '.partner_id')
+	->where([
+						User::tableName() . '.partner_id' => $user->partner_id
+					])
+    ->orderBy([Policy::tableName() . '.id' => SORT_ASC])
+    ->all();
 		
 		
 		
