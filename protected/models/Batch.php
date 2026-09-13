@@ -126,7 +126,7 @@ class Batch extends \yii\db\ActiveRecord
 		// SUPER ADMIN
 		// role = 1
 		// ==========================================================
-		if ($identity->role == ROLE_SUPERADMIN) {
+		if ($identity->role == User::ROLE_SUPERADMIN) {
 
 			// Semua data
 		}
@@ -136,7 +136,7 @@ class Batch extends \yii\db\ActiveRecord
 		// PUSAT
 		// role = 6
 		// ==========================================================
-		elseif ($identity->role == ROLE_PUSAT) {
+		 elseif ($identity->role == User::ROLE_PUSAT) {
 
 			$query->innerJoin(
 				User::tableName(),
@@ -154,7 +154,7 @@ class Batch extends \yii\db\ActiveRecord
 		// CABANG
 		// role = 2
 		// ==========================================================
-		elseif ($identity->role == ROLE_UW) {
+		elseif ($identity->role == User::ROLE_UW) {
 
 			$query->innerJoin(
 				User::tableName(),
