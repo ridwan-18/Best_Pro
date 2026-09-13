@@ -248,6 +248,7 @@ class BatchByPeserta extends \yii\db\ActiveRecord
     }
 	
 	
+	
 	public static function getAllProductionParticipant($paramsGetAllProduksi = [])
 	{
 		$tableMember = self::tableName();
@@ -270,7 +271,6 @@ class BatchByPeserta extends \yii\db\ActiveRecord
 				$tableMember . '.gross_premium',
 				$tableMember . '.member_name',
 				$tableMember . '.date_of_birth',
-				
 			])
 			->innerJoin(
 				$tableUser,
@@ -280,52 +280,47 @@ class BatchByPeserta extends \yii\db\ActiveRecord
 
 		/*
 		 * ============================================================
-		 * PEMBAGIAN DATA BERDASARKAN ROLE
+		 * FILTER BERDASARKAN ROLE
 		 * ============================================================
 		 */
 
 		if (!Yii::$app->user->isGuest) {
 
-    $user = Yii::$app->user->identity;
+			$user = Yii::$app->user->identity;
 
-    /*
-     * SUPER ADMIN
-     * Bisa melihat semua peserta
-     */
-		if ($user->role == User::ROLE_SUPERADMIN) {
+			/*
+			 * SUPER ADMIN
+			 * Bisa melihat semua peserta
+			 */
+			if ($user->role == User::ROLE_SUPERADMIN) {
 
-			// Tidak ada filter
+				// Tidak ada filter
 
-		}
+			/*
+			 * UW = CABANG
+			 * Hanya melihat peserta dari partner_id user tersebut
+			 */
+			} elseif ($user->role == User::ROLE_UW) {
 
-		/*
-		 * CABANG / UW
-		 * Hanya melihat peserta dari partner_id sendiri
-		 */
-		elseif ($user->role == User::ROLE_UW) {
+				$query->andWhere([
+					$tableUser . '.partner_id' => $user->partner_id
+				]);
 
-			$query->andWhere([
-				$tableMember . '.partner_id' => $user->partner_id
-			]);
+			/*
+			 * PUSAT
+			 * Hanya melihat peserta berdasarkan partner_id user pusat
+			 */
+			} elseif ($user->role == User::ROLE_PUSAT) {
 
-		}
-
-		/*
-		 * PUSAT
-		 * Hanya melihat peserta berdasarkan partner_id sendiri
-		 */
-		elseif ($user->role == User::ROLE_PUSAT) {
-
-			$query->andWhere([
-				$tableMember . '.partner_id' => $user->partner_id
-			]);
-
-		}
+				$query->andWhere([
+					$tableUser . '.partner_id' => $user->partner_id
+				]);
+			}
 		}
 
 		/*
 		 * ============================================================
-		 * FILTER PARAMETER
+		 * FILTER STATUS
 		 * ============================================================
 		 */
 
@@ -334,46 +329,47 @@ class BatchByPeserta extends \yii\db\ActiveRecord
 			$paramsGetAllProduksi['status'] !== null &&
 			$paramsGetAllProduksi['status'] !== ''
 		) {
-			$query->andFilterWhere([
-				'=',
-				$tableMember . '.status',
-				$paramsGetAllProduksi['status']
+			$query->andWhere([
+				$tableMember . '.status' => $paramsGetAllProduksi['status']
 			]);
 		}
 
+		/*
+		 * FILTER BATCH
+		 */
 		if (
 			isset($paramsGetAllProduksi['batch_no']) &&
 			$paramsGetAllProduksi['batch_no'] !== null &&
 			$paramsGetAllProduksi['batch_no'] !== ''
 		) {
-			$query->andFilterWhere([
-				'=',
-				$tableMember . '.batch_no',
-				$paramsGetAllProduksi['batch_no']
+			$query->andWhere([
+				$tableMember . '.batch_no' => $paramsGetAllProduksi['batch_no']
 			]);
 		}
 
+		/*
+		 * FILTER ID LOAN
+		 */
 		if (
 			isset($paramsGetAllProduksi['id_loan']) &&
 			$paramsGetAllProduksi['id_loan'] !== null &&
 			$paramsGetAllProduksi['id_loan'] !== ''
 		) {
-			$query->andFilterWhere([
-				'=',
-				$tableMember . '.id_loan',
-				$paramsGetAllProduksi['id_loan']
+			$query->andWhere([
+				$tableMember . '.id_loan' => $paramsGetAllProduksi['id_loan']
 			]);
 		}
 
+		/*
+		 * FILTER USERNAME
+		 */
 		if (
 			isset($paramsGetAllProduksi['username']) &&
 			$paramsGetAllProduksi['username'] !== null &&
 			$paramsGetAllProduksi['username'] !== ''
 		) {
-			$query->andFilterWhere([
-				'=',
-				$tableUser . '.username',
-				$paramsGetAllProduksi['username']
+			$query->andWhere([
+				$tableUser . '.username' => $paramsGetAllProduksi['username']
 			]);
 		}
 
@@ -397,7 +393,7 @@ class BatchByPeserta extends \yii\db\ActiveRecord
 		}
 
 		/*
-		 * PAGINATION
+		 * OFFSET
 		 */
 		if (
 			isset($paramsGetAllProduksi['offset']) &&
@@ -407,6 +403,9 @@ class BatchByPeserta extends \yii\db\ActiveRecord
 			$query->offset($paramsGetAllProduksi['offset']);
 		}
 
+		/*
+		 * LIMIT
+		 */
 		if (
 			isset($paramsGetAllProduksi['limit']) &&
 			$paramsGetAllProduksi['limit'] !== null &&
@@ -424,6 +423,7 @@ class BatchByPeserta extends \yii\db\ActiveRecord
 
 		return $query->all();
 	}
+
 
 	
 		
