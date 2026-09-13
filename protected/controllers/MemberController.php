@@ -655,24 +655,21 @@ class MemberController extends Controller
 		
 		while (!empty($sheetData[$baseRow]['D'])) {
 			$birthDate = Utils::trueBirthDate($sheetData[$baseRow]['F']);
-			$sumInsured = Utils::removeComma($sheetData[$baseRow]['L']);
+			$sumInsured = Utils::removeComma($sheetData[$baseRow]['I']);
 			$personal = new Personal();
-			$personal->name = $sheetData[$baseRow]['D'];
+			$personal->name = $sheetData[$baseRow]['B'];
 			$personal->birth_date = $birthDate;
 			$personal->personal_no = Personal::generatePersonalNo($personal->name, $personal->birth_date);
-			$personal->gender = $sheetData[$baseRow]['H'];
-			$personal->id_card_no = $sheetData[$baseRow]['Q'];
-			$personal->phone = $sheetData[$baseRow]['S'];
-			$personal->email = $sheetData[$baseRow]['R'];
-			$personal->address = $sheetData[$baseRow]['T'];
-			$personal->province = $sheetData[$baseRow]['V'];
-			$personal->city = $sheetData[$baseRow]['U'];
+			// $personal->gender = $sheetData[$baseRow]['H'];
+			// $personal->id_card_no = $sheetData[$baseRow]['Q'];
+			$personal->phone = $sheetData[$baseRow]['E'];
 			
 			
 			
 			if ($personal->save(false)) {
-				$startDate = Utils::convertDateToYmd($sheetData[$baseRow]['J']);
-				$endDate = Utils::convertDateToYmd($sheetData[$baseRow]['K']);
+				$startDate = Utils::convertDateToYmd($sheetData[$baseRow]['G']);
+				$endDate = Utils::convertDateToYmd($sheetData[$baseRow]['H']);
+				
 
 				$age = Member::getAge($quotation->age_calculate, $birthDate, $startDate);
 				$term = Member::getTerm($quotation->rate_type, $startDate, $endDate);
@@ -764,17 +761,19 @@ class MemberController extends Controller
 				// }
 				
 				// send data api
-				$name = $sheetData[$baseRow]['D'];
+				$name = $sheetData[$baseRow]['B'];
 				$dob = $birthDate;
-				$tgl_mulai = Utils::convertDateToYmd($sheetData[$baseRow]['J']);
-				$tgl_selesai = Utils::convertDateToYmd($sheetData[$baseRow]['K']);
+				$tgl_mulai = Utils::convertDateToYmd($sheetData[$baseRow]['G']);
+				$tgl_selesai = Utils::convertDateToYmd($sheetData[$baseRow]['H']);
 				$jenis_kelamin = '-';
 				$Up = $sumInsured;
 				$premi = $totalPremium;
 				$rate = $quotationRate->rate;
-				$uw =$quotationUwLimit->medical_code;
-				$tinggi_badan = $sheetData[$baseRow]['R'];
-				$berat_badan  = $sheetData[$baseRow]['S'];
+				$personal_number = $personal->personal_no;
+				$ktp = $personal->id_card_no;
+				$tinggi_badan = $sheetData[$baseRow]['J'];
+				$berat_badan  = $sheetData[$baseRow]['K'];
+
 
 				$bmi = 0;
 				$bmiKategori = '';
@@ -855,22 +854,23 @@ class MemberController extends Controller
 						'jenis_kelamin' => 'L',
 						'no_ktp' => '-',
 						'alamat' => '-',
-						'tinggi_badan' => '166',
+						'tinggi_badan' => $tinggi_badan,
 						'uw' => $uw,
 						'ul' => $uw,
 					];
 					
 					
 				$members[] = [
-					'member_no' => $sheetData[$baseRow]['E'],
+					'member_no' => '',
 					'policy_no' => $policyNo,
 					'batch_no' => str_pad($batchNo, 6, '0', STR_PAD_LEFT),
 					'personal_no' => $personal->personal_no,
-					'branch' => $sheetData[$baseRow]['B'],
+					'branch' => $sheetData[$baseRow]['D'],
 					'age' => $age,
+			
 					'term' => $term,
-					'start_date' => Utils::convertDateToYmd($sheetData[$baseRow]['J']),
-					'end_date' => Utils::convertDateToYmd($sheetData[$baseRow]['K']),
+					'start_date' => Utils::convertDateToYmd($sheetData[$baseRow]['G']),
+					'end_date' => Utils::convertDateToYmd($sheetData[$baseRow]['H']),
 					'sum_insured' => $sumInsured,
 					'total_si' => $sumInsured,
 					'rate_premi' => $quotationRate->rate,
@@ -887,12 +887,14 @@ class MemberController extends Controller
 					'acc_status' => $accStatus,
 					'created_at' => $createdAt,
 					'created_by' => $createdBy,
-					'tinggi_badan' => $sheetData[$baseRow]['R'],
-					'berat_badan' => $sheetData[$baseRow]['S'],
+					'tinggi_badan' => $sheetData[$baseRow]['J'],
+					'berat_badan' => $sheetData[$baseRow]['K'],
 					'status_bmi' => $bmiKategori,
 					'bmi' => $bmi,
 					'em_premium' => $extraPremi,
-					'percentage_em' =>  $extraMortalita
+					'percentage_em' =>  $extraMortalita,
+					'member_name' => $sheetData[$baseRow]['B'],
+					'date_of_birth' => $sheetData[$baseRow]['F']
 				];
 
 				$totalUp += $sumInsured;
@@ -1006,7 +1008,9 @@ class MemberController extends Controller
 			'status_bmi',
 			'bmi',
 			'em_premium',
-			'percentage_em'
+			'percentage_em',
+			'member_name',
+			'date_of_birth',
 		];
 		// $modelSave = Yii::$app->db->createCommand()
 			// ->batchInsert(Member::tableName(), $attributes, $members)
