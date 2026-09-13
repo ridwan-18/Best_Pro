@@ -810,9 +810,9 @@ class PengajuanController extends Controller
 						($check_member === null ? 'Gagal insert Member: ' : 'Gagal update Member: ') .
 						json_encode($member->errors)
 					);
-}
+			}
 
-$transaction->commit();
+			$transaction->commit();
 		} catch (\Exception $e) {
 
 			$transaction->rollBack();
