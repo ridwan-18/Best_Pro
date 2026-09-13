@@ -128,7 +128,7 @@ class Batch extends \yii\db\ActiveRecord
 		// SUPER ADMIN
 		// role = 1
 		// ==========================================================
-		if ($identity->role == User::ROLE_SUPER_ADMIN) {
+		if ($identity->role == User::1) {
 
 			// Super Admin melihat semua data
 		}
@@ -138,7 +138,7 @@ class Batch extends \yii\db\ActiveRecord
 		// PUSAT
 		// role = 6
 		// ==========================================================
-		elseif ($identity->role == User::ROLE_PUSAT) {
+		elseif ($identity->role == User::6) {
 
 			/*
 			 * Pusat hanya melihat data berdasarkan partner_id
@@ -155,7 +155,7 @@ class Batch extends \yii\db\ActiveRecord
 		// CABANG
 		// role = 2
 		// ==========================================================
-		elseif ($identity->role == User::ROLE_CABANG) {
+		elseif ($identity->role == User::2) {
 
 			/*
 			 * Cabang hanya melihat data berdasarkan partner_id
