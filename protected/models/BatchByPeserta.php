@@ -429,70 +429,152 @@ class BatchByPeserta extends \yii\db\ActiveRecord
 		
 	public static function countAllDataproduksi($paramsGetAllProduksi = [])
 	{
-		$query = self::find();
+		$tableMember = self::tableName();
+		$tableUser   = User::tableName();
 
-		// Filter status
-		if (!empty($paramsGetAllProduksi['status'])) {
-			$query->andWhere([
-				self::tableName() . '.status' => $paramsGetAllProduksi['status']
-			]);
-		}
+		$query = self::find()
+			->innerJoin(
+				$tableUser,
+				$tableUser . '.id = ' . $tableMember . '.created_by'
+			);
 
-		// Filter batch
-		if (!empty($paramsGetAllProduksi['batch_no'])) {
-			$query->andWhere([
-				self::tableName() . '.batch_no' => $paramsGetAllProduksi['batch_no']
-			]);
-		}
+		/*
+		 * ============================================================
+		 * FILTER BERDASARKAN ROLE
+		 * ============================================================
+		 */
 
-		// Filter ID Loan
-		if (!empty($paramsGetAllProduksi['id_loan'])) {
-			$query->andWhere([
-				self::tableName() . '.id_loan' => $paramsGetAllProduksi['id_loan']
-			]);
-		}
+		if (!Yii::$app->user->isGuest) {
 
-		// Filter user
-		if (!empty($paramsGetAllProduksi['username'])) {
-			$query
-				->innerJoin(
-					User::tableName(),
-					User::tableName() . '.id = ' . self::tableName() . '.created_by'
-				)
-				->andWhere([
-					User::tableName() . '.username' => $paramsGetAllProduksi['username']
+			$user = Yii::$app->user->identity;
+
+			/*
+			 * SUPER ADMIN
+			 * Bisa melihat seluruh data
+			 */
+			if ($user->role == User::ROLE_SUPERADMIN) {
+
+				// Tidak ada filter
+
+			/*
+			 * UW = CABANG
+			 * Hanya melihat data dari partner_id yang sama
+			 */
+			} elseif ($user->role == User::ROLE_UW) {
+
+				$query->andWhere([
+					$tableUser . '.partner_id' => $user->partner_id
 				]);
+
+			/*
+			 * PUSAT
+			 * Hanya melihat data berdasarkan partner_id sendiri
+			 */
+			} elseif ($user->role == User::ROLE_PUSAT) {
+
+				$query->andWhere([
+					$tableUser . '.partner_id' => $user->partner_id
+				]);
+			}
 		}
 
-		// Filter tanggal
-		if (!empty($paramsGetAllProduksi['start_date'])) {
+		/*
+		 * ============================================================
+		 * FILTER STATUS
+		 * ============================================================
+		 */
+
+		if (
+			isset($paramsGetAllProduksi['status']) &&
+			$paramsGetAllProduksi['status'] !== null &&
+			$paramsGetAllProduksi['status'] !== ''
+		) {
+			$query->andWhere([
+				$tableMember . '.status' => $paramsGetAllProduksi['status']
+			]);
+		}
+
+		/*
+		 * ============================================================
+		 * FILTER BATCH
+		 * ============================================================
+		 */
+
+		if (
+			isset($paramsGetAllProduksi['batch_no']) &&
+			$paramsGetAllProduksi['batch_no'] !== null &&
+			$paramsGetAllProduksi['batch_no'] !== ''
+		) {
+			$query->andWhere([
+				$tableMember . '.batch_no' => $paramsGetAllProduksi['batch_no']
+			]);
+		}
+
+		/*
+		 * ============================================================
+		 * FILTER ID LOAN
+		 * ============================================================
+		 */
+
+		if (
+			isset($paramsGetAllProduksi['id_loan']) &&
+			$paramsGetAllProduksi['id_loan'] !== null &&
+			$paramsGetAllProduksi['id_loan'] !== ''
+		) {
+			$query->andWhere([
+				$tableMember . '.id_loan' => $paramsGetAllProduksi['id_loan']
+			]);
+		}
+
+		/*
+		 * ============================================================
+		 * FILTER USERNAME
+		 * ============================================================
+		 */
+
+		if (
+			isset($paramsGetAllProduksi['username']) &&
+			$paramsGetAllProduksi['username'] !== null &&
+			$paramsGetAllProduksi['username'] !== ''
+		) {
+			$query->andWhere([
+				$tableUser . '.username' => $paramsGetAllProduksi['username']
+			]);
+		}
+
+		/*
+		 * ============================================================
+		 * FILTER TANGGAL
+		 * ============================================================
+		 */
+
+		if (
+			isset($paramsGetAllProduksi['start_date']) &&
+			$paramsGetAllProduksi['start_date'] !== null &&
+			$paramsGetAllProduksi['start_date'] !== ''
+		) {
 			$query->andWhere([
 				'>=',
-				self::tableName() . '.updated_at',
+				$tableMember . '.updated_at',
 				$paramsGetAllProduksi['start_date']
 			]);
 		}
 
-		if (!empty($paramsGetAllProduksi['end_date'])) {
-			$query->andWhere([
-				'<=',
-				self::tableName() . '.updated_at',
-				$paramsGetAllProduksi['end_date']
-			]);
-		}
-
-		// Role UW
 		if (
-			!Yii::$app->user->isGuest &&
-			Yii::$app->user->identity->role == User::ROLE_UW
+			isset($paramsGetAllProduksi['end_date']) &&
+			$paramsGetAllProduksi['end_date'] !== null &&
+			$paramsGetAllProduksi['end_date'] !== ''
 		) {
 			$query->andWhere([
-				self::tableName() . '.created_by' => Yii::$app->user->identity->id
+				'<=',
+				$tableMember . '.updated_at',
+				$paramsGetAllProduksi['end_date']
 			]);
 		}
 
 		return $query->count();
 	}
+
 
 }
 
