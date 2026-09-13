@@ -45,11 +45,11 @@ $config = [
         'useFileTransport' => false,
         'transport' => [
             'class' => 'Swift_SmtpTransport',
-            'host' => 'smtp.office365.com',
-            'username' => 'rnurasyid@reliance-life.com',
-            'password' => 'Edo@180293',
-            'port' => '587',
-            'encryption' => 'tls',
+        'host' => 'smtp.office365.com',
+        'username' => 'administrator@bestpro-id.com',
+        'password' => 'ITbestpro01',
+        'port' => 587,
+        'encryption' => 'tls',
 				],
 			],
 		

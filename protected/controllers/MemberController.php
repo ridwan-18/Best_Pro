@@ -1029,7 +1029,7 @@ class MemberController extends Controller
 			try {
 
 			$useremail = trim(Yii::$app->user->identity->email);
-			$email ='shofwan.farid@reliance-life.com';
+			$email ='adminuw@reliance-life.com';
 			// Validasi email recipient
 			if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
 
@@ -1046,7 +1046,7 @@ class MemberController extends Controller
 					->compose()
 					->setTo($email)
 					->setFrom([
-						'ridwan.nurasyid@reliance-life.com' => 'AJRI'
+						'administrator@bestpro-id.com' => 'H2H'
 					])
 					->setSubject(
 						'Upload Member Berhasil - Batch ' . $batch->batch_no
