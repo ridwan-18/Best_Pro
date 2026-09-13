@@ -84,85 +84,191 @@ class Batch extends \yii\db\ActiveRecord
         ];
     }
 
-    public static function getAll($params = [])
-    {
-		
-		$createdBy = Yii::$app->user->identity->id;
-		$user = user::findOne(['id' => $createdBy]);
-		// var_dump($user);
-        $query = self::find()
-            ->select([
-                self::tableName() . '.id',
-                self::tableName() . '.policy_no',
-                self::tableName() . '.batch_no',
-                self::tableName() . '.total_member',
-                self::tableName() . '.status',
-                self::tableName() . '.created_at',
+   
+	public static function getAll($params = [])
+	{
+		$identity = Yii::$app->user->identity;
+
+		$query = self::find()
+			->select([
+				self::tableName() . '.id',
+				self::tableName() . '.policy_no',
+				self::tableName() . '.batch_no',
+				self::tableName() . '.total_member',
+				self::tableName() . '.status',
+				self::tableName() . '.created_at',
 				self::tableName() . '.created_by',
 				self::tableName() . '.files',
-                '(SELECT ' . Partner::tableName() . '.name' .  ' FROM ' . Policy::tableName() . 
-				' INNER JOIN ' . Partner::tableName() . ' ON ' . Policy::tableName() . '.partner_id = ' . Partner::tableName() . '.id'.
-				' INNER JOIN ' . User::tableName() . ' ON ' . Partner::tableName() . '.id = ' . User::tableName() . '.partner_id where '
-				. Policy::tableName() . '.policy_no = ' . self::tableName() . '.policy_no GROUP BY ' 
-				. Policy::tableName() . '.policy_no) AS partner',
-				])
-            ->asArray();
-			
-			
-		if (!Yii::$app->user->isGuest) {
-			if (Yii::$app->user->identity->role == User::ROLE_UW) {
-				$query->andWhere(['=', self::tableName() . '.created_by', Yii::$app->user->identity->id]);
-			}
+
+				// Partner
+				'(' .
+					'SELECT ' . Partner::tableName() . '.name
+					 FROM ' . Policy::tableName() . '
+					 INNER JOIN ' . Partner::tableName() . '
+						ON ' . Policy::tableName() . '.partner_id = ' . Partner::tableName() . '.id
+					 WHERE ' . Policy::tableName() . '.policy_no = ' .
+						self::tableName() . '.policy_no
+					 LIMIT 1
+				) AS partner',
+			])
+			->asArray();
+
+
+		/*
+		 * ==========================================================
+		 * FILTER BERDASARKAN ROLE
+		 * ==========================================================
+		 */
+
+		// ==========================================================
+		// SUPER ADMIN
+		// ==========================================================
+		if ($identity->role == User::ROLE_SUPER_ADMIN) {
+
+			// Tidak perlu filter
+			// Super Admin melihat semua data
+
 		}
-		
-		
-		if (!yii::$app->user->isguest) {
-			if (yii::$app->user->identity->role == user::ROLE_PUSAT) {
-				$query->andwhere(['=', user::tablename() . '.partner_id', $user->partner_id]);
-			}
+
+
+		// ==========================================================
+		// PUSAT
+		// ==========================================================
+		elseif ($identity->role == User::ROLE_PUSAT) {
+
+			/*
+			 * Pusat berdasarkan partner_id user.
+			 *
+			 * Cari policy berdasarkan partner_id user,
+			 * kemudian hanya ambil batch yang policy-nya
+			 * milik partner tersebut.
+			 */
+			$query->innerJoin(
+				Policy::tableName(),
+				Policy::tableName() . '.policy_no = ' .
+				self::tableName() . '.policy_no'
+			);
+
+			$query->andWhere([
+				Policy::tableName() . '.partner_id' => $identity->partner_id
+			]);
 		}
-		
-		$policies = Policy::find()
-    ->asArray()
-    ->select([
-        Policy::tableName() . '.policy_no',
-        Partner::tableName() . '.name AS partner'
-    ])
-    ->innerJoin(Partner::tableName(), Partner::tableName() . '.id = ' .  Policy::tableName() . '.partner_id')
-	->innerJoin(User::tableName(), Partner::tableName() . '.id = ' .  User::tableName() . '.partner_id')
-	->where([
-						User::tableName() . '.partner_id' => $user->partner_id
-					])
-    ->orderBy([Policy::tableName() . '.id' => SORT_ASC])
-    ->all();
-		
-		
-		
-        if (isset($params['policy_no']) && $params['policy_no'] != null) {
-            $query->andFilterWhere(['=', self::tableName() . '.policy_no', $params['policy_no']]);
-        }
 
-        if (isset($params['batch_no']) && $params['batch_no'] != null) {
-            $query->andFilterWhere(['=', self::tableName() . '.batch_no', $params['batch_no']]);
-        }
 
-        if (isset($params['status']) && $params['status'] != null) {
-            $query->andFilterWhere(['=', self::tableName() . '.status', $params['status']]);
-        }
+		// ==========================================================
+		// CABANG
+		// ==========================================================
+		elseif ($identity->role == User::ROLE_CABANG) {
 
-        if (isset($params['offset']) && $params['offset'] != null) {
-            $query->offset($params['offset']);
-        }
+			/*
+			 * Jika field branch terdapat pada tabel batch/current model,
+			 * gunakan branch user sebagai filter.
+			 *
+			 * Contoh:
+			 *
+			 * $identity->branch
+			 *
+			 * Jika branch TIDAK ada di User, ambil branch dari
+			 * data peserta/member berdasarkan batch_no.
+			 */
 
-        if (isset($params['limit']) && $params['limit'] != null) {
-            $query->limit($params['limit']);
-        }
+			$query->innerJoin(
+				Member::tableName(),
+				Member::tableName() . '.batch_no = ' .
+				self::tableName() . '.batch_no'
+			);
 
-        $query->groupBy(['policy_no', 'batch_no']);
-        $query->orderBy(['id' => $params['sort']]);
+			/*
+			 * Ganti $identity->branch dengan sumber branch
+			 * yang memang tersedia pada struktur database Anda.
+			 *
+			 * Contoh jika branch ada di Member:
+			 */
+			$query->andWhere([
+				Member::tableName() . '.branch' => $identity->branch
+			]);
+		}
 
-        return $query->all();
-    }
+
+		// ==========================================================
+		// UW
+		// ==========================================================
+		elseif ($identity->role == User::ROLE_UW) {
+
+			$query->andWhere([
+				self::tableName() . '.created_by' => $identity->id
+			]);
+		}
+
+
+		/*
+		 * ==========================================================
+		 * FILTER PARAMETER
+		 * ==========================================================
+		 */
+
+		if (isset($params['policy_no']) && $params['policy_no'] != null) {
+			$query->andFilterWhere([
+				'=',
+				self::tableName() . '.policy_no',
+				$params['policy_no']
+			]);
+		}
+
+		if (isset($params['batch_no']) && $params['batch_no'] != null) {
+			$query->andFilterWhere([
+				'=',
+				self::tableName() . '.batch_no',
+				$params['batch_no']
+			]);
+		}
+
+		if (isset($params['status']) && $params['status'] != null) {
+			$query->andFilterWhere([
+				'=',
+				self::tableName() . '.status',
+				$params['status']
+			]);
+		}
+
+
+		/*
+		 * ==========================================================
+		 * PAGINATION
+		 * ==========================================================
+		 */
+
+		if (isset($params['offset']) && $params['offset'] != null) {
+			$query->offset($params['offset']);
+		}
+
+		if (isset($params['limit']) && $params['limit'] != null) {
+			$query->limit($params['limit']);
+		}
+
+
+		/*
+		 * ==========================================================
+		 * GROUP & SORT
+		 * ==========================================================
+		 */
+
+		$query->groupBy([
+			self::tableName() . '.policy_no',
+			self::tableName() . '.batch_no'
+		]);
+
+		$sort = isset($params['sort']) && $params['sort'] != null
+			? $params['sort']
+			: SORT_DESC;
+
+		$query->orderBy([
+			self::tableName() . '.id' => $sort
+		]);
+
+		return $query->all();
+	}
+
 
     public static function countAll($params = [])
     {
