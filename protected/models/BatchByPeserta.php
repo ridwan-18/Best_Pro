@@ -270,7 +270,7 @@ class BatchByPeserta extends \yii\db\ActiveRecord
 				$tableMember . '.gross_premium',
 				$tableMember . '.member_name',
 				$tableMember . '.date_of_birth',
-				$tableMember . '.partner_id',
+				
 			])
 			->innerJoin(
 				$tableUser,
