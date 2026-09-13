@@ -886,7 +886,7 @@ class MemberController extends Controller
 					'em_premium' => $extraPremi,
 					'percentage_em' =>  $extraMortalita,
 					'member_name' => $sheetData[$baseRow]['B'],
-					'date_of_birth' => $sheetData[$baseRow]['F']
+					'date_of_birth' => $birthDate
 				];
 
 				$totalUp += $sumInsured;
