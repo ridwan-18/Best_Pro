@@ -33,8 +33,6 @@ class Batch extends \yii\db\ActiveRecord
     const STATUS_PENDING = 'PENDING';
     const STATUS_CLOSED = 'CLOSED';
 	
-	const ROLE_SUPER_ADMIN = 1; const ROLE_CABANG = 2; const ROLE_PUSAT = 6;
-
     const PAGE_SIZE = 10;
 
     /**
