@@ -85,6 +85,7 @@ class Batch extends \yii\db\ActiveRecord
     }
 
    
+	
 	public static function getAll($params = [])
 	{
 		$identity = Yii::$app->user->identity;
@@ -100,14 +101,15 @@ class Batch extends \yii\db\ActiveRecord
 				self::tableName() . '.created_by',
 				self::tableName() . '.files',
 
-				// Partner
+				// Nama Partner
 				'(' .
 					'SELECT ' . Partner::tableName() . '.name
 					 FROM ' . Policy::tableName() . '
 					 INNER JOIN ' . Partner::tableName() . '
-						ON ' . Policy::tableName() . '.partner_id = ' . Partner::tableName() . '.id
+						ON ' . Policy::tableName() . '.partner_id = ' .
+						   Partner::tableName() . '.id
 					 WHERE ' . Policy::tableName() . '.policy_no = ' .
-						self::tableName() . '.policy_no
+						   self::tableName() . '.policy_no
 					 LIMIT 1
 				) AS partner',
 			])
@@ -122,76 +124,50 @@ class Batch extends \yii\db\ActiveRecord
 
 		// ==========================================================
 		// SUPER ADMIN
+		// role = 1
 		// ==========================================================
 		if ($identity->role == User::ROLE_SUPER_ADMIN) {
 
-			// Tidak perlu filter
 			// Super Admin melihat semua data
-
 		}
 
 
 		// ==========================================================
 		// PUSAT
+		// role = 6
 		// ==========================================================
 		elseif ($identity->role == User::ROLE_PUSAT) {
 
 			/*
-			 * Pusat berdasarkan partner_id user.
-			 *
-			 * Cari policy berdasarkan partner_id user,
-			 * kemudian hanya ambil batch yang policy-nya
-			 * milik partner tersebut.
+			 * Pusat hanya melihat data berdasarkan partner_id
+			 * milik user.
 			 */
-			$query->innerJoin(
-				Policy::tableName(),
-				Policy::tableName() . '.policy_no = ' .
-				self::tableName() . '.policy_no'
-			);
 
 			$query->andWhere([
-				Policy::tableName() . '.partner_id' => $identity->partner_id
+				self::tableName() . '.partner_id' => $identity->partner_id
 			]);
 		}
 
 
 		// ==========================================================
 		// CABANG
+		// role = 2
 		// ==========================================================
 		elseif ($identity->role == User::ROLE_CABANG) {
 
 			/*
-			 * Jika field branch terdapat pada tabel batch/current model,
-			 * gunakan branch user sebagai filter.
-			 *
-			 * Contoh:
-			 *
-			 * $identity->branch
-			 *
-			 * Jika branch TIDAK ada di User, ambil branch dari
-			 * data peserta/member berdasarkan batch_no.
+			 * Cabang hanya melihat data berdasarkan partner_id
+			 * milik user.
 			 */
 
-			$query->innerJoin(
-				Member::tableName(),
-				Member::tableName() . '.batch_no = ' .
-				self::tableName() . '.batch_no'
-			);
-
-			/*
-			 * Ganti $identity->branch dengan sumber branch
-			 * yang memang tersedia pada struktur database Anda.
-			 *
-			 * Contoh jika branch ada di Member:
-			 */
 			$query->andWhere([
-				Member::tableName() . '.branch' => $identity->branch
+				self::tableName() . '.partner_id' => $identity->partner_id
 			]);
 		}
 
 
 		// ==========================================================
-		// UW
+		// UNDERWRITING
 		// ==========================================================
 		elseif ($identity->role == User::ROLE_UW) {
 
@@ -208,6 +184,7 @@ class Batch extends \yii\db\ActiveRecord
 		 */
 
 		if (isset($params['policy_no']) && $params['policy_no'] != null) {
+
 			$query->andFilterWhere([
 				'=',
 				self::tableName() . '.policy_no',
@@ -216,6 +193,7 @@ class Batch extends \yii\db\ActiveRecord
 		}
 
 		if (isset($params['batch_no']) && $params['batch_no'] != null) {
+
 			$query->andFilterWhere([
 				'=',
 				self::tableName() . '.batch_no',
@@ -224,6 +202,7 @@ class Batch extends \yii\db\ActiveRecord
 		}
 
 		if (isset($params['status']) && $params['status'] != null) {
+
 			$query->andFilterWhere([
 				'=',
 				self::tableName() . '.status',
@@ -249,7 +228,7 @@ class Batch extends \yii\db\ActiveRecord
 
 		/*
 		 * ==========================================================
-		 * GROUP & SORT
+		 * GROUP
 		 * ==========================================================
 		 */
 
@@ -258,6 +237,13 @@ class Batch extends \yii\db\ActiveRecord
 			self::tableName() . '.batch_no'
 		]);
 
+
+		/*
+		 * ==========================================================
+		 * SORT
+		 * ==========================================================
+		 */
+
 		$sort = isset($params['sort']) && $params['sort'] != null
 			? $params['sort']
 			: SORT_DESC;
@@ -265,6 +251,7 @@ class Batch extends \yii\db\ActiveRecord
 		$query->orderBy([
 			self::tableName() . '.id' => $sort
 		]);
+
 
 		return $query->all();
 	}
