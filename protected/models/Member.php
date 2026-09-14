@@ -1041,6 +1041,8 @@ class Member extends \yii\db\ActiveRecord
 			];
 		}
 
+
+		Yii::error(
 			"===== DEBUG TOKEN BANK =====\n" .
 			"HTTP CODE : " . $httpCode . "\n" .
 			"RAW BODY  : " . $body,
@@ -1063,6 +1065,7 @@ class Member extends \yii\db\ActiveRecord
 			];
 		}
 
+
 		$token = null;
 
 		if (
@@ -1073,7 +1076,7 @@ class Member extends \yii\db\ActiveRecord
 			$token = $response['result']['token'];
 		}
 
-		Yii::error(
+
 			"===== HASIL PARSING TOKEN =====\n" .
 			"TOKEN ADA : " . (!empty($token) ? 'YA' : 'TIDAK') . "\n" .
 			"TOKEN     : " . (!empty($token) ? 'ADA' : 'NULL') . "\n" .
