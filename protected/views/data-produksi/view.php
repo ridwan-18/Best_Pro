@@ -790,14 +790,14 @@ $this->title = 'View Member - ' . Yii::$app->name;
 								
 								 <td>
 								<?= Html::textInput(
-									'keterangan[' . $cd['id_loan'] . ']',
-									'',
-									[
-										'class' => 'form-control keterangan-input',
-										'placeholder' => 'Masukkan keterangan',
-										'autocomplete' => 'off',
-									]
-								); ?>
+										'keterangan',
+										'',
+										[
+											'class' => 'form-control keterangan-input',
+											'placeholder' => 'Masukkan keterangan',
+											'autocomplete' => 'off',
+										]
+									); ?>
 							</td>
 
                                 <td>
@@ -831,6 +831,7 @@ $this->title = 'View Member - ' . Yii::$app->name;
 </div>
 
 
+
 <?php
 
 $script = <<< JS
@@ -843,28 +844,26 @@ $(document).on('change', '.action-dropdown', function() {
     var url = dropdown.data('url');
     var loanId = dropdown.data('id-loan');
 
+    // Ambil row yang sama
+    var row = dropdown.closest('tr');
+
+    // Ambil input keterangan dari row tersebut
+    var keteranganInput = row.find('.keterangan-input');
+
+    var keterangan = $.trim(keteranganInput.val() || '');
+
     console.log('==============================');
     console.log('DEBUG CBC');
     console.log('URL        :', url);
     console.log('ACTION     :', action);
     console.log('ID LOAN    :', loanId);
+    console.log('KETERANGAN :', keterangan);
+    console.log('INPUT      :', keteranganInput);
     console.log('==============================');
 
     if (!action) {
         return;
     }
-
-    // ==========================================
-    // AMBIL INPUT KETERANGAN
-    // ==========================================
-    var keteranganInput = $('input[name="keterangan[' + loanId + ']"]');
-
-    console.log('INPUT KETERANGAN:', keteranganInput);
-    console.log('JUMLAH INPUT    :', keteranganInput.length);
-
-    var keterangan = $.trim(keteranganInput.val() || '');
-
-    console.log('KETERANGAN      :', keterangan);
 
     // ==========================================
     // VALIDASI KETERANGAN
@@ -987,6 +986,8 @@ JS;
 $this->registerJs($script);
 
 ?>
+
+
 
 
 
