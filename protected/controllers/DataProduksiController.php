@@ -1720,12 +1720,20 @@ class DataProduksiController  extends Controller
 			$keterangan = Yii::$app->request->post('keterangan');
 			$keterangan = trim($keterangan);
 
+			// $document = map_member_dokumen_medis::find()
+				// ->where([
+					// 'id_loan' => $id_loan,
+					// 'jenis_dokumen' => 'pengajuan',
+				// ])
+				// ->one();
+				
 			$document = map_member_dokumen_medis::find()
-				->where([
-					'id_loan' => $id_loan,
-					'jenis_dokumen' => 'pengajuan',
-				])
-				->one();
+			->where([
+				'id_loan' => $id_loan,
+				'jenis_dokumen' => 'pengajuan',
+			])
+			->orderBy(['id' => SORT_DESC])
+			->one();
 
 			if (!$document) {
 				return [
