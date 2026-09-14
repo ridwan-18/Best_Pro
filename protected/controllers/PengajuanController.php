@@ -740,6 +740,7 @@ class PengajuanController extends Controller
 				} else {
 					// Jika sudah ada, update data yang sudah ada
 					$member = $check_member;
+					$member->id_transaksi = $idTransaksi;
 				}
 
 				// Isi / update data member
