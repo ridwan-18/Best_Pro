@@ -1166,8 +1166,8 @@ class Member extends \yii\db\ActiveRecord
 		}
 
 		$payload = [
-			'id_transaksi'      => $model->id_loan,
-			'id_transaksi_bank' => $model->id_pengajuan,
+			'id_transaksi'      => $model->id,
+			'id_transaksi_bank' => $model->id_loan,
 			'id_pengajuan'      => $model->id_pengajuan,
 			'kode_cabang'       => $model->kode_cabang,
 			'kode_broker'       => $model->kode_broker,
