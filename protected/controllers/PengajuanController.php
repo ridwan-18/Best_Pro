@@ -693,28 +693,7 @@ class PengajuanController extends Controller
 		$transaction =
 			Yii::$app->db->beginTransaction();
 		
-		$fileNik = $ktp;
-		// $fileTanggal = '010926';
-	
-
-		$fileTanggal = date(
-			'dmy',
-			strtotime($tglBuka)
-		);
-
-		$codeDoc = '001';
-
-		$fileBenefit = $benefit;
-
-		$sequence = '01';
-
-		$fileName =
-			$fileNik . '_' .
-			$fileTanggal . '_' .
-			$codeDoc . '_' .
-			$fileBenefit . '_' .
-			$sequence .
-			'.zip';
+		
 
 		try {
 
@@ -835,8 +814,39 @@ class PengajuanController extends Controller
 		$dokument = Dokumen_Medis::getAll([
 				'medis' => $medicalCode
 			]);
+		$fileNik = $ktp;
+		$fileTanggal = date(
+			'dmy',
+			strtotime($tglBuka)
+		);
+		$codeDoc = '001';
+		$fileBenefit = $benefit;
+		
+		$countDokumen = \app\models\map_member_dokumen_medis::find()
+			->where([
+				'id_loan' => $idPengajuan,
+				'jenis_dokumen' => 'Pengajuan',
+			])
+			->count();
+		
+		
 
-
+		$sequence = str_pad(
+			$countDokumen + 1,
+			2,
+			'0',
+			STR_PAD_LEFT
+		);	
+		
+		$fileName =
+			$fileNik . '_' .
+			$fileTanggal . '_' .
+			$codeDoc . '_' .
+			$fileBenefit . '_' .
+			$sequence .
+			'.zip';
+			
+			
 		$sftpResult = $this->downloadFileFromBankSftp($fileName);
 
 		$dokumenMedis = new \app\models\map_member_dokumen_medis();
