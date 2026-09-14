@@ -450,10 +450,13 @@ class DataProduksiController  extends Controller
 		
 		if ($model !== null && $model->id_transaksi != null) {
 			$filecbc = map_member_dokumen_medis::find()
-				->asArray()
-				->where(['id_loan' => $model->id_transaksi])
-				->all();
-		}
+        ->asArray()
+        ->where([
+            'id_loan' => $model->id_transaksi,
+            'jenis_dokumen' => 'pengajuan',
+        ])
+        ->all();
+}
 		
 
 		$params = [
