@@ -831,9 +831,6 @@ $this->title = 'View Member - ' . Yii::$app->name;
 </div>
 
 
-
-
-
 <?php
 
 $script = <<< JS
@@ -843,67 +840,45 @@ $(document).on('change', '.action-dropdown', function() {
     var dropdown = $(this);
 
     var action = dropdown.val();
-
-    var url = dropdown.attr('data-url');
-
-    // ==========================================
-    // AMBIL ID LOAN DARI URL
-    // ==========================================
-    var idLoan = dropdown.attr('name');
+    var url = dropdown.data('url');
+    var loanId = dropdown.data('id-loan');
 
     console.log('==============================');
     console.log('DEBUG CBC');
-    console.log('URL    :', url);
-    console.log('ACTION :', action);
-    console.log('NAME   :', idLoan);
+    console.log('URL        :', url);
+    console.log('ACTION     :', action);
+    console.log('ID LOAN    :', loanId);
     console.log('==============================');
-
 
     if (!action) {
         return;
     }
 
-
     // ==========================================
-    // AMBIL ID LOAN DARI DATA URL
-    // ==========================================
-    var idLoanMatch = url.match(/id_loan=([^&]+)/);
-
-    var loanId = null;
-
-    if (idLoanMatch) {
-        loanId = decodeURIComponent(idLoanMatch[1]);
-    }
-
-
-    // ==========================================
-    // AMBIL KETERANGAN
+    // AMBIL INPUT KETERANGAN
     // ==========================================
     var keteranganInput = $('input[name="keterangan[' + loanId + ']"]');
 
-    var keterangan = keteranganInput.val();
+    console.log('INPUT KETERANGAN:', keteranganInput);
+    console.log('JUMLAH INPUT    :', keteranganInput.length);
 
+    var keterangan = $.trim(keteranganInput.val() || '');
 
-    console.log('ID LOAN    :', loanId);
-    console.log('KETERANGAN :', keterangan);
-
+    console.log('KETERANGAN      :', keterangan);
 
     // ==========================================
     // VALIDASI KETERANGAN
     // ==========================================
-    if (!keterangan || $.trim(keterangan) === '') {
+    if (keterangan === '') {
 
         alert('Keterangan wajib diisi.');
 
-        // Reset dropdown
         dropdown.val('');
 
-        // Fokus ke input keterangan
         keteranganInput.focus();
 
         return;
     }
-
 
     // ==========================================
     // AJAX
@@ -921,10 +896,7 @@ $(document).on('change', '.action-dropdown', function() {
             keterangan: keterangan
         },
 
-
         beforeSend: function() {
-
-            console.log('REQUEST DIKIRIM');
 
             dropdown.prop('disabled', true);
 
@@ -932,14 +904,9 @@ $(document).on('change', '.action-dropdown', function() {
 
         },
 
-
         success: function(response) {
 
-            console.log('==============================');
-            console.log('RESPONSE CONTROLLER');
-            console.log(response);
-            console.log('==============================');
-
+            console.log('RESPONSE CONTROLLER:', response);
 
             if (
                 response.Result &&
@@ -953,9 +920,7 @@ $(document).on('change', '.action-dropdown', function() {
                     '\\nKode : ' +
                     response.Result.kode_response +
                     '\\nPesan : ' +
-                    response.Result.message +
-                    '\\n\\nKeterangan : ' +
-                    response.Result.data.keterangan
+                    response.Result.message
                 );
 
                 location.reload();
@@ -984,7 +949,6 @@ $(document).on('change', '.action-dropdown', function() {
                     )
                 );
 
-
                 dropdown.prop('disabled', false);
 
                 keteranganInput.prop('disabled', false);
@@ -993,17 +957,12 @@ $(document).on('change', '.action-dropdown', function() {
 
         },
 
-
         error: function(xhr, status, error) {
 
-            console.log('==============================');
             console.log('AJAX ERROR');
-            console.log('HTTP STATUS :', xhr.status);
-            console.log('STATUS      :', status);
-            console.log('ERROR       :', error);
-            console.log('RESPONSE    :', xhr.responseText);
-            console.log('==============================');
-
+            console.log('HTTP STATUS:', xhr.status);
+            console.log('ERROR:', error);
+            console.log('RESPONSE:', xhr.responseText);
 
             alert(
                 'ERROR AJAX\\n\\n' +
@@ -1012,7 +971,6 @@ $(document).on('change', '.action-dropdown', function() {
                 '\\n\\nResponse:\\n' +
                 xhr.responseText
             );
-
 
             dropdown.prop('disabled', false);
 
@@ -1029,6 +987,12 @@ JS;
 $this->registerJs($script);
 
 ?>
+
+
+
+
+
+
 
 
 
