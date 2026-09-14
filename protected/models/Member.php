@@ -1029,6 +1029,10 @@ class Member extends \yii\db\ActiveRecord
 
 		curl_close($ch);
 
+
+		// ==========================================
+		// CURL ERROR
+		// ==========================================
 		if ($curlNo !== 0) {
 
 			return [
@@ -1042,6 +1046,9 @@ class Member extends \yii\db\ActiveRecord
 		}
 
 
+		// ==========================================
+		// DEBUG RESPONSE RAW
+		// ==========================================
 		Yii::error(
 			"===== DEBUG TOKEN BANK =====\n" .
 			"HTTP CODE : " . $httpCode . "\n" .
@@ -1049,6 +1056,10 @@ class Member extends \yii\db\ActiveRecord
 			'api'
 		);
 
+
+		// ==========================================
+		// JSON DECODE
+		// ==========================================
 		$response = json_decode($body, true);
 
 
@@ -1066,6 +1077,19 @@ class Member extends \yii\db\ActiveRecord
 		}
 
 
+		// ==========================================
+		// AMBIL TOKEN
+		// RESPONSE BANK:
+		//
+		// {
+		//   "result": {
+		//      "pesan": "BERHASIL",
+		//      "kode": "00",
+		//      "token": "JWT..."
+		//   }
+		// }
+		// ==========================================
+
 		$token = null;
 
 		if (
@@ -1077,6 +1101,10 @@ class Member extends \yii\db\ActiveRecord
 		}
 
 
+		// ==========================================
+		// DEBUG TOKEN
+		// ==========================================
+		Yii::error(
 			"===== HASIL PARSING TOKEN =====\n" .
 			"TOKEN ADA : " . (!empty($token) ? 'YA' : 'TIDAK') . "\n" .
 			"TOKEN     : " . (!empty($token) ? 'ADA' : 'NULL') . "\n" .
@@ -1090,6 +1118,15 @@ class Member extends \yii\db\ActiveRecord
 					: 'NULL'),
 			'api'
 		);
+
+
+		// ==========================================
+		// RETURN
+		// PENTING:
+		// TOKEN HARUS DI LEVEL INI
+		//
+		// $loginResponse['token']
+		// ==========================================
 
 		return [
 			'success' => !empty($token),
