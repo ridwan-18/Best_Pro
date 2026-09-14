@@ -782,6 +782,7 @@ $this->title = 'View Member - ' . Yii::$app->name;
 											'data-produksi/approvedoc',
 											'id_loan' => $cd['id_loan'],
 										]),
+										'data-id-loan' => $cd['id_loan'],
 									]
 								); ?>
 
@@ -837,76 +838,45 @@ $this->title = 'View Member - ' . Yii::$app->name;
 
 $script = <<< JS
 
+
 $(document).on('change', '.action-dropdown', function() {
 
     var dropdown = $(this);
 
     var action = dropdown.val();
-
-    var url = dropdown.attr('data-url');
-
-    // ==========================================
-    // AMBIL ID LOAN DARI URL
-    // ==========================================
-    var idLoan = dropdown.attr('name');
+    var url = dropdown.data('url');
+    var loanId = dropdown.data('id-loan');
 
     console.log('==============================');
     console.log('DEBUG CBC');
-    console.log('URL    :', url);
-    console.log('ACTION :', action);
-    console.log('NAME   :', idLoan);
+    console.log('URL       :', url);
+    console.log('ACTION    :', action);
+    console.log('ID LOAN   :', loanId);
     console.log('==============================');
-
 
     if (!action) {
         return;
     }
 
-
-    // ==========================================
-    // AMBIL ID LOAN DARI DATA URL
-    // ==========================================
-    var idLoanMatch = url.match(/id_loan=([^&]+)/);
-
-    var loanId = null;
-
-    if (idLoanMatch) {
-        loanId = decodeURIComponent(idLoanMatch[1]);
-    }
-
-
-    // ==========================================
-    // AMBIL KETERANGAN
-    // ==========================================
+    // Ambil input keterangan berdasarkan id_loan
     var keteranganInput = $('input[name="keterangan[' + loanId + ']"]');
 
-    var keterangan = keteranganInput.val();
+    var keterangan = $.trim(keteranganInput.val());
 
+    console.log('KETERANGAN:', keterangan);
 
-    console.log('ID LOAN    :', loanId);
-    console.log('KETERANGAN :', keterangan);
-
-
-    // ==========================================
-    // VALIDASI KETERANGAN
-    // ==========================================
-    if (!keterangan || $.trim(keterangan) === '') {
+    // Validasi keterangan
+    if (!keterangan) {
 
         alert('Keterangan wajib diisi.');
 
-        // Reset dropdown
         dropdown.val('');
 
-        // Fokus ke input keterangan
         keteranganInput.focus();
 
         return;
     }
 
-
-    // ==========================================
-    // AJAX
-    // ==========================================
     $.ajax({
 
         url: url,
@@ -920,25 +890,16 @@ $(document).on('change', '.action-dropdown', function() {
             keterangan: keterangan
         },
 
-
         beforeSend: function() {
 
-            console.log('REQUEST DIKIRIM');
-
             dropdown.prop('disabled', true);
-
             keteranganInput.prop('disabled', true);
 
         },
 
-
         success: function(response) {
 
-            console.log('==============================');
-            console.log('RESPONSE CONTROLLER');
-            console.log(response);
-            console.log('==============================');
-
+            console.log('RESPONSE:', response);
 
             if (
                 response.Result &&
@@ -946,15 +907,19 @@ $(document).on('change', '.action-dropdown', function() {
             ) {
 
                 alert(
-                    'BERHASIL\\n\\n' +
+                    'BERHASIL\n\n' +
                     'Status : ' +
                     response.Result.status +
-                    '\\nKode : ' +
+                    '\nKode : ' +
                     response.Result.kode_response +
-                    '\\nPesan : ' +
+                    '\nPesan : ' +
                     response.Result.message +
-                    '\\n\\nKeterangan : ' +
-                    response.Result.data.keterangan
+                    '\n\nKeterangan : ' +
+                    (
+                        response.Result.data
+                        ? response.Result.data.keterangan
+                        : keterangan
+                    )
                 );
 
                 location.reload();
@@ -962,20 +927,20 @@ $(document).on('change', '.action-dropdown', function() {
             } else {
 
                 alert(
-                    'GAGAL\\n\\n' +
+                    'GAGAL\n\n' +
                     'Status : ' +
                     (
                         response.Result
                         ? response.Result.status
                         : '-'
                     ) +
-                    '\\nKode : ' +
+                    '\nKode : ' +
                     (
                         response.Result
                         ? response.Result.kode_response
                         : '-'
                     ) +
-                    '\\nPesan : ' +
+                    '\nPesan : ' +
                     (
                         response.Result
                         ? response.Result.message
@@ -983,45 +948,33 @@ $(document).on('change', '.action-dropdown', function() {
                     )
                 );
 
-
                 dropdown.prop('disabled', false);
-
                 keteranganInput.prop('disabled', false);
-
             }
-
         },
-
 
         error: function(xhr, status, error) {
 
-            console.log('==============================');
             console.log('AJAX ERROR');
-            console.log('HTTP STATUS :', xhr.status);
-            console.log('STATUS      :', status);
-            console.log('ERROR       :', error);
-            console.log('RESPONSE    :', xhr.responseText);
-            console.log('==============================');
-
+            console.log('HTTP STATUS:', xhr.status);
+            console.log('STATUS:', status);
+            console.log('ERROR:', error);
+            console.log('RESPONSE:', xhr.responseText);
 
             alert(
-                'ERROR AJAX\\n\\n' +
+                'ERROR AJAX\n\n' +
                 'HTTP : ' + xhr.status +
-                '\\nError : ' + error +
-                '\\n\\nResponse:\\n' +
+                '\nError : ' + error +
+                '\n\nResponse:\n' +
                 xhr.responseText
             );
 
-
             dropdown.prop('disabled', false);
-
             keteranganInput.prop('disabled', false);
-
         }
-
     });
-
 });
+
 
 JS;
 
