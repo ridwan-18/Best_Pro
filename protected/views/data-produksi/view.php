@@ -798,7 +798,7 @@ $this->title = 'View Member - ' . Yii::$app->name;
 											'autocomplete' => 'off',
 										]
 									); ?>
-							</td>
+								</td>
 
                                 <td>
                                     <?= Html::encode($cd['approve']); ?>

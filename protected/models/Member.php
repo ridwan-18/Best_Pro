@@ -1029,10 +1029,6 @@ class Member extends \yii\db\ActiveRecord
 
 		curl_close($ch);
 
-
-		// ==========================================
-		// CURL ERROR
-		// ==========================================
 		if ($curlNo !== 0) {
 
 			return [
@@ -1045,21 +1041,12 @@ class Member extends \yii\db\ActiveRecord
 			];
 		}
 
-
-		// ==========================================
-		// DEBUG RESPONSE RAW
-		// ==========================================
-		Yii::error(
 			"===== DEBUG TOKEN BANK =====\n" .
 			"HTTP CODE : " . $httpCode . "\n" .
 			"RAW BODY  : " . $body,
 			'api'
 		);
 
-
-		// ==========================================
-		// JSON DECODE
-		// ==========================================
 		$response = json_decode($body, true);
 
 
@@ -1076,20 +1063,6 @@ class Member extends \yii\db\ActiveRecord
 			];
 		}
 
-
-		// ==========================================
-		// AMBIL TOKEN
-		// RESPONSE BANK:
-		//
-		// {
-		//   "result": {
-		//      "pesan": "BERHASIL",
-		//      "kode": "00",
-		//      "token": "JWT..."
-		//   }
-		// }
-		// ==========================================
-
 		$token = null;
 
 		if (
@@ -1100,10 +1073,6 @@ class Member extends \yii\db\ActiveRecord
 			$token = $response['result']['token'];
 		}
 
-
-		// ==========================================
-		// DEBUG TOKEN
-		// ==========================================
 		Yii::error(
 			"===== HASIL PARSING TOKEN =====\n" .
 			"TOKEN ADA : " . (!empty($token) ? 'YA' : 'TIDAK') . "\n" .
@@ -1118,15 +1087,6 @@ class Member extends \yii\db\ActiveRecord
 					: 'NULL'),
 			'api'
 		);
-
-
-		// ==========================================
-		// RETURN
-		// PENTING:
-		// TOKEN HARUS DI LEVEL INI
-		//
-		// $loginResponse['token']
-		// ==========================================
 
 		return [
 			'success' => !empty($token),
@@ -1174,7 +1134,8 @@ class Member extends \yii\db\ActiveRecord
 			'nama'              => $model->nama,
 			'ktp'               => $model->ktp,
 			'status_dokumen' => ($document->approve === 'PROSES') ? '1' : (($document->approve === 'DISETUJUI') ? '2' : (($document->approve === 'DITOLAK') ? '3' : (($document->approve === 'Menunggu kelengkapan dokumen') ? '4' : '1'))),
-			'premi_disetujui'   => $model->gross_premium,
+			// 'premi_disetujui'   => $model->gross_premium,
+			'premi_disetujui'   => 0,
 			'keterangan'        => $document->keterangan,
 			'benefit'           => $model->benefit,
 		];
