@@ -1135,7 +1135,7 @@ class Member extends \yii\db\ActiveRecord
 			'ktp'               => $model->ktp,
 			'status_dokumen' => ($document->approve === 'PROSES') ? '1' : (($document->approve === 'DISETUJUI') ? '2' : (($document->approve === 'DITOLAK') ? '3' : (($document->approve === 'Menunggu kelengkapan dokumen') ? '4' : '1'))),
 			// 'premi_disetujui'   => $model->gross_premium,
-			'premi_disetujui'   => 0,
+			'premi_disetujui'   => '0',
 			'keterangan'        => $document->keterangan,
 			'benefit'           => $model->benefit,
 		];
