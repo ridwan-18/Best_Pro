@@ -632,7 +632,7 @@ class MemberController extends Controller
 		$sheetData = $objPHPExcel->getActiveSheet()->toArray(null, true, true, true);
 
 		$baseRow = 2;
-		// $members = [];
+		$members = [];
 		$totalMember = 0;
 		$totalUp = 0;
 		$totalGrossPremium = 0;
@@ -640,11 +640,7 @@ class MemberController extends Controller
 		$totalExtraPremium = 0;
 		$totalSavingPremium = 0;
 		$totalNettPremium = 0;
-		
-		
-		$members = [];
-		$pesertaApi = [];
-		
+		$premiUmum = 0 ;
 		while (!empty($sheetData[$baseRow]['D'])) {
 			$birthDate = Utils::trueBirthDate($sheetData[$baseRow]['F']);
 			$sumInsured = Utils::removeComma($sheetData[$baseRow]['I']);
@@ -655,12 +651,18 @@ class MemberController extends Controller
 			// $personal->gender = $sheetData[$baseRow]['H'];
 			// $personal->id_card_no = $sheetData[$baseRow]['Q'];
 			$personal->phone = $sheetData[$baseRow]['E'];
+			// $personal->email = $sheetData[$baseRow]['R'];
+			// $personal->address = $sheetData[$baseRow]['T'];
+			// $personal->province = $sheetData[$baseRow]['V'];
+			// $personal->city = $sheetData[$baseRow]['U'];
 			
 			
 			
 			if ($personal->save(false)) {
 				$startDate = Utils::convertDateToYmd($sheetData[$baseRow]['G']);
 				$endDate = Utils::convertDateToYmd($sheetData[$baseRow]['H']);
+				
+				
 				
 
 				$age = Member::getAge($quotation->age_calculate, $birthDate, $startDate);
@@ -685,6 +687,18 @@ class MemberController extends Controller
 					]);
 				}
 				
+				if ($quotationProduct->rate_type == ProductRateType::AGE_TERM) {
+					$quotationRateUmum = QuotationRate::findOne([
+						'quotation_id' => $policy->quotation_id,
+						'age' => $age,
+						'term' => $term
+					]);
+				} else {
+					$quotationRateUmum = QuotationRate::findOne([
+						'quotation_id' => $policy->quotation_id,
+						'term' => ($quotationProduct->period_type == PeriodType::ANNUALLY) ? $termYear : $term
+					]);
+				}
 				// var_dump($quotationRate);
 
 				$quotationTc = QuotationTc::findOne([
@@ -703,10 +717,11 @@ class MemberController extends Controller
 
 				$stncDate = Member::getStnc($startDate, $quotationTc->retroactive);
 				$totalPremium = $sumInsured * $quotationRate->rate / 1000;
+				$premiUmum = $sumInsured * $quotationRateUmum->rate / 1000;
 				$grossPremium = $totalPremium;
 				$basicPremium = $totalPremium;
 				$discount = $totalPremium * $quotationCommission->discount / 100;
-				$nettPremium = $totalPremium - $discount;
+				// $nettPremium = $totalPremium - $discount;
 
 				$status = Member::MEMBER_STATUS_PENDING;
 				if ($quotationUwLimit->medical_code == 'GOA' || $quotationUwLimit->medical_code == 'FC') {
@@ -766,11 +781,10 @@ class MemberController extends Controller
 				$tinggi_badan = $sheetData[$baseRow]['J'];
 				$berat_badan  = $sheetData[$baseRow]['K'];
 
-
-				$bmi = 0;
+				$bmi = '';
 				$bmiKategori = '';
-				$extraMortalita = 0;
-				$extraPremi = 0;
+				$extraMortalita = '';
+				$extraPremi = '';
 
 				// Jika tinggi dan berat badan tersedia
 				if ($tinggi_badan !== '' && $tinggi_badan !== null &&
@@ -810,15 +824,16 @@ class MemberController extends Controller
 					}
 
 				// Total Premi setelah Extra Mortalita
-				$nettPremium = $grossPremium + $extraPremi - $discount;
+				$nettPremium =  $premiUmum + $grossPremium + $extraPremi - $discount ;
+				
 				// $model = new Member();
 				// $response = $model->callAPIPostMemberLogin();
 				// $token = $response['token'];
-				// $policy_number = $policyNo;
+				// $policy_number = $batch->policy_no = $policyNo;;
 				// // var_dump($token);
 						
 				// // $model_member = new Member();
-				// $response_member = $model->callAPIPostMemberPush($token,$policy_number,$name,$dob,$tgl_mulai,$tgl_selesai,$sumInsured,$premi,$rate,$uw);
+				// $response_member = $model->callAPIPostMemberPush($token,$policy_number,$name,$dob,$tgl_mulai,$tgl_selesai,$sumInsured,$premi,$rate,$uw,$personal_number,$ktp);
 						
 						 // // var_dump($response_member);
 						
@@ -833,25 +848,7 @@ class MemberController extends Controller
 							// 'id' => Yii::$app->request->post('batch_id'),
 						// ]);
 					// }
-					
-					$pesertaApi[] = [
-						'nama' => $name,
-						'tanggal_lahir' => $dob,
-						'tanggal_mulai' => $tgl_mulai,
-						'tanggal_akhir' => $tgl_selesai,
-						'id_loan' => '-',
-						'basic' => $sumInsured,
-						'kontribusi' => $premi,
-						'rate' => $rate,
-						'jenis_kelamin' => 'L',
-						'no_ktp' => '-',
-						'alamat' => '-',
-						'tinggi_badan' => $tinggi_badan,
-						'uw' => $uw,
-						'ul' => $uw,
-					];
-					
-					
+
 				$members[] = [
 					'member_no' => '',
 					'policy_no' => $policyNo,
@@ -886,7 +883,8 @@ class MemberController extends Controller
 					'em_premium' => $extraPremi,
 					'percentage_em' =>  $extraMortalita,
 					'member_name' => $sheetData[$baseRow]['B'],
-					'date_of_birth' => $birthDate
+					'date_of_birth' => $sheetData[$baseRow]['F'],
+					'premi_umum' => $premiUmum,
 				];
 
 				$totalUp += $sumInsured;
@@ -901,46 +899,7 @@ class MemberController extends Controller
 			$baseRow++;
 		}
 		
-		
-		
-		$model = new Member();
-
-			$response = $model->callAPIPostMemberLogin();
-			
-			// echo '<pre>';
-			// print_r($response);
-			// echo '</pre>';
-			// exit;
-
-			if (empty($response['token'])) {
-
-				Yii::$app->session->setFlash(
-					'error',
-					'Login API gagal'
-				);
-
-				return $this->redirect(['create']);
-			}
-
-			$token = $response['token'];
-
-			$response_member = $model->callAPIPostMemberPush(
-				$token,
-				$policyNo,
-				$pesertaApi
-			);
-
-			if (!empty($response_member['code']) && $response_member['code'] != '200') {
-
-				Yii::$app->session->setFlash(
-					'error',
-					$response_member['message'] ?? 'Error Call API'
-				);
-
-				return $this->redirect(['create']);
-			}
-		
-		var_dump($response_member);
+		// var_dump($members);
 
 		if (count($members) == 0) {
 			Yii::$app->session->setFlash('error', "Member was empty");
@@ -1003,6 +962,7 @@ class MemberController extends Controller
 			'percentage_em',
 			'member_name',
 			'date_of_birth',
+			'premi_umum',
 		];
 		// $modelSave = Yii::$app->db->createCommand()
 			// ->batchInsert(Member::tableName(), $attributes, $members)

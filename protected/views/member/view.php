@@ -409,7 +409,8 @@ $this->title = 'View Member - ' . Yii::$app->name;
                                         <th>Term</th>
                                         <th>Sum Insured</th>
                                         <th>Rate Premi</th>
-                                        <th>Gross Premium</th>
+                                        <th>Gross Premium Jiwa</th>
+										<th>Gross Premium Umum</th>
                                         <th>Percentage Disc (%)</th>
                                         <th>Disc Premium</th>
                                         <th>Nett Premium</th>
@@ -455,6 +456,7 @@ $this->title = 'View Member - ' . Yii::$app->name;
                                                 <td><?= number_format($member['sum_insured']); ?></td>
                                                 <td><?= $member['rate_premi']; ?></td>
                                                 <td><?= number_format($member['gross_premium']); ?></td>
+												 <td><?= number_format($member['premi_umum']); ?></td>
                                                 <td><?= $member['percentage_discount']; ?></td>
                                                 <td><?= number_format($member['discount_premium']); ?></td>
                                                 <td><?= number_format($member['nett_premium']); ?></td>
