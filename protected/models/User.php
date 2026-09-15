@@ -198,7 +198,8 @@ class User extends ActiveRecord implements IdentityInterface
             self::ROLE_REAS => 'Reas',
             self::ROLE_AKTUARI => 'Aktuari',
             self::ROLE_CLAIM => 'Claim',
-			 self::ROLE_PUSAT => 'Pusat',
+			self::ROLE_PUSAT => 'Pusat',
+			self::ROLE_BISNIS => 'Line Bisnis',
         ];
 
         if ($selected == null) {
