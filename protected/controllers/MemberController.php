@@ -883,7 +883,7 @@ class MemberController extends Controller
 					'em_premium' => $extraPremi,
 					'percentage_em' =>  $extraMortalita,
 					'member_name' => $sheetData[$baseRow]['B'],
-					'date_of_birth' => $sheetData[$baseRow]['F'],
+					'date_of_birth' => Utils::convertDateToYmd($sheetData[$baseRow]['F']),
 					'premi_umum' => $premiUmum,
 				];
 
