@@ -17,7 +17,7 @@ class User extends ActiveRecord implements IdentityInterface
     const ROLE_AKTUARI = 4;
     const ROLE_CLAIM = 5;
 	const ROLE_PUSAT = 6;
-
+	const ROLE_BISNIS = 7;
     const PAGE_SIZE = 10;
 
     /**
