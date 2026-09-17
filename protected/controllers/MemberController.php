@@ -783,14 +783,27 @@ class MemberController extends Controller
 
 				$bmi = '';
 				$bmiKategori = '';
-				$extraMortalita = '';
-				$extraPremi = '';
+				$extraMortalita = 0;
+				$extraPremi = 0;
 
 				// Jika tinggi dan berat badan tersedia
-				if ($tinggi_badan !== '' && $tinggi_badan !== null &&
-					$berat_badan !== '' && $berat_badan !== null &&
-					(float)$tinggi_badan > 0 && (float)$berat_badan > 0) {
+				$tinggi_badan = $sheetData[$baseRow]['J'];
+				$berat_badan  = $sheetData[$baseRow]['K'];
 
+				$bmi = null;
+				$bmiKategori = null;
+				$extraMortalita = 0;
+				$extraPremi = 0;
+
+				// Jika tinggi dan berat badan tersedia
+				if (
+					$tinggi_badan !== '' &&
+					$tinggi_badan !== null &&
+					$berat_badan !== '' &&
+					$berat_badan !== null &&
+					(float)$tinggi_badan > 0 &&
+					(float)$berat_badan > 0
+				) {
 					$tinggiMeter = (float)$tinggi_badan / 100;
 
 					$bmi = round(
@@ -802,26 +815,32 @@ class MemberController extends Controller
 					if ($bmi < 18.5) {
 						$bmiKategori = 'Underweight';
 						$extraMortalita = 25;
+
 					} elseif ($bmi <= 25.9) {
 						$bmiKategori = 'Ideal';
 						$extraMortalita = 0;
+
 					} elseif ($bmi <= 29.9) {
 						$bmiKategori = 'Overweight';
 						$extraMortalita = 25;
+
 					} elseif ($bmi <= 34.9) {
 						$bmiKategori = 'Obesitas Kelas 1';
 						$extraMortalita = 50;
+
 					} elseif ($bmi <= 39.9) {
 						$bmiKategori = 'Obesitas Kelas 2';
 						$extraMortalita = 75;
+
 					} else {
 						$bmiKategori = 'Obesitas Kelas 3';
 						$extraMortalita = 100;
 					}
+				}
 
-			
-						$extraPremi = (float)$grossPremium * ($extraMortalita / 100);
-					}
+				// Hitung extra premi
+				$extraPremi = (float)$grossPremium * ($extraMortalita / 100);
+				
 				$premiUmum   = (float) ($premiUmum ?? 0);
 				$grossPremium = (float) ($grossPremium ?? 0);
 				$extraPremi   = (float) ($extraPremi ?? 0);
