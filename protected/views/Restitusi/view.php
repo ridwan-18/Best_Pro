@@ -752,8 +752,6 @@ $this->title = 'View Member - ' . Yii::$app->name;
     </div>
 </div>
 
-
-
 </div>
 
 
