@@ -822,7 +822,10 @@ class MemberController extends Controller
 			
 						$extraPremi = (float)$grossPremium * ($extraMortalita / 100);
 					}
-
+				$premiUmum   = (float) ($premiUmum ?? 0);
+				$grossPremium = (float) ($grossPremium ?? 0);
+				$extraPremi   = (float) ($extraPremi ?? 0);
+				$discount     = (float) ($discount ?? 0);
 				// Total Premi setelah Extra Mortalita
 				$nettPremium =  $premiUmum + $grossPremium + $extraPremi - $discount ;
 				
