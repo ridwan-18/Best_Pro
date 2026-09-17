@@ -229,6 +229,18 @@ class CalculateController extends Controller
 				]
 			];
 		}
+		
+		if ($coverage != 100) {
+			Yii::$app->response->statusCode = 200;
+
+			return [
+				'Result' => [
+					'status' => '200',
+					'kode_response' => '08',
+					'message' => 'coverage harus 100'
+				]
+			];
+		}
 
 		$tanggalLahirFormatted = \DateTime::createFromFormat(
 			'Ymd',

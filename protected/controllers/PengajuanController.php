@@ -429,6 +429,18 @@ class PengajuanController extends Controller
 				]
 			];
 		}
+		
+		if ($coverage != 100) {
+			Yii::$app->response->statusCode = 200;
+
+			return [
+				'Result' => [
+					'status' => '200',
+					'kode_response' => '08',
+					'message' => 'Coverage harus 100'
+				]
+			];
+		}
 
 			
 		$quotationtc = QuotationTc::findOne([
@@ -1492,7 +1504,8 @@ class PengajuanController extends Controller
 	
 	public function actionSubmitPembiayaanTopup()
 	{
-		 Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
+		Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
+
 		$request = Yii::$app->request;
 
 		$payload = json_decode($request->getRawBody(), true);
@@ -1506,7 +1519,8 @@ class PengajuanController extends Controller
 				]
 			];
 		}
-	
+
+
 		$idTransaksi       = $payload['id_transaksi'] ?? null;
 		$idPengajuan       = $payload['id_pengajuan'] ?? null;
 		$kodeBroker        = $payload['kode_broker'] ?? null;
@@ -1515,7 +1529,7 @@ class PengajuanController extends Controller
 		$nomorRekening     = $payload['nomor_rekening'] ?? null;
 		$nama              = $payload['nama'] ?? null;
 		$ktp               = $payload['ktp'] ?? null;
-		$npwp              = $payload['npwp'] ?? null;
+		$npwp               = $payload['npwp'] ?? null;
 		$jenisKelamin      = $payload['jenis_kelamin'] ?? null;
 		$pekerjaan         = $payload['pekerjaan'] ?? null;
 
@@ -1584,7 +1598,6 @@ class PengajuanController extends Controller
 		} else {
 
 			$tglAkhir = null;
-
 		}
 
 		$age = null;
@@ -1597,18 +1610,154 @@ class PengajuanController extends Controller
 			$age = $birth->diff($start)->y;
 		}
 
-		// $produk = 'non pegawai';
+		$tahunLahir = (int)substr($tglLahirRaw, 0, 4);
+		$tahunSekarang = (int)date('Y');
+
+		if ($tahunLahir >= $tahunSekarang) {
+
+			Yii::$app->response->statusCode = 200;
+
+			return [
+				'Result' => [
+					'status_code' => 200,
+					'kode_response' => '08',
+					'message' => 'Tahun lahir tidak boleh tahun ini',
+				]
+			];
+		}
 
 		$policybyproduk = Policy::findOne([
 			'produk_code' => $pekerjaan,
 		]);
-			// var_dump($quotationUwLimit);
+
 		if (!$policybyproduk) {
+
 			return [
 				'Result' => [
 					'status' => '400',
-					'kode_response' => '03',
-					'message' => 'Policy produk tidak ditemukan',
+					'kode_response' => '08',
+					'message' => 'Data Pekerjaan tidak di temukan',
+				]
+			];
+		}
+
+		$quotationtc = QuotationTc::findOne([
+			'quotation_id' => $policybyproduk->quotation_id,
+		]);
+
+		if (!$quotationtc) {
+
+			Yii::$app->response->statusCode = 200;
+
+			return [
+				'Result' => [
+					'status_code' => 200,
+					'kode_response' => '08',
+					'message' => 'Data ketentuan usia untuk quotation tidak ditemukan.',
+				]
+			];
+		}
+
+		$termYear = $tenorPertanggungan / 12;
+
+		$endAge = $age + $termYear;
+
+		$maxEndAge = (int)$quotationtc->age_term;
+		$minAge    = (int)$quotationtc->min_age;
+		$maxup     = (float)$quotationtc->max_si;
+		$maxEntryAge = (int)$quotationtc->max_age;
+
+
+		if ($age < $minAge) {
+
+			Yii::$app->response->statusCode = 200;
+
+			return [
+				'Result' => [
+					'status_code' => 200,
+					'kode_response' => '08',
+					'message' =>
+						'Usia peserta tidak memenuhi batas minimum. '
+						. 'Usia sekarang: ' . $age . ' tahun, '
+						. 'minimal usia: ' . $minAge . ' tahun.'
+				]
+			];
+		}
+
+		if ($age > $maxEntryAge) {
+
+			Yii::$app->response->statusCode = 200;
+
+			return [
+				'Result' => [
+					'status_code' => 200,
+					'kode_response' => '08',
+					'message' =>
+						'Usia peserta melebihi batas usia masuk. '
+						. 'Maksimal usia masuk: ' . $maxEntryAge . ' tahun, '
+						. 'usia akhir maksimal: ' . $maxEndAge . ' tahun.'
+				]
+			];
+		}
+
+		if ($endAge > $maxEndAge) {
+
+			Yii::$app->response->statusCode = 200;
+
+			return [
+				'Result' => [
+					'status_code' => 200,
+					'kode_response' => '08',
+					'message' =>
+						'Usia pada akhir masa pertanggungan tidak boleh melebihi '
+						. $maxEndAge . ' tahun. '
+						. 'Tenor: ' . $tenorPertanggungan . ' bulan / '
+						. $termYear . ' tahun, '
+						. 'usia akhir: ' . $endAge . ' tahun, '
+						. 'maksimal usia akhir: ' . $maxEndAge . ' tahun.'
+				]
+			];
+		}
+
+		/*
+		 * MAX PLAFOND
+		 */
+
+		if ($plafond > $maxup) {
+
+			Yii::$app->response->statusCode = 200;
+
+			return [
+				'Result' => [
+					'status_code' => 200,
+					'kode_response' => '08',
+					'message' =>
+						'Plafond pada produk ini melebihi limit. '
+						. 'Maksimal plafond pada produk ini: Rp '
+						. $maxup . '.'
+				]
+			];
+		}
+
+		$cekdokumen = map_member_dokumen_medis::find()
+			->where([
+				'id_loan' => $idTransaksi,
+				'jenis_dokumen' => 'pengajuan',
+			])
+			->orderBy([
+				'id' => SORT_DESC
+			])
+			->one();
+
+		if (!$cekdokumen || $cekdokumen->approve != 'DISETUJUI') {
+
+			Yii::$app->response->statusCode = 200;
+
+			return [
+				'Result' => [
+					'status_code' => 200,
+					'kode_response' => '08',
+					'message' => 'Status Dokumen CBC belum disetujui',
 				]
 			];
 		}
@@ -1618,10 +1767,11 @@ class PengajuanController extends Controller
 		]);
 
 		if (!$quotation) {
+
 			return [
 				'Result' => [
-					'status' => '400',
-					'kode_response' => '04',
+					'status_code' => 200,
+					'kode_response' => '08',
 					'message' => 'Quotation tidak ditemukan',
 				]
 			];
@@ -1636,8 +1786,9 @@ class PengajuanController extends Controller
 			->andWhere(['<=', 'min_si', $plafonPertanggungan])
 			->andWhere(['>=', 'max_si', $plafonPertanggungan])
 			->one();
-		// var_dump($quotationUwLimit);
+
 		if (!$quotationUwLimit) {
+
 			return [
 				'Result' => [
 					'status' => '400',
@@ -1677,8 +1828,9 @@ class PengajuanController extends Controller
 				->andWhere(['<=', 'min_si', $nilaiAkumulasi])
 				->andWhere(['>=', 'max_si', $nilaiAkumulasi])
 				->one();
-			
+
 			if (!$quotationUwLimit) {
+
 				return [
 					'Result' => [
 						'status' => '400',
@@ -1692,17 +1844,12 @@ class PengajuanController extends Controller
 			$medicalCode = $quotationUwLimit->medical_code;
 		}
 
-
 		$personalNo = Personal::generatePersonalNo(
 			$nama,
 			$tglLahir
 		);
 
 		$batchNo = $idPengajuan;
-
-		$memberNo = '';
-
-		$memberStatus = Member::MEMBER_STATUS_PENDING;
 
 		if ($nominalPremi <= 0) {
 
@@ -1719,10 +1866,8 @@ class PengajuanController extends Controller
 			JSON_UNESCAPED_UNICODE
 		);
 
-
-		// $transaction = Yii::$app->db->beginTransaction();
-
 		try {
+
 
 			$personal = new Personal();
 
@@ -1739,9 +1884,8 @@ class PengajuanController extends Controller
 					json_encode($personal->errors)
 				);
 			}
-			
-			
-			$member = member::findOne([
+
+			$member = Member::findOne([
 				'no_ktp' => $ktp
 			]);
 
@@ -1757,104 +1901,132 @@ class PengajuanController extends Controller
 					]
 				];
 			}
-			
-			$existingMemberTotal = Member::find()
-			->where([
-				'and',
-				['policy_no' => $policybyproduk->policy_no],
-				['!=', 'member_no', '']
-			])
-			->count();
-			
-			$runningNo = $existingMemberTotal + 1;
-			var_dump($existingMemberTotal);
 
-			// $member = new Member();
+
+			if ($nominalPremi != $member->gross_premium) {
+
+				Yii::$app->response->statusCode = 200;
+
+				return [
+					'Result' => [
+						'status' => '200',
+						'kode_response' => '89',
+						'message' => 'Premi Tidak sesuai'
+					]
+				];
+			}
+
+			$existingMemberTotal = Member::find()
+				->where([
+					'and',
+					['policy_no' => $policybyproduk->policy_no],
+					['!=', 'member_no', '']
+				])
+				->count();
+
+			$runningNo = $existingMemberTotal + 1;
 
 			$member->policy_no = $policybyproduk->policy_no;
 			$member->batch_no = $batchNo;
-			$member->member_no = Member::generateMemberNo($runningNo, $policybyproduk->policy_no);
+
+			$member->member_no =
+				Member::generateMemberNo(
+					$runningNo,
+					$policybyproduk->policy_no
+				);
+
 			$member->personal_no = $personalNo;
+
 			$member->age = $age;
 			$member->term = $tenorPertanggungan;
+
 			$member->start_date = $tglBuka;
 			$member->end_date = $tglAkhir;
+
 			$member->sum_insured = $plafonPertanggungan;
 			$member->total_si = $plafonPertanggungan;
+
 			$member->total_premium = $nettPremium;
+
 			$member->rate_premi = $ratePolis;
+
 			$member->gross_premium = $nettPremium;
 			$member->basic_premium = $nettPremium;
 			$member->nett_premium = $nettPremium;
+
 			$member->medical_code = $medicalCode;
-			$member->status ='Inforce';
-			$member->member_status ='Inforce';
-			$member->created_at =date('Y-m-d H:i:s');
-			$member->created_by =$this->createdBy;
-			$member->contract_date =$tglBuka;
-			$member->produk =$policybyproduk->produk;
-			$member->id_loan =$idTransaksi;
-			$member->status_uw =$medicalCode;
+
+			$member->status = 'Inforce';
+			$member->member_status = 'Inforce';
+
+			$member->created_at = date('Y-m-d H:i:s');
+			$member->created_by = $this->createdBy;
+
+			$member->contract_date = $tglBuka;
+
+			$member->produk = $policybyproduk->produk;
+
+			$member->id_loan = $idTransaksi;
+
+			$member->status_uw = $medicalCode;
+
 			$member->no_ktp = $ktp;
 			$member->pekerjaan = $pekerjaan;
+
 			$member->id_transaksi = $idTransaksi;
 			$member->id_pengajuan = $idPengajuan;
+
 			$member->kode_broker = $kodeBroker;
 			$member->kode_cabang = $kodeCabang;
+
 			$member->nomor_akad = $nomorAkad;
 			$member->nomor_rekening = $nomorRekening;
+
 			$member->nama = $nama;
 			$member->ktp = $ktp;
 			$member->npwp = $npwp;
 
-			$member->jenis_kelamin =
-				$jenisKelamin;
+			$member->jenis_kelamin = $jenisKelamin;
 
-			$member->tgl_lahir =
-				$tglLahir;
+			$member->tgl_lahir = $tglLahir;
+			$member->tgl_buka = $tglBuka;
 
-			$member->tgl_buka =
-				$tglBuka;
+			$member->tenor = $tenorPertanggungan;
 
-			$member->tenor =
-				$tenorPertanggungan;
+			$member->bunga = $bunga;
 
-			$member->bunga =
-				$bunga;
+			$member->jenis_pembiayaan = $jenisPembiayaan;
+			$member->jenis_pengajuan = $jenisPengajuan;
 
-			$member->jenis_pembiayaan =
-				$jenisPembiayaan;
+			$member->benefit = $benefit;
+			$member->benefit_pembiayaan = $benefitPembiayaan;
 
-			$member->jenis_pengajuan =
-				$jenisPengajuan;
+			$member->coverage = $coverage;
 
-			$member->benefit =
-				$benefit;
+			$member->polis_jiwa = $polisJiwaJson;
 
-			$member->benefit_pembiayaan =
-				$benefitPembiayaan;
-
-			$member->coverage =
-				$coverage;
-
-			$member->polis_jiwa =
-				$polisJiwaJson;
+			/*
+			 * SAVE MEMBER
+			 */
 
 			if (!$member->save()) {
 
 				throw new \Exception(
-					'Gagal insert Member: ' .
+					'Gagal update Member: ' .
 					json_encode($member->errors)
 				);
 			}
 
+			$sertifikat = $this->generateSertifikat(
+				$member,
+				$policybyproduk,
+				$nettPremium
+			);
 
 		} catch (\Exception $e) {
 
-			// $transaction->rollBack();
-
 			Yii::error(
-				'Submit Pembiayaan Baru Error: ' .
+				'Submit Pembiayaan Topup Error: ' .
 				$e->getMessage()
 			);
 
@@ -1875,11 +2047,14 @@ class PengajuanController extends Controller
 		return [
 			'Result' => [
 				'status' => '200',
-				
-				'kode_response' => '00',
-				'message' => 'Berhasil kirim pengajuan polis baru',
 
-				'nama' => $nama,
+				'kode_response' => '00',
+
+				'message' =>
+					'Berhasil kirim pengajuan polis baru',
+
+				'nama' =>
+					$nama,
 
 				'nomor_rekening' =>
 					$nomorRekening,
@@ -1897,6 +2072,7 @@ class PengajuanController extends Controller
 					$coverage,
 
 				'polis_jiwa' => [
+
 					'no_polis' =>
 						$policybyproduk->policy_no,
 
@@ -1937,13 +2113,12 @@ class PengajuanController extends Controller
 
 					'jumlah_extra_premi' =>
 						0,
-						
-						
 				],
-				 'restitusi_jiwa' => [
-				 'status_restitusi' => '1',
+
+				'restitusi_jiwa' => [
+					'status_restitusi' => '1',
 				],
-				],
+			],
 		];
 	}
 	
@@ -4194,10 +4369,6 @@ if (file_exists($zipPath)) {
 					$remoteFileSize
 			]
 		];
-
-		
-		
-		
 
 		return [
 			'file_name' => $zipFileName,
