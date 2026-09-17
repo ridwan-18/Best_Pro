@@ -682,7 +682,6 @@ $this->title = 'View Member - ' . Yii::$app->name;
 
                                     <?php endif; ?>
                                 </td>
-								
 
                                 <td>
                                    
