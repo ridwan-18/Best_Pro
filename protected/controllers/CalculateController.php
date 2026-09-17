@@ -318,9 +318,6 @@ class CalculateController extends Controller
 			date('Y-m-d')
 		);
 		
-		
-		
-		
 		$quotationtc = QuotationTc::findOne([
 			'quotation_id' => $policybyproduk->quotation_id,
 		]);
@@ -407,10 +404,6 @@ class CalculateController extends Controller
 				]
 			];
 		}
-		
-		
-		
-		
 		
 		$quotationUwLimit = QuotationUwLimit::find()
 						->where(['quotation_id' => $policybyproduk->quotation_id])

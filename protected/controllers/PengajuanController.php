@@ -4388,17 +4388,12 @@ if (file_exists($zipPath)) {
 
 	
 	
-		public function actionSubmitRestitusi()
+	public function actionSubmitRestitusi()
 		{
 			Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
 
 			$request = Yii::$app->request;
 
-			/*
-			 * ============================================================
-			 * 1. VALIDASI AUTHORIZATION
-			 * ============================================================
-			 */
 			$authorization = $request->headers->get('Authorization');
 
 			if (!$authorization) {
@@ -4411,11 +4406,6 @@ if (file_exists($zipPath)) {
 				];
 			}
 
-			/*
-			 * ============================================================
-			 * 2. AMBIL REQUEST BODY
-			 * ============================================================
-			 */
 			$body = $request->getBodyParams();
 
 			if (empty($body)) {
@@ -4428,11 +4418,6 @@ if (file_exists($zipPath)) {
 				];
 			}
 
-			/*
-			 * ============================================================
-			 * 3. VALIDASI FIELD WAJIB
-			 * ============================================================
-			 */
 			$requiredFields = [
 				'id_transaksi',
 				'id_pengajuan',
@@ -4465,11 +4450,6 @@ if (file_exists($zipPath)) {
 				}
 			}
 
-			/*
-			 * ============================================================
-			 * 4. VALIDASI restitusi_jiwa
-			 * ============================================================
-			 */
 			$restitusiJiwa = $body['restitusi_jiwa'];
 
 			if (!is_array($restitusiJiwa)) {
@@ -4508,11 +4488,6 @@ if (file_exists($zipPath)) {
 				}
 			}
 
-			/*
-			 * ============================================================
-			 * 5. JSON ENCODE restitusi_jiwa
-			 * ============================================================
-			 */
 			$restitusiJiwaJson = json_encode(
 				$restitusiJiwa,
 				JSON_UNESCAPED_UNICODE
@@ -4528,12 +4503,6 @@ if (file_exists($zipPath)) {
 				];
 			}
 
-			/*
-			 * ============================================================
-			 * 6. VALIDASI TANGGAL PEMBIAYAAN
-			 * Format: YYYYMMDD
-			 * ============================================================
-			 */
 			$tanggalPembiayaan = $body['tanggal_pembiayaan'];
 
 			$date = \DateTime::createFromFormat(
@@ -4556,12 +4525,6 @@ if (file_exists($zipPath)) {
 
 			$tanggalPembiayaanDb = $date->format('Y-m-d');
 
-			/*
-			 * ============================================================
-			 * 7. VALIDASI BENEFIT
-			 * Benefit 2 = Asuransi Jiwa
-			 * ============================================================
-			 */
 			$benefit = $body['benefit'];
 
 			if ((string)$benefit !== '2') {
@@ -4577,11 +4540,6 @@ if (file_exists($zipPath)) {
 				];
 			}
 
-			/*
-			 * ============================================================
-			 * 8. CARI MEMBER BERDASARKAN NOMOR AKAD
-			 * ============================================================
-			 */
 			$member = Member::findOne([
 				'nomor_akad' => $body['nomor_akad']
 			]);
@@ -4599,11 +4557,6 @@ if (file_exists($zipPath)) {
 				];
 			}
 
-			/*
-			 * ============================================================
-			 * 9. BUAT SEQUENCE DOKUMEN
-			 * ============================================================
-			 */
 			$countDokumen = \app\models\map_member_dokumen_medis::find()
 				->where([
 					'id_loan' => $member->id_pengajuan,
@@ -4618,11 +4571,6 @@ if (file_exists($zipPath)) {
 				STR_PAD_LEFT
 			);
 
-			/*
-			 * ============================================================
-			 * 10. BUAT NAMA FILE SFTP
-			 * ============================================================
-			 */
 			$idTransaksi = $body['id_transaksi'];
 			$norek = $body['nomor_rekening'];
 			$noakad = $body['nomor_akad'];
@@ -4638,20 +4586,10 @@ if (file_exists($zipPath)) {
 				$sequence .
 				'.zip';
 
-			/*
-			 * ============================================================
-			 * 11. MULAI TRANSACTION
-			 * ============================================================
-			 */
 			$transaction = Yii::$app->db->beginTransaction();
 
 			try {
 
-				/*
-				 * ========================================================
-				 * 12. SIMPAN DATA RESTITUSI
-				 * ========================================================
-				 */
 				$model = new Restitusi();
 
 				$model->id_transaksi = $body['id_transaksi'];
@@ -4707,21 +4645,8 @@ if (file_exists($zipPath)) {
 					];
 				}
 
-				/*
-				 * ========================================================
-				 * 13. DOWNLOAD DOKUMEN DARI SFTP BANK
-				 * ========================================================
-				 */
 				$sftpResult = $this->downloadFileFromBankSftp($fileName);
 
-				/*
-				 * ========================================================
-				 * 14. SIMPAN MAPPING DOKUMEN
-				 *
-				 * Tetap insert walaupun file SFTP belum tersedia.
-				 * files = NULL jika file belum ditemukan.
-				 * ========================================================
-				 */
 				$dokumenMedis =
 					new \app\models\map_member_dokumen_medis();
 
@@ -4767,11 +4692,6 @@ if (file_exists($zipPath)) {
 					];
 				}
 
-				/*
-				 * ========================================================
-				 * 15. COMMIT
-				 * ========================================================
-				 */
 				$transaction->commit();
 
 				Yii::info(
@@ -4787,11 +4707,6 @@ if (file_exists($zipPath)) {
 					'cbc-sftp'
 				);
 
-				/*
-				 * ========================================================
-				 * 16. RESPONSE JIKA FILE SFTP ADA
-				 * ========================================================
-				 */
 				if (
 					!empty($sftpResult['success']) &&
 					!empty($sftpResult['file_name'])
@@ -4811,11 +4726,6 @@ if (file_exists($zipPath)) {
 					];
 				}
 
-				/*
-				 * ========================================================
-				 * 17. RESPONSE JIKA FILE SFTP BELUM ADA
-				 * ========================================================
-				 */
 				return [
 					'Result' => [
 						'status' => '200',
@@ -4833,11 +4743,6 @@ if (file_exists($zipPath)) {
 
 			} catch (\Throwable $e) {
 
-				/*
-				 * ========================================================
-				 * 18. ERROR / ROLLBACK
-				 * ========================================================
-				 */
 				if ($transaction->getIsActive()) {
 					$transaction->rollBack();
 				}

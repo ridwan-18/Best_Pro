@@ -647,7 +647,8 @@ $this->title = 'View Member - ' . Yii::$app->name;
                             <td>Files</td>
                             <td>Action</td>
 							<td>Keterangan</td>
-                            <td>Status</td>
+                            <td>Status Restitusi</td>
+							 <td>Status Bayar</td>
                         </tr>
                     </thead>
 
@@ -694,6 +695,8 @@ $this->title = 'View Member - ' . Yii::$app->name;
 										'DITOLAK' => 'DITOLAK',
 										'diproses' => 'DIPROSES',
 										'menunggu' => 'Menunggu kelengkapan dokumen',
+										'Register' => 'Restitusi Register',
+										'dibayar' => 'Restitusi dibayar',
 									],
 									[
 										'class' => 'form-control action-dropdown',
@@ -721,6 +724,10 @@ $this->title = 'View Member - ' . Yii::$app->name;
 
                                 <td>
                                     <?= Html::encode($cd['approve']); ?>
+                                </td>
+								
+								 <td>
+                                    <?= Html::encode($cd['status_bayar']); ?>
                                 </td>
 
                             </tr>

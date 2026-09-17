@@ -1708,9 +1708,7 @@ class RestitusiController  extends Controller
 
 		try {
 
-			// ==========================================
-			// STEP 1 - VALIDASI METHOD
-			// ==========================================
+		
 			if (!Yii::$app->request->isPost) {
 				return [
 					'Result' => [
@@ -1721,22 +1719,18 @@ class RestitusiController  extends Controller
 				];
 			}
 
-			// ==========================================
-			// STEP 2 - INPUT
-			// ==========================================
 			$action = Yii::$app->request->post('action');
 			$keterangan = Yii::$app->request->post('keterangan');
-
+			$status_bayar = Yii::$app->request->post('status_bayar');
 			$keterangan = trim((string) $keterangan);
 
-			// ==========================================
-			// STEP 3 - VALIDASI ACTION
-			// ==========================================
 			$allowedAction = [
 				'approve',
 				'DITOLAK',
 				'diproses',
 				'menunggu',
+				'Register',
+				'DITOLAK',
 			];
 
 			if (!in_array($action, $allowedAction, true)) {
@@ -1749,9 +1743,7 @@ class RestitusiController  extends Controller
 				];
 			}
 
-			// ==========================================
-			// STEP 4 - VALIDASI KETERANGAN
-			// ==========================================
+
 			if (empty($keterangan)) {
 				return [
 					'Result' => [
@@ -1762,9 +1754,6 @@ class RestitusiController  extends Controller
 				];
 			}
 
-			// ==========================================
-			// STEP 5 - CARI DOCUMENT
-			// ==========================================
 			$document = map_member_dokumen_medis::find()
 				->where([
 					'id_loan' => $id_loan,
@@ -1772,9 +1761,6 @@ class RestitusiController  extends Controller
 				])
 				->one();
 
-			// ==========================================
-			// VALIDASI DOCUMENT
-			// ==========================================
 			if ($document === null) {
 				return [
 					'Result' => [
@@ -1785,9 +1771,6 @@ class RestitusiController  extends Controller
 				];
 			}
 
-			// ==========================================
-			// STEP 6 - UPDATE STATUS
-			// ==========================================
 			switch ($action) {
 
 				case 'approve':
@@ -1805,13 +1788,18 @@ class RestitusiController  extends Controller
 				case 'menunggu':
 					$document->approve = 'Menunggu kelengkapan dokumen';
 					break;
+				case 'Register':
+					$document->approve = 'Restitusi Register';
+					break;
+
+				case 'dibayar':
+					$document->approve = 'Restitusi dibayar';
+					break;
 			}
 
 			$document->keterangan = $keterangan;
+			$document->status_bayar = $status_bayar;
 
-			// ==========================================
-			// STEP 7 - SAVE DOCUMENT
-			// ==========================================
 			if (!$document->save(false)) {
 
 				return [
@@ -1826,9 +1814,6 @@ class RestitusiController  extends Controller
 				];
 			}
 
-			// ==========================================
-			// STEP 8 - CARI MEMBER
-			// ==========================================
 			$model = member::findOne([
 				'id_loan' => $id_loan,
 			]);
@@ -1857,9 +1842,6 @@ class RestitusiController  extends Controller
 				];
 			}
 
-			// ==========================================
-			// STEP 9 - LOGIN BANK RIAU
-			// ==========================================
 			$loginResponse = $model->callAPIPostMemberLoginRiau();
 
 			if (empty($loginResponse['token'])) {
@@ -1879,9 +1861,6 @@ class RestitusiController  extends Controller
 
 			$token = $loginResponse['token'];
 
-			// ==========================================
-			// STEP 10 - CALLBACK DEBITUR / RESTITUSI
-			// ==========================================
 			$apiResponse = $model->callAPIPostDebitur(
 				$token,
 				$model,
@@ -1889,9 +1868,6 @@ class RestitusiController  extends Controller
 				$restitusi
 			);
 
-			// ==========================================
-			// STEP 11 - RESPONSE BANK
-			// ==========================================
 			if (isset($apiResponse['response']['Result'])) {
 
 				$result = $apiResponse['response']['Result'];
@@ -1921,9 +1897,6 @@ class RestitusiController  extends Controller
 				];
 			}
 
-			// ==========================================
-			// BANK TIDAK MEMBERIKAN RESULT
-			// ==========================================
 			return [
 				'Result' => [
 					'message' => 'Bank tidak memberikan response Result',
