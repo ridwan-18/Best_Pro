@@ -328,10 +328,11 @@ class CalculateController extends Controller
 			Yii::$app->response->statusCode = 200;
 
 			return [
+					'Result' => [
 				'status' => 200,
 				'kode_response' => "08",
 				'message' => 'Data ketentuan usia untuk quotation tidak ditemukan.'
-				
+				]
 			];
 		}
 
@@ -343,18 +344,15 @@ class CalculateController extends Controller
 		$maxEndAge = (int) $quotationtc->age_term;
 		$minAge = (int) $quotationtc->min_age;
 		$maxup =  $quotationtc->max_si;
-
-
+		
 		if ($age < $minAge) {
 			Yii::$app->response->statusCode = 200;
 
 			return [
+			'Result' => [
 				'status_code' => 200,
-				'kode_response' => "08",
-				'message' => 'Usia peserta tidak memenuhi batas minimum.',
-				'data' => [
-					'usia_sekarang' => $age,
-					'minimal_usia' => $minAge,
+				'kode_response' => '08',
+				'message' => 'Usia peserta tidak memenuhi batas minimum. Usia sekarang: ' . $age . ' tahun, minimal usia: ' . $minAge . ' tahun.',
 				]
 			];
 		}
@@ -365,12 +363,14 @@ class CalculateController extends Controller
 			Yii::$app->response->statusCode = 200;
 
 			return [
-				'status' => 200,
-				'kode_response' => "08",
-				'message' => 'Usia peserta melebihi batas usia masuk.',
-				'data' => [
-					'maksimal_usia_masuk' => $maxEntryAge,
-					'usia_akhir_maksimal' => $maxEndAge,
+			'Result' => [
+				'status_code' => 200,
+				'kode_response' => '08',
+				'message' => 'Usia peserta melebihi batas usia masuk. Maksimal usia masuk: ' . $maxEntryAge . ' tahun, usia akhir maksimal: ' . $maxEndAge . ' tahun.',
+				// 'data' => [
+					// 'maksimal_usia_masuk' => $maxEntryAge,
+					// 'usia_akhir_maksimal' => $maxEndAge,
+				// ]
 				]
 			];
 		}
@@ -379,15 +379,11 @@ class CalculateController extends Controller
 			Yii::$app->response->statusCode = 200;
 
 			return [
-				'status' => 200,
-				'kode_response' => "08",
+			'Result' => [
+				'status_code' => 200,
+				'kode_response' => '08',
 				'message' => 'Usia pada akhir masa pertanggungan tidak boleh melebihi '
 					. $maxEndAge . ' tahun.',
-				'data' => [
-					'tenor_bulan' => $tenor,
-					'tenor_tahun' => $termYear,
-					'usia_akhir' => $endAge,
-					'maksimal_usia_akhir' => $maxEndAge,
 				]
 			];
 		}
@@ -397,12 +393,10 @@ class CalculateController extends Controller
 			Yii::$app->response->statusCode = 200;
 
 			return [
-				'status' => 200,
-				'kode_response' => "08",
-				'message' => 'Platfon pada produk ini melebihi ketentuan',
-				'data' => [
-					'Max plafond Pada Produk ini' => $maxup,
-					
+			'Result' => [
+				'status_code' => 200,
+				'kode_response' => '08',
+				'message' => 'Plafond pada produk ini melebihi limit. Maksimal plafond pada produk ini: ' . $maxup,
 				]
 			];
 		}
