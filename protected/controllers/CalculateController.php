@@ -290,10 +290,12 @@ class CalculateController extends Controller
 
 		if (!$policybyproduk) {
 
-			return [
+			return [ 
+				'Result' => [
 				'status' => 200,
 				'kode_response' => "08",
 				'message' => 'Data Pekerjaan tidak di temukan',
+				]
 			];
 		}
 		

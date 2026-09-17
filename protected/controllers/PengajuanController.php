@@ -4772,9 +4772,6 @@ if (file_exists($zipPath)) {
 			}
 		}
 
-
-
-
 	public function actionSubmitClaim()
 	{
 		Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
@@ -5038,8 +5035,6 @@ if (file_exists($zipPath)) {
 			];
 		}
 	}
-	
-	
 
 	public function actionListIncomingFiles()
 	{
