@@ -273,9 +273,11 @@ class CalculateController extends Controller
 			Yii::$app->response->statusCode = 200;
 
 			return [
-				'status_code' => 200,
-				'kode_response' => "08",
-				'message' => 'Tahun Lahir tidak boleh tahun ini',
+				'Result' => [
+					'status_code' => 200,
+					'kode_response' => '08',
+					'message' => 'Tahun lahir tidak boleh tahun ini',
+				]
 			];
 		}
 		
