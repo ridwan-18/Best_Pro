@@ -1905,6 +1905,56 @@ class RestitusiController  extends Controller
 				$document,
 				$restitusi
 			);
+			
+			// DEBUG HASIL ENDPOINT DI BROWSER
+echo '<pre style="
+    background:#000;
+    color:#00ff00;
+    padding:20px;
+    font-size:14px;
+    white-space:pre-wrap;
+">';
+
+echo "========================================\n";
+echo "HASIL ENDPOINT CALLBACK DEBITUR\n";
+echo "========================================\n\n";
+
+echo "HTTP CODE:\n";
+var_dump($apiResponse['http_code'] ?? null);
+
+echo "\n\nSUCCESS:\n";
+var_dump($apiResponse['success'] ?? null);
+
+echo "\n\nKODE RESPONSE:\n";
+var_dump($apiResponse['kode_response'] ?? null);
+
+echo "\n\nSTATUS:\n";
+var_dump($apiResponse['status'] ?? null);
+
+echo "\n\nMESSAGE:\n";
+var_dump($apiResponse['message'] ?? null);
+
+echo "\n\nPAYLOAD YANG DIKIRIM:\n";
+print_r($apiResponse['payload'] ?? null);
+
+echo "\n\nBODY RESPONSE BANK:\n";
+print_r($apiResponse['body'] ?? null);
+
+echo "\n\nRESPONSE ARRAY:\n";
+print_r($apiResponse['response'] ?? null);
+
+echo "\n\nCURL ERROR:\n";
+var_dump($apiResponse['curl_error'] ?? null);
+
+echo "\n\nCURL ERRNO:\n";
+var_dump($apiResponse['curl_errno'] ?? null);
+
+echo "\n\nFULL API RESPONSE:\n";
+print_r($apiResponse);
+
+echo '</pre>';
+
+die();
 
 			if (isset($apiResponse['response']['Result'])) {
 
