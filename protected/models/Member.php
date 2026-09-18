@@ -1390,8 +1390,11 @@ class Member extends \yii\db\ActiveRecord
 				'id_transaksi' => (string) $restitusi->id_transaksi,
 				'status_callback' => '1',
 				'nomor_rekening' => $restitusi->nomor_rekening,
+
 				'kode_broker' => $restitusi->kode_broker,
+
 				'no_akad' => $restitusi->nomor_akad,
+
 				'kode_cabang' => $restitusi->kode_cabang,
 			];
 
@@ -1403,6 +1406,7 @@ class Member extends \yii\db\ActiveRecord
 				'api'
 			);
 
+			// =========================================================
 			$jsonData = json_encode(
 				$payload,
 				JSON_UNESCAPED_UNICODE
@@ -1485,10 +1489,15 @@ class Member extends \yii\db\ActiveRecord
 
 				return [
 					'success' => false,
+
 					'http_code' => $httpCode,
+
 					'curl_errno' => $curlNo,
+
 					'curl_error' => $curlErr,
+
 					'body' => $body,
+
 					'payload' => $payload,
 				];
 			}
@@ -1568,14 +1577,21 @@ class Member extends \yii\db\ActiveRecord
 
 			return [
 				'success' => $success,
+
 				'http_code' => $httpCode,
+
 				'kode_response' => $kodeResponse,
+
 				'status' => $statusResponse,
+
 				'message' => isset($result['message'])
 					? $result['message']
 					: null,
+
 				'response' => $response,
+
 				'body' => $body,
+
 				'payload' => $payload,
 			];
 
