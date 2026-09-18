@@ -199,6 +199,7 @@ class Restitusi extends \yii\db\ActiveRecord
 			->select([
 		
 				'r.id',
+				'r.id_pengajuan',
 				'r.nomor_akad',
 				'r.status_restitusi',
 				'member.id AS member_id',

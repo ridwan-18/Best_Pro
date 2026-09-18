@@ -359,7 +359,7 @@ $this->title = 'View Member - ' . Yii::$app->name;
                                 <thead>
                                     <tr>
                                         <th width="1">#</th>
-										<th>Id Loan</th>
+										<th>Id Pengajuan</th>
                                         <th>Member No</th>
                                         <th>Name</th>
                                         <th>Date of Birth</th>
