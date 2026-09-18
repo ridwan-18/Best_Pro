@@ -685,26 +685,26 @@ $this->title = 'View Member - ' . Yii::$app->name;
                                 <td>
                                    
 								<?= Html::dropDownList(
-									'action',
-									null,
-									[
-										'' => 'Select Action',
-										'approve' => 'Approve',
-										'DITOLAK' => 'DITOLAK',
-										'diproses' => 'DIPROSES',
-										'menunggu' => 'Menunggu kelengkapan dokumen',
-										'Register' => 'Restitusi Register',
-										'dibayar' => 'Restitusi dibayar',
-									],
-									[
-										'class' => 'form-control action-dropdown',
-
-										'data-url' => \yii\helpers\Url::to([
-											'restitusi/approvedoc',
-											'id_loan' => $cd['id_loan'],
-										]),
-									]
-								); ?>
+										'action[' . $cd['id_loan'] . ']',
+										null,
+										[
+											'' => 'Select Action',
+											'1' => 'Restitusi Register',
+											'2' => 'Restitusi Proses',
+											'3' => 'Restitusi Diterima',
+											'4' => 'Restitusi Ditolak',
+											'5' => 'Restitusi Dibayar',
+											'6' => 'Menunggu Kelengkapan Dokumen',
+										],
+										[
+											'class' => 'form-control action-dropdown',
+											'data-url' => \yii\helpers\Url::to([
+												'restitusi/approvedoc',
+												'id_loan' => $cd['id_loan'],
+											]),
+											'data-id-loan' => $cd['id_loan'],
+										]
+									); ?>
 
                                 </td>
 								
@@ -724,25 +724,25 @@ $this->title = 'View Member - ' . Yii::$app->name;
                                     <?= Html::encode($cd['approve']); ?>
                                 </td>
 								
-								 <td>
-								<?= Html::dropDownList(
-									'action',
+								<td>
+									<?= Html::dropDownList(
+									'status_bayar[' . $cd['id_loan'] . ']',
 									null,
 									[
-										'' => 'Select Action',
-										'Sudah Dibayarkan' => 'Sudah Dibayarkan',
-										' Belum Dibayarkan' => ' Belum Dibayarkan',
+										'' => 'Select Status Bayar',
+										'1' => 'Sudah Dibayarkan',
+										'2' => 'Belum Dibayarkan',
 									],
 									[
-										'class' => 'form-control action-dropdown',
-
+										'class' => 'form-control status-bayar-dropdown',
 										'data-url' => \yii\helpers\Url::to([
 											'restitusi/approvedoc',
 											'id_loan' => $cd['id_loan'],
 										]),
+										'data-id-loan' => $cd['id_loan'],
 									]
 								); ?>
-								 </td>
+								</td>
 
                             </tr>
 
@@ -781,71 +781,58 @@ $(document).on('change', '.action-dropdown', function() {
     var dropdown = $(this);
 
     var action = dropdown.val();
-
     var url = dropdown.attr('data-url');
-
-    // ==========================================
-    // AMBIL ID LOAN DARI URL
-    // ==========================================
-    var idLoan = dropdown.attr('name');
-
-    console.log('==============================');
-    console.log('DEBUG CBC');
-    console.log('URL    :', url);
-    console.log('ACTION :', action);
-    console.log('NAME   :', idLoan);
-    console.log('==============================');
-
 
     if (!action) {
         return;
     }
 
-
-    // ==========================================
-    // AMBIL ID LOAN DARI DATA URL
-    // ==========================================
+    // Ambil ID loan dari URL
     var idLoanMatch = url.match(/id_loan=([^&]+)/);
-
     var loanId = null;
 
     if (idLoanMatch) {
         loanId = decodeURIComponent(idLoanMatch[1]);
     }
 
-
-    // ==========================================
-    // AMBIL KETERANGAN
-    // ==========================================
+    // Ambil keterangan
     var keteranganInput = $('input[name="keterangan[' + loanId + ']"]');
+    var keterangan = $.trim(keteranganInput.val());
 
-    var keterangan = keteranganInput.val();
+    // Ambil status bayar
+    var statusBayarDropdown = $(
+        '.status-bayar-dropdown[data-id-loan="' + loanId + '"]'
+    );
 
+    var statusBayar = statusBayarDropdown.val();
 
-    console.log('ID LOAN    :', loanId);
-    console.log('KETERANGAN :', keterangan);
+    console.log('ID LOAN      :', loanId);
+    console.log('ACTION       :', action);
+    console.log('KETERANGAN   :', keterangan);
+    console.log('STATUS BAYAR :', statusBayar);
 
-
-    // ==========================================
-    // VALIDASI KETERANGAN
-    // ==========================================
-    if (!keterangan || $.trim(keterangan) === '') {
+    // Validasi keterangan
+    if (!keterangan) {
 
         alert('Keterangan wajib diisi.');
 
-        // Reset dropdown
         dropdown.val('');
-
-        // Fokus ke input keterangan
         keteranganInput.focus();
 
         return;
     }
 
+    // Validasi status bayar
+    if (!statusBayar) {
 
-    // ==========================================
-    // AJAX
-    // ==========================================
+        alert('Status bayar wajib dipilih.');
+
+        dropdown.val('');
+        statusBayarDropdown.focus();
+
+        return;
+    }
+
     $.ajax({
 
         url: url,
@@ -856,28 +843,21 @@ $(document).on('change', '.action-dropdown', function() {
 
         data: {
             action: action,
-            keterangan: keterangan
+            keterangan: keterangan,
+            status_bayar: statusBayar
         },
-
 
         beforeSend: function() {
 
-            console.log('REQUEST DIKIRIM');
-
             dropdown.prop('disabled', true);
-
             keteranganInput.prop('disabled', true);
+            statusBayarDropdown.prop('disabled', true);
 
         },
 
-
         success: function(response) {
 
-            console.log('==============================');
-            console.log('RESPONSE CONTROLLER');
-            console.log(response);
-            console.log('==============================');
-
+            console.log('RESPONSE:', response);
 
             if (
                 response.Result &&
@@ -885,15 +865,13 @@ $(document).on('change', '.action-dropdown', function() {
             ) {
 
                 alert(
-                    'BERHASIL\\n\\n' +
+                    'BERHASIL\n\n' +
                     'Status : ' +
                     response.Result.status +
-                    '\\nKode : ' +
+                    '\nKode : ' +
                     response.Result.kode_response +
-                    '\\nPesan : ' +
-                    response.Result.message +
-                    '\\n\\nKeterangan : ' +
-                    response.Result.data.keterangan
+                    '\nPesan : ' +
+                    response.Result.message
                 );
 
                 location.reload();
@@ -901,20 +879,20 @@ $(document).on('change', '.action-dropdown', function() {
             } else {
 
                 alert(
-                    'GAGAL\\n\\n' +
+                    'GAGAL\n\n' +
                     'Status : ' +
                     (
                         response.Result
                         ? response.Result.status
                         : '-'
                     ) +
-                    '\\nKode : ' +
+                    '\nKode : ' +
                     (
                         response.Result
                         ? response.Result.kode_response
                         : '-'
                     ) +
-                    '\\nPesan : ' +
+                    '\nPesan : ' +
                     (
                         response.Result
                         ? response.Result.message
@@ -922,40 +900,29 @@ $(document).on('change', '.action-dropdown', function() {
                     )
                 );
 
-
                 dropdown.prop('disabled', false);
-
                 keteranganInput.prop('disabled', false);
-
+                statusBayarDropdown.prop('disabled', false);
             }
-
         },
-
 
         error: function(xhr, status, error) {
 
-            console.log('==============================');
-            console.log('AJAX ERROR');
-            console.log('HTTP STATUS :', xhr.status);
-            console.log('STATUS      :', status);
-            console.log('ERROR       :', error);
-            console.log('RESPONSE    :', xhr.responseText);
-            console.log('==============================');
-
+            console.log('HTTP STATUS:', xhr.status);
+            console.log('ERROR:', error);
+            console.log('RESPONSE:', xhr.responseText);
 
             alert(
-                'ERROR AJAX\\n\\n' +
+                'ERROR AJAX\n\n' +
                 'HTTP : ' + xhr.status +
-                '\\nError : ' + error +
-                '\\n\\nResponse:\\n' +
+                '\nError : ' + error +
+                '\n\nResponse:\n' +
                 xhr.responseText
             );
 
-
             dropdown.prop('disabled', false);
-
             keteranganInput.prop('disabled', false);
-
+            statusBayarDropdown.prop('disabled', false);
         }
 
     });

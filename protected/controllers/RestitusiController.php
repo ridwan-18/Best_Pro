@@ -1721,27 +1721,40 @@ class RestitusiController  extends Controller
 
 			$action = Yii::$app->request->post('action');
 			$keterangan = Yii::$app->request->post('keterangan');
-			$status_bayar = Yii::$app->request->post('status_bayar');
 			$keterangan = trim((string) $keterangan);
+			
+						
+			$status_bayar = Yii::$app->request->post('status_bayar');
+			$status_bayar = trim((string) $status_bayar);
 
-			$allowedAction = [
-				'approve',
-				'DITOLAK',
-				'diproses',
-				'menunggu',
-				'Register',
-				'DITOLAK',
-			];
-
-			if (!in_array($action, $allowedAction, true)) {
+			if (!in_array($status_bayar, ['1', '2'], true)) {
 				return [
 					'Result' => [
-						'message' => 'Action tidak valid',
-						'kode_response' => '05',
+						'message' => 'Status bayar tidak valid',
+						'kode_response' => '04',
 						'status' => '400',
 					],
 				];
 			}
+
+			$allowedAction = [
+							'1',
+							'2',
+							'3',
+							'4',
+							'5',
+							'6',
+						];
+
+			if (!in_array((string) $action, $allowedAction, true)) {
+			return [
+				'Result' => [
+					'message' => 'Status restitusi tidak valid',
+					'kode_response' => '05',
+					'status' => '400',
+				],
+			];
+		}
 
 
 			if (empty($keterangan)) {
@@ -1772,31 +1785,36 @@ class RestitusiController  extends Controller
 				];
 			}
 
-			switch ($action) {
+			
 
-				case 'approve':
-					$document->approve = 'DISETUJUI';
-					break;
+				switch ((string) $action) 
+				{
 
-				case 'DITOLAK':
-					$document->approve = 'DITOLAK';
-					break;
+					case '1':
+						$document->approve = '1'; // Restitusi Register
+						break;
 
-				case 'diproses':
-					$document->approve = 'DIPROSES';
-					break;
+					case '2':
+						$document->approve = '2'; // Restitusi Proses
+						break;
 
-				case 'menunggu':
-					$document->approve = 'Menunggu kelengkapan dokumen';
-					break;
-				case 'Register':
-					$document->approve = 'Restitusi Register';
-					break;
+					case '3':
+						$document->approve = '3'; // Restitusi Diterima
+						break;
 
-				case 'dibayar':
-					$document->approve = 'Restitusi dibayar';
-					break;
-			}
+					case '4':
+						$document->approve = '4'; // Restitusi Ditolak
+						break;
+
+					case '5':
+						$document->approve = '5'; // Restitusi Dibayar
+						break;
+
+					case '6':
+						$document->approve = '6'; // Menunggu kelengkapan
+						break;
+					}
+			
 
 			$document->keterangan = $keterangan;
 			// $document->status_bayar = $status_bayar;
@@ -1846,6 +1864,7 @@ class RestitusiController  extends Controller
 			}
 			
 			$restitusi->status_bayar = $status_bayar;
+			
 
 			if (!$restitusi->save(false)) {
 

@@ -1285,39 +1285,8 @@ class Member extends \yii\db\ActiveRecord
 		}
 
 		$statusDokumen = '1';
-
 		if ($document) {
-			if ($document->approve === 'Restitusi Register')
-			{
-				$statusDokumen = '1';
-			}
-
-			elseif ($document->approve === 'DIPROSES') {
-				$statusDokumen = '2';
-
-			} 
-			elseif ($document->approve === 'Approve') 
-			{
-				$statusDokumen = '3';
-
-			} 
-			elseif ($document->approve === 'DITOLAK')
-			{
-				$statusDokumen = '4';
-
-			}
-			
-				elseif ($document->approve === 'Restitusi dibayar')
-			{
-				$statusDokumen = '5';
-			}
-			
-			elseif ($document->approve === 'Menunggu kelengkapan dokumen')
-			{
-				$statusDokumen = '6';
-			}
-		
-		
+			$statusDokumen = (string) $document->approve;
 		}
 
 		$payload = [
@@ -1326,23 +1295,24 @@ class Member extends \yii\db\ActiveRecord
 
 			'benefit' => (string) $model->benefit,
 
-			'restitusi' => [
-				'id_transaksi_bank'   => $model->id_transaksi,
-				'id_pengajuan'        => $model->id_pengajuan,
-				'status_restitusi'    => (string) $restitusi->status_restitusi,
-				'tenor'               => (string) $model->term,
-				'premi'               => (string) $model->gross_premium,
-				'periode_awal'        => $model->start_date,
-				'periode_akhir'       => $model->end_date,
-				'tenor_berjalan'      => (string) $restitusi->tenor_berjalan,
-				'sisa_tenor'          => (string) $restitusi->sisa_tenor,
-				'status_bayar'        => (string) $restitusi->status_bayar,
-				// 'status_bayar'        => 1,
-				// 'status_dokumen' => ($document->approve === 'PROSES') ? '1' : (($document->approve === 'DISETUJUI') ? '2' : (($document->approve === 'DITOLAK') ? '3' : (($document->approve === 'Menunggu kelengkapan dokumen') ? '4' : '1'))),
-				'premi_dikembalikan'  => (string) $restitusi->premi,
-				'asuransi'            => 'Reliance Life Unit Syariah',
-				'keterangan'        => $document->keterangan,
-			],
+			{
+			"restitusi": {
+				"id_transaksi_bank": "63921307528",
+				"id_pengajuan": "PCBC-0004855",
+				"status_restitusi": "1",
+				"tenor": "60",
+				"premi": "2156490",
+				"periode_awal": "2026-01-12",
+				"periode_akhir": "2031-01-12",
+				"tenor_berjalan": "1",
+				"sisa_tenor": "59",
+				"status_bayar": "1",
+				"status_dokumen": "5",
+				"premi_dikembalikan": "688000",
+				"asuransi": "Reliance Life Unit Syariah",
+				"keterangan": "rrr"
+			}
+		}
 
 			'klaim' => null,
 
