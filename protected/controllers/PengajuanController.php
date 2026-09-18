@@ -4558,17 +4558,20 @@ if (file_exists($zipPath)) {
 			}
 			
 			$check_member = Restitusi::findOne([
-					'nomor_akad' => $body['nomor_akad']
-				]);
-
-			
-			
+				'nomor_akad' => $body['nomor_akad']
+			]);
 
 			$transaction = Yii::$app->db->beginTransaction();
 
 			try {
 
-				$model = new Restitusi();
+				// Jika belum ada data restitusi -> INSERT
+				// Jika sudah ada -> UPDATE
+				if ($check_member === null) {
+					$model = new Restitusi();
+				} else {
+					$model = $check_member;
+				}
 
 				$model->id_transaksi = $body['id_transaksi'];
 				$model->id_pengajuan = $body['id_pengajuan'];
@@ -4602,8 +4605,17 @@ if (file_exists($zipPath)) {
 				$model->tujuan_pembayaran =
 					$restitusiJiwa['tujuan_pembayaran'];
 
-				$model->created_at = date('Y-m-d H:i:s');
 				$model->status_restitusi = '1';
+
+				if ($check_member === null) {
+					// INSERT
+					$model->created_at = date('Y-m-d H:i:s');
+					$model->created_by = 1;
+				} else {
+					// UPDATE
+					$model->updated_at = date('Y-m-d H:i:s');
+					$model->updated_by = 1;
+				}
 
 				if (!$model->save()) {
 
@@ -4613,7 +4625,10 @@ if (file_exists($zipPath)) {
 						'Result' => [
 							'status' => '400',
 							'kode_response' => '01',
-							'message' => 'Gagal menyimpan data pengajuan restitusi',
+							'message' =>
+								$check_member === null
+									? 'Gagal menyimpan data pengajuan restitusi'
+									: 'Gagal memperbarui data pengajuan restitusi',
 							'jenis_pengajuan' => 'RESTITUSI',
 							'restitusi_jiwa' => [
 								'status_restitusi' => '0'
@@ -4622,6 +4637,8 @@ if (file_exists($zipPath)) {
 						]
 					];
 				}
+
+    // Lanjutkan logic SFTP di bawah sini...
 				
 			$countDokumen = \app\models\map_member_dokumen_medis::find()
 				->where([
