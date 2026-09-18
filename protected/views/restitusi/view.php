@@ -724,6 +724,7 @@ $this->title = 'View Member - ' . Yii::$app->name;
                                     <?= Html::encode($cd['approve']); ?>
                                 </td>
 								
+								 <td>
 								<?= Html::dropDownList(
 									'action',
 									null,
@@ -741,6 +742,7 @@ $this->title = 'View Member - ' . Yii::$app->name;
 										]),
 									]
 								); ?>
+								 </td>
 
                             </tr>
 
