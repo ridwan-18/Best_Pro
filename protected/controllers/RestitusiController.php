@@ -1798,7 +1798,7 @@ class RestitusiController  extends Controller
 			}
 
 			$document->keterangan = $keterangan;
-			$document->status_bayar = $status_bayar;
+			// $document->status_bayar = $status_bayar;
 
 			if (!$document->save(false)) {
 
@@ -1831,6 +1831,7 @@ class RestitusiController  extends Controller
 			$restitusi = Restitusi::findOne([
 				'id_transaksi' => $id_loan,
 			]);
+			 
 
 			if ($restitusi === null) {
 				return [
@@ -1838,6 +1839,22 @@ class RestitusiController  extends Controller
 						'message' => 'Data member restitusi tidak ditemukan',
 						'kode_response' => '06',
 						'status' => '404',
+					],
+				];
+			}
+			
+			$restitusi->status_bayar = $status_bayar;
+
+			if (!$restitusi->save(false)) {
+
+				return [
+					'Result' => [
+						'message' => 'Gagal menyimpan status bayar',
+						'kode_response' => '03',
+						'status' => '500',
+					],
+					'debug' => [
+						'errors' => $restitusi->getErrors(),
 					],
 				];
 			}
