@@ -1267,205 +1267,455 @@ class Member extends \yii\db\ActiveRecord
 		];
 	}
 	
-	public function callAPIPostDebitur($token, $model, $document = null,$restitusi)
+	public function callAPIPostDebitur($token, $model, $document = null, $restitusi)
 	{
 		$url = '202.152.22.234:5008/callback/debitur';
 
-		if (empty($token)) {
-			throw new \Exception('Token Bank kosong');
-		}
+		try {
 
-		if (!$model) {
-			throw new \Exception('Data member/debitur tidak ditemukan');
-		}
-		
-		
-		if (!$model) {
-			throw new \Exception('Data member restitusi/debitur tidak ditemukan');
-		}
+			// =========================================================
+			// 1. DEBUG PARAMETER AWAL
+			// =========================================================
+			Yii::error(
+				"========================================\n" .
+				"DEBUG callAPIPostDebitur - START\n" .
+				"========================================\n" .
+				"TOKEN ADA      : " . (!empty($token) ? 'YA' : 'TIDAK') . "\n" .
+				"MODEL ADA      : " . ($model ? 'YA' : 'TIDAK') . "\n" .
+				"DOCUMENT ADA   : " . ($document ? 'YA' : 'TIDAK') . "\n" .
+				"RESTITUSI ADA  : " . ($restitusi ? 'YA' : 'TIDAK') . "\n" .
+				"URL            : " . $url . "\n",
+				'api'
+			);
 
-		$statusDokumen = '1';
-		if ($document) {
-			$statusDokumen = (string) $document->approve;
-		}
 
-		$payload = [
-			'nama' => $model->nama,
-			'ktp'  => $model->ktp,
+			// =========================================================
+			// 2. VALIDASI
+			// =========================================================
+			if (empty($token)) {
+				throw new \Exception('Token Bank kosong');
+			}
 
-			'benefit' => (string) $model->benefit,
+			if (!$model) {
+				throw new \Exception('Data member/debitur tidak ditemukan');
+			}
 
-			'restitusi' => [
-				'id_transaksi_bank' => (string) $model->id_transaksi,
-				'id_pengajuan'      => (string) $model->id_pengajuan,
-				'status_restitusi'  => (string) $restitusi->status_restitusi,
+			if (!$restitusi) {
+				throw new \Exception('Data restitusi/debitur tidak ditemukan');
+			}
 
-				'tenor'             => (string) $model->term,
-				'premi'             => (string) $model->gross_premium,
 
-				'periode_awal'      => $model->start_date,
-				'periode_akhir'     => $model->end_date,
+			// =========================================================
+			// 3. DEBUG DATA MEMBER
+			// =========================================================
+			Yii::error(
+				"===== DEBUG MODEL MEMBER =====\n" .
+				"Nama           : " . var_export($model->nama, true) . "\n" .
+				"KTP            : " . var_export($model->ktp, true) . "\n" .
+				"Benefit        : " . var_export($model->benefit, true) . "\n" .
+				"ID Transaksi   : " . var_export($model->id_transaksi, true) . "\n" .
+				"ID Pengajuan   : " . var_export($model->id_pengajuan, true) . "\n" .
+				"Term           : " . var_export($model->term, true) . "\n" .
+				"Gross Premium   : " . var_export($model->gross_premium, true) . "\n" .
+				"Start Date     : " . var_export($model->start_date, true) . "\n" .
+				"End Date       : " . var_export($model->end_date, true) . "\n" .
+				"================================",
+				'api'
+			);
 
-				'tenor_berjalan'    => (string) $restitusi->tenor_berjalan,
-				'sisa_tenor'        => (string) $restitusi->sisa_tenor,
 
-				// 1 = Sudah Dibayarkan
-				// 2 = Belum Dibayarkan
-				'status_bayar'      => (string) $restitusi->status_bayar,
+			// =========================================================
+			// 4. DEBUG DATA RESTITUSI
+			// =========================================================
+			Yii::error(
+				"===== DEBUG MODEL RESTITUSI =====\n" .
+				"ID Transaksi       : " . var_export($restitusi->id_transaksi, true) . "\n" .
+				"ID Pengajuan       : " . var_export($restitusi->id_pengajuan, true) . "\n" .
+				"Status Restitusi   : " . var_export($restitusi->status_restitusi, true) . "\n" .
+				"Tenor Berjalan    : " . var_export($restitusi->tenor_berjalan, true) . "\n" .
+				"Sisa Tenor        : " . var_export($restitusi->sisa_tenor, true) . "\n" .
+				"Status Bayar      : " . var_export($restitusi->status_bayar, true) . "\n" .
+				"Premi             : " . var_export($restitusi->premi, true) . "\n" .
+				"Nomor Rekening    : " . var_export($restitusi->nomor_rekening, true) . "\n" .
+				"Kode Broker       : " . var_export($restitusi->kode_broker, true) . "\n" .
+				"Nomor Akad        : " . var_export($restitusi->nomor_akad, true) . "\n" .
+				"Kode Cabang       : " . var_export($restitusi->kode_cabang, true) . "\n" .
+				"================================",
+				'api'
+			);
 
-				// 1 = Register
-				// 2 = Proses
-				// 3 = Diterima
-				// 4 = Ditolak
-				// 5 = Dibayar
-				// 6 = Menunggu Kelengkapan
-				'status_dokumen'    => (string) $statusDokumen,
 
-				'premi_dikembalikan' => (string) $restitusi->premi,
+			// =========================================================
+			// 5. DEBUG DOCUMENT
+			// =========================================================
+			$statusDokumen = '1';
+			$keterangan = '';
 
-				'asuransi'           => 'Reliance Life Unit Syariah',
+			if ($document) {
 
-				'keterangan'        => $document
-					? (string) $document->keterangan
-					: '',
-			],
+				$statusDokumen = (string) $document->approve;
+				$keterangan = (string) $document->keterangan;
 
-			'klaim' => null,
+				Yii::error(
+					"===== DEBUG DOCUMENT =====\n" .
+					"ID              : " . var_export($document->id, true) . "\n" .
+					"ID Loan         : " . var_export($document->id_loan, true) . "\n" .
+					"Approve         : " . var_export($document->approve, true) . "\n" .
+					"Status Dokumen  : " . var_export($statusDokumen, true) . "\n" .
+					"Keterangan      : " . var_export($document->keterangan, true) . "\n" .
+					"File            : " . var_export($document->files, true) . "\n" .
+					"Jenis Dokumen   : " . var_export($document->jenis_dokumen, true) . "\n" .
+					"================================",
+					'api'
+				);
+			}
 
-			'id_transaksi'    => (string) $restitusi->id_transaksi,
-			'status_callback' => '1',
-			'nomor_rekening'  => $restitusi->nomor_rekening,
-			'kode_broker'     => $restitusi->kode_broker,
-			'no_akad'         => $restitusi->nomor_akad,
-			'kode_cabang'     => $restitusi->kode_cabang,
-		];
 
-		$jsonData = json_encode($payload);
+			// =========================================================
+			// 6. VALIDASI STATUS BAYAR
+			// =========================================================
+			$statusBayar = (string) $restitusi->status_bayar;
 
-		$ch = curl_init();
+			Yii::error(
+				"===== DEBUG STATUS =====\n" .
+				"STATUS BAYAR RAW : " . var_export($restitusi->status_bayar, true) . "\n" .
+				"STATUS BAYAR STR : " . var_export($statusBayar, true) . "\n" .
+				"STATUS DOKUMEN   : " . var_export($statusDokumen, true) . "\n" .
+				"================================",
+				'api'
+			);
 
-		curl_setopt_array($ch, [
-			CURLOPT_URL            => $url,
-			CURLOPT_POST           => true,
-			CURLOPT_POSTFIELDS     => $jsonData,
 
-			CURLOPT_HTTPHEADER     => [
-				'Content-Type: application/json',
-				'Accept: application/json',
-				'Authorization: Bearer ' . $token,
-			],
+			// =========================================================
+			// 7. BUAT PAYLOAD
+			// =========================================================
+			$payload = [
+				'nama' => $model->nama,
 
-			CURLOPT_RETURNTRANSFER => true,
-			CURLOPT_CONNECTTIMEOUT => 10,
-			CURLOPT_TIMEOUT        => 30,
-			CURLOPT_HEADER         => false,
-		]);
+				'ktp' => $model->ktp,
 
-		$body = curl_exec($ch);
+				'benefit' => (string) $model->benefit,
 
-		$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-		$curlNo   = curl_errno($ch);
-		$curlErr  = curl_error($ch);
+				'restitusi' => [
+					'id_transaksi_bank' => (string) $model->id_transaksi,
 
-		curl_close($ch);
+					'id_pengajuan' => (string) $model->id_pengajuan,
 
-		Yii::error(
-			"===== DEBUG CALLBACK RESTITUSI =====\n" .
-			"URL:\n" . $url . "\n\n" .
-			"HTTP CODE:\n" . $httpCode . "\n\n" .
-			"CURL ERROR:\n" . $curlErr . "\n\n" .
-			"PAYLOAD:\n" .
-			json_encode(
+					'status_restitusi' => (string) $restitusi->status_restitusi,
+
+					'tenor' => (string) $model->term,
+
+					'premi' => (string) $model->gross_premium,
+
+					'periode_awal' => $model->start_date,
+
+					'periode_akhir' => $model->end_date,
+
+					'tenor_berjalan' => (string) $restitusi->tenor_berjalan,
+
+					'sisa_tenor' => (string) $restitusi->sisa_tenor,
+
+					'status_bayar' => $statusBayar,
+
+					'status_dokumen' => (string) $statusDokumen,
+
+					'premi_dikembalikan' => (string) $restitusi->premi,
+
+					'asuransi' => 'Reliance Life Unit Syariah',
+
+					'keterangan' => $keterangan,
+				],
+
+				'klaim' => null,
+
+				'id_transaksi' => (string) $restitusi->id_transaksi,
+
+				'status_callback' => '1',
+
+				'nomor_rekening' => $restitusi->nomor_rekening,
+
+				'kode_broker' => $restitusi->kode_broker,
+
+				'no_akad' => $restitusi->nomor_akad,
+
+				'kode_cabang' => $restitusi->kode_cabang,
+			];
+
+
+			// =========================================================
+			// 8. DEBUG PAYLOAD ARRAY
+			// =========================================================
+			Yii::error(
+				"========================================\n" .
+				"DEBUG PAYLOAD ARRAY\n" .
+				"========================================\n" .
+				print_r($payload, true),
+				'api'
+			);
+
+
+			// =========================================================
+			// 9. JSON ENCODE
+			// =========================================================
+			$jsonData = json_encode(
 				$payload,
-				JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE
-			) .
-			"\n\n" .
-			"RESPONSE RAW:\n" .
-			$body . "\n" .
-			"====================================",
-			'api'
-		);
+				JSON_UNESCAPED_UNICODE
+			);
 
-		if ($curlNo !== 0) {
+
+			// =========================================================
+			// 10. CEK JSON ERROR
+			// =========================================================
+			if ($jsonData === false) {
+
+				Yii::error(
+					"===== JSON ENCODE ERROR =====\n" .
+					"ERROR : " . json_last_error_msg(),
+					'api'
+				);
+
+				throw new \Exception(
+					'Gagal membuat JSON payload: ' .
+					json_last_error_msg()
+				);
+			}
+
+
+			// =========================================================
+			// 11. DEBUG JSON FINAL
+			// =========================================================
+			Yii::error(
+				"========================================\n" .
+				"DEBUG JSON YANG DIKIRIM KE BANK\n" .
+				"========================================\n" .
+				$jsonData . "\n" .
+				"========================================",
+				'api'
+			);
+
+
+			// =========================================================
+			// 12. CURL
+			// =========================================================
+			$ch = curl_init();
+
+			curl_setopt_array($ch, [
+				CURLOPT_URL => $url,
+
+				CURLOPT_POST => true,
+
+				CURLOPT_POSTFIELDS => $jsonData,
+
+				CURLOPT_HTTPHEADER => [
+					'Content-Type: application/json',
+					'Accept: application/json',
+					'Authorization: Bearer ' . $token,
+				],
+
+				CURLOPT_RETURNTRANSFER => true,
+
+				CURLOPT_CONNECTTIMEOUT => 10,
+
+				CURLOPT_TIMEOUT => 30,
+
+				CURLOPT_HEADER => false,
+			]);
+
+
+			// =========================================================
+			// 13. EXECUTE CURL
+			// =========================================================
+			$body = curl_exec($ch);
+
+			$httpCode = curl_getinfo(
+				$ch,
+				CURLINFO_HTTP_CODE
+			);
+
+			$curlNo = curl_errno($ch);
+
+			$curlErr = curl_error($ch);
+
+			curl_close($ch);
+
+
+			// =========================================================
+			// 14. DEBUG RESPONSE BANK
+			// =========================================================
+			Yii::error(
+				"========================================\n" .
+				"DEBUG RESPONSE BANK\n" .
+				"========================================\n" .
+				"HTTP CODE  : " . $httpCode . "\n" .
+				"CURL NO    : " . $curlNo . "\n" .
+				"CURL ERROR : " . $curlErr . "\n" .
+				"RESPONSE   :\n" .
+				$body . "\n" .
+				"========================================",
+				'api'
+			);
+
+
+			// =========================================================
+			// 15. CURL ERROR
+			// =========================================================
+			if ($curlNo !== 0) {
+
+				return [
+					'success' => false,
+
+					'http_code' => $httpCode,
+
+					'curl_errno' => $curlNo,
+
+					'curl_error' => $curlErr,
+
+					'body' => $body,
+
+					'payload' => $payload,
+				];
+			}
+
+
+			// =========================================================
+			// 16. DECODE RESPONSE
+			// =========================================================
+			$response = json_decode(
+				$body,
+				true
+			);
+
+
+			if (!is_array($response)) {
+
+				Yii::error(
+					"===== RESPONSE BUKAN JSON =====\n" .
+					"JSON ERROR : " . json_last_error_msg() . "\n" .
+					"BODY       : " . $body,
+					'api'
+				);
+
+				return [
+					'success' => false,
+
+					'http_code' => $httpCode,
+
+					'body' => $body,
+
+					'payload' => $payload,
+
+					'json_error' => json_last_error_msg(),
+				];
+			}
+
+
+			// =========================================================
+			// 17. DEBUG RESPONSE ARRAY
+			// =========================================================
+			Yii::error(
+				"===== RESPONSE ARRAY BANK =====\n" .
+				print_r($response, true),
+				'api'
+			);
+
+
+			// =========================================================
+			// 18. AMBIL RESULT
+			// =========================================================
+			$result = isset($response['Result'])
+				? $response['Result']
+				: [];
+
+
+			$kodeResponse = isset($result['kode_response'])
+				? (string) $result['kode_response']
+				: null;
+
+
+			$statusResponse = isset($result['status'])
+				? (string) $result['status']
+				: null;
+
+
+			$success = (
+				$httpCode >= 200 &&
+				$httpCode < 300 &&
+				$kodeResponse === '00' &&
+				$statusResponse === '200'
+			);
+
+
+			// =========================================================
+			// 19. DEBUG HASIL AKHIR
+			// =========================================================
+			Yii::error(
+				"========================================\n" .
+				"DEBUG HASIL CALLBACK\n" .
+				"========================================\n" .
+				"SUCCESS        : " . ($success ? 'TRUE' : 'FALSE') . "\n" .
+				"HTTP CODE      : " . var_export($httpCode, true) . "\n" .
+				"KODE RESPONSE  : " . var_export($kodeResponse, true) . "\n" .
+				"STATUS         : " . var_export($statusResponse, true) . "\n" .
+				"MESSAGE        : " . var_export(
+					isset($result['message'])
+						? $result['message']
+						: null,
+					true
+				) . "\n" .
+				"========================================",
+				'api'
+			);
+
+
+			// =========================================================
+			// 20. RETURN
+			// =========================================================
+			return [
+				'success' => $success,
+
+				'http_code' => $httpCode,
+
+				'kode_response' => $kodeResponse,
+
+				'status' => $statusResponse,
+
+				'message' => isset($result['message'])
+					? $result['message']
+					: null,
+
+				'response' => $response,
+
+				'body' => $body,
+
+				'payload' => $payload,
+			];
+
+		} catch (\Throwable $e) {
+
+			Yii::error(
+				"========================================\n" .
+				"DEBUG EXCEPTION callAPIPostDebitur\n" .
+				"========================================\n" .
+				"MESSAGE : " . $e->getMessage() . "\n" .
+				"FILE    : " . $e->getFile() . "\n" .
+				"LINE    : " . $e->getLine() . "\n" .
+				"TRACE   :\n" . $e->getTraceAsString() . "\n" .
+				"========================================",
+				'api'
+			);
 
 			return [
-				'success'    => false,
-				'http_code'  => $httpCode,
-				'curl_errno' => $curlNo,
-				'curl_error' => $curlErr,
-				'body'       => $body,
-				'payload'    => $payload,
+				'success' => false,
+
+				'http_code' => 500,
+
+				'message' => $e->getMessage(),
+
+				'payload' => isset($payload)
+					? $payload
+					: null,
 			];
 		}
-
-		$response = json_decode($body, true);
-
-		/*
-		 * RESPONSE BUKAN JSON
-		 */
-		if (!is_array($response)) {
-
-			return [
-				'success'    => false,
-				'http_code'  => $httpCode,
-				'body'       => $body,
-				'payload'    => $payload,
-				'json_error' => json_last_error_msg(),
-			];
-		}
-
-		/*
-		 * ==============================
-		 * CEK RESPONSE BANK
-		 * ==============================
-		 *
-		 * Response sukses:
-		 *
-		 * {
-		 *   "Result": {
-		 *       "message": "Berhasil",
-		 *       "kode_response": "00",
-		 *       "status": "200"
-		 *   }
-		 * }
-		 */
-
-		$result = isset($response['Result'])
-			? $response['Result']
-			: [];
-
-		$kodeResponse = isset($result['kode_response'])
-			? (string) $result['kode_response']
-			: null;
-
-		$statusResponse = isset($result['status'])
-			? (string) $result['status']
-			: null;
-
-		$success = (
-			$httpCode >= 200 &&
-			$httpCode < 300 &&
-			$kodeResponse === '00' &&
-			$statusResponse === '200'
-		);
-
-		/*
-		 * ==============================
-		 * RETURN
-		 * ==============================
-		 */
-		return [
-			'success'        => $success,
-			'http_code'      => $httpCode,
-			'kode_response'  => $kodeResponse,
-			'status'         => $statusResponse,
-			'message'        => isset($result['message'])
-				? $result['message']
-				: null,
-			'response'       => $response,
-			'body'           => $body,
-			'payload'        => $payload,
-		];
 	}
 
 }
