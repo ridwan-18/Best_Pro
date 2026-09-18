@@ -1907,14 +1907,19 @@ class RestitusiController  extends Controller
 				$restitusi
 			);
 			
+			Yii::info(
+				'HASIL callAPIPostDebitur: ' . json_encode($apiResponse),
+				'restitusi'
+			);
+						
 			return [
-				'Result' => [
-					'status' => '200',
-					'kode_response' => 'DEBUG',
-					'message' => 'HASIL callAPIPostDebitur'
-				],
-				'debug' => $apiResponse
-			];
+					'Result' => [
+						'status' => '200',
+						'kode_response' => '00',
+						'message' => 'Update berhasil'
+					],
+					'debug' => $apiResponse
+				];
 			
 			// DEBUG HASIL ENDPOINT DI BROWSER
 
