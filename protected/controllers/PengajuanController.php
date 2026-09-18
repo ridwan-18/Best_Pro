@@ -4556,6 +4556,10 @@ if (file_exists($zipPath)) {
 					]
 				];
 			}
+			
+			$check_member = Restitusi::findOne([
+					'nomor_akad' => $body['nomor_akad']
+				]);
 
 			$countDokumen = \app\models\map_member_dokumen_medis::find()
 				->where([
@@ -4571,20 +4575,7 @@ if (file_exists($zipPath)) {
 				STR_PAD_LEFT
 			);
 
-			$idTransaksi = $body['id_transaksi'];
-			$norek = $body['nomor_rekening'];
-			$noakad = $body['nomor_akad'];
-
-			$codeDoc = '003';
-			$fileBenefit = (string)$benefit;
-
-			$fileName =
-				$norek . '_' .
-				$noakad . '_' .
-				$codeDoc . '_' .
-				$fileBenefit . '_' .
-				$sequence .
-				'.zip';
+			
 
 			$transaction = Yii::$app->db->beginTransaction();
 
@@ -4644,6 +4635,22 @@ if (file_exists($zipPath)) {
 						]
 					];
 				}
+				
+				
+			$idTransaksi = $body['id_transaksi'];
+			$norek = $body['nomor_rekening'];
+			$noakad = $body['nomor_akad'];
+
+			$codeDoc = '003';
+			$fileBenefit = (string)$benefit;
+
+			$fileName =
+				$norek . '_' .
+				$noakad . '_' .
+				$codeDoc . '_' .
+				$fileBenefit . '_' .
+				$sequence .
+				'.zip';
 
 				$sftpResult = $this->downloadFileFromBankSftp($fileName);
 
