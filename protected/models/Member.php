@@ -1267,8 +1267,28 @@ class Member extends \yii\db\ActiveRecord
 		];
 	}
 	
-	public function callAPIPostDebitur($token, $model, $document = null, $restitusi)
+	public function callAPIPostDebitur($token, $model, $document = null, $restitusi = null)
 	{
+		
+		 echo '<pre>';
+
+    echo "=== MASUK callAPIPostDebitur ===\n\n";
+
+    echo "TOKEN: ";
+    var_dump($token ? 'ADA' : 'KOSONG');
+
+    echo "\nMODEL:\n";
+    var_dump($model);
+
+    echo "\nDOCUMENT:\n";
+    var_dump($document);
+
+    echo "\nRESTITUSI:\n";
+    var_dump($restitusi);
+
+    echo '</pre>';
+
+    die();
 		$url = '202.152.22.234:5008/callback/debitur';
 
 		try {
