@@ -1338,6 +1338,7 @@ class Member extends \yii\db\ActiveRecord
 				'sisa_tenor'          => (string) $restitusi->sisa_tenor,
 				'status_bayar'        => (string) $restitusi->status_bayar,
 				// 'status_bayar'        => 1,
+				// 'status_dokumen' => ($document->approve === 'PROSES') ? '1' : (($document->approve === 'DISETUJUI') ? '2' : (($document->approve === 'DITOLAK') ? '3' : (($document->approve === 'Menunggu kelengkapan dokumen') ? '4' : '1'))),
 				'premi_dikembalikan'  => (string) $restitusi->premi,
 				'asuransi'            => 'Reliance Life Unit Syariah',
 				'keterangan'        => $document->keterangan,

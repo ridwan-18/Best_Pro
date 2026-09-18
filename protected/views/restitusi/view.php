@@ -724,9 +724,23 @@ $this->title = 'View Member - ' . Yii::$app->name;
                                     <?= Html::encode($cd['approve']); ?>
                                 </td>
 								
-								 <td>
-                                    <?= Html::encode($cd['status_bayar']); ?>
-                                </td>
+								<?= Html::dropDownList(
+									'action',
+									null,
+									[
+										'' => 'Select Action',
+										'Sudah Dibayarkan' => 'Sudah Dibayarkan',
+										' Belum Dibayarkan' => ' Belum Dibayarkan',
+									],
+									[
+										'class' => 'form-control action-dropdown',
+
+										'data-url' => \yii\helpers\Url::to([
+											'restitusi/approvedoc',
+											'id_loan' => $cd['id_loan'],
+										]),
+									]
+								); ?>
 
                             </tr>
 
