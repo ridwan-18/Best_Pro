@@ -1832,7 +1832,7 @@ class RestitusiController  extends Controller
 			// var_dump($model);
 			
 			$restitusi = Restitusi::findOne([
-				'id_transaksi' => $id_loan,
+				'id_pengajuan' => $id_loan,
 			]);
 			 
 
