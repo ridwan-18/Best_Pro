@@ -1815,21 +1815,20 @@ class RestitusiController  extends Controller
 				];
 			}
 
-			// $model = member::findOne([
-				// 'id_loan' => $id_loan,
-			// ]);
+			$model = member::findOne([
+				'id_pengajuan' => $id_loan,
+			]);
 
-			// if ($model === null) {
-				// return [
-					// 'Result' => [
-						// 'message' => 'Data member tidak ditemukan',
-						// 'kode_response' => '06',
-						// 'status' => '404',
-					// ],
-				// ];
-			// }
+			if ($model === null) {
+				return [
+					'Result' => [
+						'message' => 'Data member tidak ditemukan',
+						'kode_response' => '06',
+						'status' => '404',
+					],
+				];
+			}
 			
-			// var_dump($model);
 			
 			$restitusi = Restitusi::findOne([
 				'id_pengajuan' => $id_loan,
