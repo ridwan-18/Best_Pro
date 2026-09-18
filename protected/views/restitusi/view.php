@@ -773,15 +773,32 @@ $this->title = 'View Member - ' . Yii::$app->name;
 
 $script = <<< JS
 
-$(document).on('change', '.action-dropdown', function() {
+$(document).on('change', '.action-dropdown', function(e) {
+
+    e.preventDefault();
 
     console.log('========================================');
-    console.log('1. CHANGE DROPDOWN TERPANGGIL');
+    console.log('CHANGE ACTION TERPANGGIL');
     console.log('========================================');
-
-    alert('1. CHANGE DROPDOWN JALAN');
 
     var dropdown = $(this);
+
+    // ========================================
+    // AMBIL ROW / BARIS YANG SAMA
+    // ========================================
+
+    var row = dropdown.closest('tr');
+
+    console.log('ROW:', row);
+
+    if (row.length === 0) {
+
+        alert('Baris data tidak ditemukan.');
+
+        console.log('ERROR: TR TIDAK DITEMUKAN');
+
+        return;
+    }
 
     // ========================================
     // AMBIL DATA DROPDOWN
@@ -793,9 +810,41 @@ $(document).on('change', '.action-dropdown', function() {
 
     var loanId = dropdown.attr('data-id-loan');
 
-    console.log('ID LOAN :', loanId);
-    console.log('ACTION  :', action);
-    console.log('URL     :', url);
+    console.log('ID LOAN DARI DROPDOWN:', loanId);
+    console.log('ACTION:', action);
+    console.log('URL:', url);
+
+    // ========================================
+    // AMBIL KETERANGAN DARI ROW YANG SAMA
+    // ========================================
+
+    var keteranganInput = row.find(
+        '.keterangan-input'
+    );
+
+    console.log('INPUT KETERANGAN:', keteranganInput);
+    console.log(
+        'JUMLAH INPUT KETERANGAN:',
+        keteranganInput.length
+    );
+
+    // ========================================
+    // DEBUG NAME INPUT
+    // ========================================
+
+    if (keteranganInput.length > 0) {
+
+        console.log(
+            'NAME INPUT:',
+            keteranganInput.attr('name')
+        );
+
+        console.log(
+            'VALUE INPUT:',
+            keteranganInput.val()
+        );
+
+    }
 
     // ========================================
     // VALIDASI ACTION
@@ -809,40 +858,13 @@ $(document).on('change', '.action-dropdown', function() {
     }
 
     // ========================================
-    // AMBIL INPUT KETERANGAN
-    // ========================================
-
-    var keteranganInput = $(
-        '.keterangan-input[name="keterangan[' + loanId + ']"]'
-    );
-
-    console.log('========================================');
-    console.log('2. CARI INPUT KETERANGAN');
-    console.log('========================================');
-
-    console.log(
-        'Selector:',
-        '.keterangan-input[name="keterangan[' + loanId + ']"]'
-    );
-
-    console.log(
-        'Jumlah input ditemukan:',
-        keteranganInput.length
-    );
-
-    // ========================================
-    // JIKA INPUT TIDAK DITEMUKAN
+    // VALIDASI INPUT KETERANGAN
     // ========================================
 
     if (keteranganInput.length === 0) {
 
-        console.log(
-            'INPUT KETERANGAN TIDAK DITEMUKAN'
-        );
-
         alert(
-            'Input keterangan tidak ditemukan.\\n\\n' +
-            'ID Loan: ' + loanId
+            'Input keterangan tidak ditemukan pada baris ini.'
         );
 
         dropdown.val('');
@@ -858,42 +880,35 @@ $(document).on('change', '.action-dropdown', function() {
         keteranganInput.val() || ''
     );
 
+    console.log('========================================');
+    console.log('KETERANGAN');
+    console.log('========================================');
+
     console.log(
         'KETERANGAN:',
         keterangan
     );
 
     // ========================================
-    // AMBIL STATUS BAYAR
+    // AMBIL STATUS BAYAR DARI ROW YANG SAMA
     // ========================================
 
-    var statusBayarDropdown = $(
-        '.status-bayar-dropdown[data-id-loan="' +
-        loanId +
-        '"]'
+    var statusBayarDropdown = row.find(
+        '.status-bayar-dropdown'
     );
 
     var statusBayar = $.trim(
         statusBayarDropdown.val() || ''
     );
 
-    console.log('STATUS BAYAR:', statusBayar);
-
-    // ========================================
-    // DEBUG DATA LENGKAP
-    // ========================================
-
     console.log('========================================');
-    console.log('3. DATA YANG AKAN DIKIRIM');
+    console.log('STATUS BAYAR');
     console.log('========================================');
 
-    console.log({
-        id_loan: loanId,
-        action: action,
-        keterangan: keterangan,
-        status_bayar: statusBayar,
-        url: url
-    });
+    console.log(
+        'STATUS BAYAR:',
+        statusBayar
+    );
 
     // ========================================
     // VALIDASI KETERANGAN
@@ -942,6 +957,22 @@ $(document).on('change', '.action-dropdown', function() {
     }
 
     // ========================================
+    // DEBUG DATA YANG AKAN DIKIRIM
+    // ========================================
+
+    console.log('========================================');
+    console.log('DATA AJAX');
+    console.log('========================================');
+
+    console.log({
+        id_loan: loanId,
+        action: action,
+        keterangan: keterangan,
+        status_bayar: statusBayar,
+        url: url
+    });
+
+    // ========================================
     // KONFIRMASI
     // ========================================
 
@@ -964,7 +995,7 @@ $(document).on('change', '.action-dropdown', function() {
     }
 
     // ========================================
-    // DISABLE INPUT
+    // DISABLE
     // ========================================
 
     dropdown.prop(
@@ -983,30 +1014,12 @@ $(document).on('change', '.action-dropdown', function() {
     );
 
     // ========================================
-    // DEBUG SEBELUM AJAX
-    // ========================================
-
-    console.log('========================================');
-    console.log('4. MULAI AJAX');
-    console.log('========================================');
-
-    console.log(
-        'URL:',
-        url
-    );
-
-    console.log(
-        'POST DATA:',
-        {
-            action: action,
-            keterangan: keterangan,
-            status_bayar: statusBayar
-        }
-    );
-
-    // ========================================
     // AJAX
     // ========================================
+
+    console.log('========================================');
+    console.log('MULAI AJAX');
+    console.log('========================================');
 
     $.ajax({
 
@@ -1026,23 +1039,19 @@ $(document).on('change', '.action-dropdown', function() {
 
         },
 
-        // ====================================
-        // BEFORE SEND
-        // ====================================
-
         beforeSend: function(xhr) {
 
-            console.log('========================================');
-            console.log('5. AJAX BEFORE SEND');
-            console.log('========================================');
+            console.log(
+                'AJAX REQUEST DIKIRIM'
+            );
 
             console.log(
-                'Request dikirim ke:',
+                'URL:',
                 url
             );
 
             console.log(
-                'POST DATA:',
+                'DATA:',
                 {
                     action: action,
                     keterangan: keterangan,
@@ -1052,14 +1061,10 @@ $(document).on('change', '.action-dropdown', function() {
 
         },
 
-        // ====================================
-        // SUCCESS
-        // ====================================
-
         success: function(response) {
 
             console.log('========================================');
-            console.log('6. AJAX SUCCESS');
+            console.log('AJAX SUCCESS');
             console.log('========================================');
 
             console.log(
@@ -1077,17 +1082,13 @@ $(document).on('change', '.action-dropdown', function() {
             );
 
             // =================================
-            // CEK RESPONSE
+            // CEK RESULT
             // =================================
 
             if (
                 response &&
                 response.Result
             ) {
-
-                console.log(
-                    'RESULT DITEMUKAN'
-                );
 
                 var result = response.Result;
 
@@ -1107,7 +1108,7 @@ $(document).on('change', '.action-dropdown', function() {
                 );
 
                 // =================================
-                // BERHASIL
+                // SUKSES
                 // =================================
 
                 if (
@@ -1115,21 +1116,12 @@ $(document).on('change', '.action-dropdown', function() {
                     String(result.kode_response) === '00'
                 ) {
 
-                    console.log(
-                        'UPDATE BERHASIL'
-                    );
-
                     alert(
                         'Update berhasil.\\n\\n' +
-                        'ID Loan : ' + loanId + '\\n' +
-                        'Keterangan : ' + keterangan + '\\n' +
-                        'Status Bayar : ' + statusBayar + '\\n\\n' +
-                        'Pesan : ' + (
-                            result.message || '-'
-                        )
+                        'ID Loan: ' + loanId +
+                        '\\nKeterangan: ' + keterangan +
+                        '\\nStatus Bayar: ' + statusBayar
                     );
-
-                    // Reload supaya data terbaru dari database tampil
 
                     location.reload();
 
@@ -1137,65 +1129,35 @@ $(document).on('change', '.action-dropdown', function() {
                 }
 
                 // =================================
-                // RESPONSE TIDAK SUKSES
+                // GAGAL
                 // =================================
-
-                console.log(
-                    'UPDATE GAGAL'
-                );
 
                 alert(
                     'Update gagal.\\n\\n' +
-                    'Status : ' + (
-                        result.status || '-'
-                    ) +
-                    '\\nKode : ' + (
-                        result.kode_response || '-'
-                    ) +
-                    '\\nPesan : ' + (
-                        result.message || '-'
+                    'Status: ' +
+                    (result.status || '-') +
+                    '\\nKode: ' +
+                    (result.kode_response || '-') +
+                    '\\nPesan: ' +
+                    (result.message || '-')
+                );
+
+            } else {
+
+                alert(
+                    'Response tidak memiliki Result.\\n\\n' +
+                    JSON.stringify(
+                        response,
+                        null,
+                        4
                     )
                 );
-
-                // Enable kembali
-
-                dropdown.prop(
-                    'disabled',
-                    false
-                );
-
-                keteranganInput.prop(
-                    'disabled',
-                    false
-                );
-
-                statusBayarDropdown.prop(
-                    'disabled',
-                    false
-                );
-
-                return;
 
             }
 
             // =================================
-            // RESPONSE TIDAK MEMILIKI RESULT
+            // ENABLE KEMBALI
             // =================================
-
-            console.log(
-                'RESPONSE.Result TIDAK ADA'
-            );
-
-            alert(
-                'Response controller tidak memiliki Result.\\n\\n' +
-                JSON.stringify(
-                    response,
-                    null,
-                    4
-                )
-            );
-
-            // Enable kembali
 
             dropdown.prop(
                 'disabled',
@@ -1214,10 +1176,6 @@ $(document).on('change', '.action-dropdown', function() {
 
         },
 
-        // ====================================
-        // ERROR
-        // ====================================
-
         error: function(
             xhr,
             status,
@@ -1225,7 +1183,7 @@ $(document).on('change', '.action-dropdown', function() {
         ) {
 
             console.log('========================================');
-            console.log('7. AJAX ERROR');
+            console.log('AJAX ERROR');
             console.log('========================================');
 
             console.log(
@@ -1244,26 +1202,17 @@ $(document).on('change', '.action-dropdown', function() {
             );
 
             console.log(
-                'RESPONSE TEXT:',
+                'RESPONSE:',
                 xhr.responseText
             );
 
-            console.log(
-                'READY STATE:',
-                xhr.readyState
-            );
-
-            // =================================
-            // ALERT ERROR
-            // =================================
-
             alert(
                 'AJAX ERROR\\n\\n' +
-                'HTTP STATUS : ' +
+                'HTTP STATUS: ' +
                 xhr.status +
-                '\\nSTATUS : ' +
+                '\\nSTATUS: ' +
                 status +
-                '\\nERROR : ' +
+                '\\nERROR: ' +
                 error +
                 '\\n\\nRESPONSE:\\n' +
                 xhr.responseText
@@ -1290,15 +1239,11 @@ $(document).on('change', '.action-dropdown', function() {
 
         },
 
-        // ====================================
-        // COMPLETE
-        // ====================================
-
         complete: function() {
 
-            console.log('========================================');
-            console.log('8. AJAX COMPLETE');
-            console.log('========================================');
+            console.log(
+                'AJAX COMPLETE'
+            );
 
         }
 
