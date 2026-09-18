@@ -4561,20 +4561,7 @@ if (file_exists($zipPath)) {
 					'nomor_akad' => $body['nomor_akad']
 				]);
 
-			$countDokumen = \app\models\map_member_dokumen_medis::find()
-				->where([
-					'id_loan' => $member->id_pengajuan,
-					'jenis_dokumen' => 'restitusi',
-				])
-				->count();
-
-			$sequence = str_pad(
-				$countDokumen + 1,
-				2,
-				'0',
-				STR_PAD_LEFT
-			);
-
+			
 			
 
 			$transaction = Yii::$app->db->beginTransaction();
@@ -4636,7 +4623,20 @@ if (file_exists($zipPath)) {
 					];
 				}
 				
-				
+			$countDokumen = \app\models\map_member_dokumen_medis::find()
+				->where([
+					'id_loan' => $member->id_pengajuan,
+					'jenis_dokumen' => 'restitusi',
+				])
+				->count();
+
+			$sequence = str_pad(
+				$countDokumen + 1,
+				2,
+				'0',
+				STR_PAD_LEFT
+			);
+	
 			$idTransaksi = $body['id_transaksi'];
 			$norek = $body['nomor_rekening'];
 			$noakad = $body['nomor_akad'];
