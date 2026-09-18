@@ -1295,33 +1295,49 @@ class Member extends \yii\db\ActiveRecord
 
 			'benefit' => (string) $model->benefit,
 
-			{
-			"restitusi": {
-				"id_transaksi_bank": "63921307528",
-				"id_pengajuan": "PCBC-0004855",
-				"status_restitusi": "1",
-				"tenor": "60",
-				"premi": "2156490",
-				"periode_awal": "2026-01-12",
-				"periode_akhir": "2031-01-12",
-				"tenor_berjalan": "1",
-				"sisa_tenor": "59",
-				"status_bayar": "1",
-				"status_dokumen": "5",
-				"premi_dikembalikan": "688000",
-				"asuransi": "Reliance Life Unit Syariah",
-				"keterangan": "rrr"
-			}
-		}
+			'restitusi' => [
+				'id_transaksi_bank' => (string) $model->id_transaksi,
+				'id_pengajuan'      => (string) $model->id_pengajuan,
+				'status_restitusi'  => (string) $restitusi->status_restitusi,
+
+				'tenor'             => (string) $model->term,
+				'premi'             => (string) $model->gross_premium,
+
+				'periode_awal'      => $model->start_date,
+				'periode_akhir'     => $model->end_date,
+
+				'tenor_berjalan'    => (string) $restitusi->tenor_berjalan,
+				'sisa_tenor'        => (string) $restitusi->sisa_tenor,
+
+				// 1 = Sudah Dibayarkan
+				// 2 = Belum Dibayarkan
+				'status_bayar'      => (string) $restitusi->status_bayar,
+
+				// 1 = Register
+				// 2 = Proses
+				// 3 = Diterima
+				// 4 = Ditolak
+				// 5 = Dibayar
+				// 6 = Menunggu Kelengkapan
+				'status_dokumen'    => (string) $statusDokumen,
+
+				'premi_dikembalikan' => (string) $restitusi->premi,
+
+				'asuransi'           => 'Reliance Life Unit Syariah',
+
+				'keterangan'        => $document
+					? (string) $document->keterangan
+					: '',
+			],
 
 			'klaim' => null,
 
-			'id_transaksi'   => $restitusi->id_transaksi,
+			'id_transaksi'    => (string) $restitusi->id_transaksi,
 			'status_callback' => '1',
-			'nomor_rekening' => $restitusi->nomor_rekening,
-			'kode_broker'    => $restitusi->kode_broker,
-			'no_akad'        => $restitusi->nomor_akad,
-			'kode_cabang'    => $restitusi->kode_cabang,
+			'nomor_rekening'  => $restitusi->nomor_rekening,
+			'kode_broker'     => $restitusi->kode_broker,
+			'no_akad'         => $restitusi->nomor_akad,
+			'kode_cabang'     => $restitusi->kode_cabang,
 		];
 
 		$jsonData = json_encode($payload);
