@@ -394,11 +394,10 @@ $this->title = 'View Member - ' . Yii::$app->name;
                                                 }
                                                 ?>>
                                                 <td><?= $i; ?></td>
-												 <td><?= $member['nama']; ?></td>
+												 <td><?= $member['id_pengajuan']; ?></td>
                                                 <td><?= $member['member_no']; ?></td>
                                                 <td><?= $member['nama']; ?></td>
 												<td><?= $member['tgl_lahir']; ?></td>
-                                              
                                                 <td><?= $member['gender']; ?></td>
                                                 <td><?= $member['age']; ?></td>
                                                 <td><?= Utils::convertDateTodMy($member['start_date']); ?></td>
