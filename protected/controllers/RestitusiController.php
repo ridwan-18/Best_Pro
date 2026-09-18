@@ -1864,6 +1864,7 @@ class RestitusiController  extends Controller
 			}
 			
 			$restitusi->status_bayar = $status_bayar;
+			$restitusi->status_restitusi = $action;
 			
 
 			if (!$restitusi->save(false)) {
@@ -1907,13 +1908,13 @@ class RestitusiController  extends Controller
 			);
 			
 			return [
-    'Result' => [
-        'status' => '200',
-        'kode_response' => 'DEBUG',
-        'message' => 'HASIL callAPIPostDebitur'
-    ],
-    'debug' => $apiResponse
-];
+				'Result' => [
+					'status' => '200',
+					'kode_response' => 'DEBUG',
+					'message' => 'HASIL callAPIPostDebitur'
+				],
+				'debug' => $apiResponse
+			];
 			
 			// DEBUG HASIL ENDPOINT DI BROWSER
 
