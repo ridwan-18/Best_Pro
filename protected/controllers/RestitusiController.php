@@ -1753,13 +1753,14 @@ class RestitusiController  extends Controller
 					],
 				];
 			}
-
+			
 			$document = map_member_dokumen_medis::find()
-				->where([
-					'id_loan' => $id_loan,
-					'jenis_dokumen' => 'restitusi',
-				])
-				->one();
+			->where([
+				'id_loan' => $id_loan,
+				'jenis_dokumen' => 'restitusi',
+			])
+			->orderBy(['id' => SORT_DESC])
+			->one();	
 
 			if ($document === null) {
 				return [
@@ -1814,21 +1815,21 @@ class RestitusiController  extends Controller
 				];
 			}
 
-			$model = member::findOne([
-				'id_loan' => $id_loan,
-			]);
+			// $model = member::findOne([
+				// 'id_loan' => $id_loan,
+			// ]);
 
-			if ($model === null) {
-				return [
-					'Result' => [
-						'message' => 'Data member tidak ditemukan',
-						'kode_response' => '06',
-						'status' => '404',
-					],
-				];
-			}
+			// if ($model === null) {
+				// return [
+					// 'Result' => [
+						// 'message' => 'Data member tidak ditemukan',
+						// 'kode_response' => '06',
+						// 'status' => '404',
+					// ],
+				// ];
+			// }
 			
-			var_dump($model);
+			// var_dump($model);
 			
 			$restitusi = Restitusi::findOne([
 				'id_transaksi' => $id_loan,
