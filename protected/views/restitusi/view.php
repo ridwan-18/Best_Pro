@@ -768,70 +768,170 @@ $this->title = 'View Member - ' . Yii::$app->name;
 
 </div>
 
-
-
-
-
 <?php
 
 $script = <<< JS
 
 $(document).on('change', '.action-dropdown', function() {
 
+    console.log('========================================');
+    console.log('1. CHANGE DROPDOWN TERPANGGIL');
+    console.log('========================================');
+
+    alert('1. CHANGE DROPDOWN JALAN');
+
     var dropdown = $(this);
 
+    // ========================================
+    // AMBIL DATA
+    // ========================================
+
     var action = dropdown.val();
+
     var url = dropdown.attr('data-url');
 
+    var loanId = dropdown.attr('data-id-loan');
+
+    console.log('ID LOAN :', loanId);
+    console.log('ACTION  :', action);
+    console.log('URL     :', url);
+
+    // ========================================
+    // VALIDASI ACTION
+    // ========================================
+
     if (!action) {
+
+        console.log('ACTION KOSONG');
+
         return;
     }
 
-    // Ambil ID loan dari URL
-    var idLoanMatch = url.match(/id_loan=([^&]+)/);
-    var loanId = null;
+    // ========================================
+    // AMBIL KETERANGAN
+    // ========================================
 
-    if (idLoanMatch) {
-        loanId = decodeURIComponent(idLoanMatch[1]);
-    }
+    var keteranganInput = $(
+        'input[name="keterangan[' + loanId + ']"]'
+    );
 
-    // Ambil keterangan
-    var keteranganInput = $('input[name="keterangan[' + loanId + ']"]');
-    var keterangan = $.trim(keteranganInput.val());
+    var keterangan = $.trim(
+        keteranganInput.val()
+    );
 
-    // Ambil status bayar
+    console.log('KETERANGAN :', keterangan);
+
+    // ========================================
+    // AMBIL STATUS BAYAR
+    // ========================================
+
     var statusBayarDropdown = $(
         '.status-bayar-dropdown[data-id-loan="' + loanId + '"]'
     );
 
     var statusBayar = statusBayarDropdown.val();
 
-    console.log('ID LOAN      :', loanId);
-    console.log('ACTION       :', action);
-    console.log('KETERANGAN   :', keterangan);
     console.log('STATUS BAYAR :', statusBayar);
 
-    // Validasi keterangan
+    // ========================================
+    // DEBUG DATA LENGKAP
+    // ========================================
+
+    console.log('========================================');
+    console.log('2. DATA YANG AKAN DIKIRIM');
+    console.log('========================================');
+
+    console.log({
+        id_loan: loanId,
+        action: action,
+        keterangan: keterangan,
+        status_bayar: statusBayar,
+        url: url
+    });
+
+    // ========================================
+    // VALIDASI KETERANGAN
+    // ========================================
+
     if (!keterangan) {
 
         alert('Keterangan wajib diisi.');
 
+        console.log('KETERANGAN KOSONG');
+
         dropdown.val('');
+
         keteranganInput.focus();
 
         return;
     }
 
-    // Validasi status bayar
+    // ========================================
+    // VALIDASI STATUS BAYAR
+    // ========================================
+
     if (!statusBayar) {
 
         alert('Status bayar wajib dipilih.');
 
+        console.log('STATUS BAYAR KOSONG');
+
         dropdown.val('');
+
         statusBayarDropdown.focus();
 
         return;
     }
+
+    // ========================================
+    // KONFIRMASI
+    // ========================================
+
+    var confirmMessage =
+        'Apakah Anda yakin ingin mengubah status restitusi?\\n\\n' +
+        'ID Loan      : ' + loanId + '\\n' +
+        'Action       : ' + action + '\\n' +
+        'Keterangan  : ' + keterangan + '\\n' +
+        'Status Bayar : ' + statusBayar;
+
+    if (!confirm(confirmMessage)) {
+
+        console.log('USER MEMBATALKAN');
+
+        dropdown.val('');
+
+        return;
+    }
+
+    // ========================================
+    // DISABLE INPUT
+    // ========================================
+
+    dropdown.prop('disabled', true);
+
+    keteranganInput.prop('disabled', true);
+
+    statusBayarDropdown.prop('disabled', true);
+
+    // ========================================
+    // DEBUG SEBELUM AJAX
+    // ========================================
+
+    console.log('========================================');
+    console.log('3. MULAI AJAX');
+    console.log('========================================');
+
+    console.log('URL:', url);
+
+    console.log('POST DATA:', {
+        action: action,
+        keterangan: keterangan,
+        status_bayar: statusBayar
+    });
+
+    // ========================================
+    // AJAX
+    // ========================================
 
     $.ajax({
 
@@ -847,82 +947,261 @@ $(document).on('change', '.action-dropdown', function() {
             status_bayar: statusBayar
         },
 
-        beforeSend: function() {
+        // ====================================
+        // SEBELUM REQUEST
+        // ====================================
 
-            dropdown.prop('disabled', true);
-            keteranganInput.prop('disabled', true);
-            statusBayarDropdown.prop('disabled', true);
+        beforeSend: function(xhr) {
+
+            console.log('========================================');
+            console.log('4. AJAX BEFORE SEND');
+            console.log('========================================');
+
+            console.log('Request dikirim ke:', url);
 
         },
+
+        // ====================================
+        // SUCCESS
+        // ====================================
 
         success: function(response) {
 
-            console.log('RESPONSE:', response);
+            console.log('========================================');
+            console.log('5. AJAX SUCCESS');
+            console.log('========================================');
+
+            console.log('RESPONSE DARI CONTROLLER:');
+
+            console.log(response);
+
+            console.log('RESPONSE JSON:');
+
+            console.log(
+                JSON.stringify(
+                    response,
+                    null,
+                    4
+                )
+            );
+
+            // =================================
+            // TAMPILKAN SEMUA RESPONSE
+            // =================================
+
+            alert(
+                'AJAX BERHASIL\\n\\n' +
+                JSON.stringify(
+                    response,
+                    null,
+                    4
+                )
+            );
+
+            // =================================
+            // CEK RESULT
+            // =================================
 
             if (
-                response.Result &&
-                response.Result.status == '200'
+                response &&
+                response.Result
             ) {
 
-                alert(
-                    'BERHASIL\n\n' +
-                    'Status : ' +
-                    response.Result.status +
-                    '\nKode : ' +
-                    response.Result.kode_response +
-                    '\nPesan : ' +
+                console.log('========================================');
+                console.log('6. RESULT DITEMUKAN');
+                console.log('========================================');
+
+                console.log(
+                    'STATUS:',
+                    response.Result.status
+                );
+
+                console.log(
+                    'KODE:',
+                    response.Result.kode_response
+                );
+
+                console.log(
+                    'MESSAGE:',
                     response.Result.message
                 );
 
-                location.reload();
+                // =================================
+                // JIKA BERHASIL
+                // =================================
+
+                if (
+                    response.Result.status == '200' &&
+                    response.Result.kode_response == '00'
+                ) {
+
+                    alert(
+                        'BERHASIL\\n\\n' +
+                        'Status : ' +
+                        response.Result.status +
+                        '\\nKode : ' +
+                        response.Result.kode_response +
+                        '\\nPesan : ' +
+                        response.Result.message
+                    );
+
+                    location.reload();
+
+                } else {
+
+                    console.log(
+                        'Response Result bukan sukses'
+                    );
+
+                    alert(
+                        'RESPONSE BANK / CONTROLLER\\n\\n' +
+                        'Status : ' +
+                        (
+                            response.Result.status
+                            || '-'
+                        ) +
+                        '\\nKode : ' +
+                        (
+                            response.Result.kode_response
+                            || '-'
+                        ) +
+                        '\\nPesan : ' +
+                        (
+                            response.Result.message
+                            || '-'
+                        )
+                    );
+
+                    dropdown.prop(
+                        'disabled',
+                        false
+                    );
+
+                    keteranganInput.prop(
+                        'disabled',
+                        false
+                    );
+
+                    statusBayarDropdown.prop(
+                        'disabled',
+                        false
+                    );
+                }
 
             } else {
 
-                alert(
-                    'GAGAL\n\n' +
-                    'Status : ' +
-                    (
-                        response.Result
-                        ? response.Result.status
-                        : '-'
-                    ) +
-                    '\nKode : ' +
-                    (
-                        response.Result
-                        ? response.Result.kode_response
-                        : '-'
-                    ) +
-                    '\nPesan : ' +
-                    (
-                        response.Result
-                        ? response.Result.message
-                        : 'Response tidak valid'
-                    )
+                console.log(
+                    'RESPONSE.Result TIDAK ADA'
                 );
 
-                dropdown.prop('disabled', false);
-                keteranganInput.prop('disabled', false);
-                statusBayarDropdown.prop('disabled', false);
+                alert(
+                    'Response tidak memiliki Result.'
+                );
+
+                dropdown.prop(
+                    'disabled',
+                    false
+                );
+
+                keteranganInput.prop(
+                    'disabled',
+                    false
+                );
+
+                statusBayarDropdown.prop(
+                    'disabled',
+                    false
+                );
             }
+
         },
 
-        error: function(xhr, status, error) {
+        // ====================================
+        // ERROR
+        // ====================================
 
-            console.log('HTTP STATUS:', xhr.status);
-            console.log('ERROR:', error);
-            console.log('RESPONSE:', xhr.responseText);
+        error: function(
+            xhr,
+            status,
+            error
+        ) {
 
-            alert(
-                'ERROR AJAX\n\n' +
-                'HTTP : ' + xhr.status +
-                '\nError : ' + error +
-                '\n\nResponse:\n' +
+            console.log('========================================');
+            console.log('7. AJAX ERROR');
+            console.log('========================================');
+
+            console.log(
+                'HTTP STATUS:',
+                xhr.status
+            );
+
+            console.log(
+                'STATUS:',
+                status
+            );
+
+            console.log(
+                'ERROR:',
+                error
+            );
+
+            console.log(
+                'RESPONSE TEXT:',
                 xhr.responseText
             );
 
-            dropdown.prop('disabled', false);
-            keteranganInput.prop('disabled', false);
-            statusBayarDropdown.prop('disabled', false);
+            console.log(
+                'READY STATE:',
+                xhr.readyState
+            );
+
+            // =================================
+            // TAMPILKAN RESPONSE ERROR
+            // =================================
+
+            alert(
+                'AJAX ERROR\\n\\n' +
+                'HTTP STATUS : ' +
+                xhr.status +
+                '\\nSTATUS : ' +
+                status +
+                '\\nERROR : ' +
+                error +
+                '\\n\\nRESPONSE:\\n' +
+                xhr.responseText
+            );
+
+            // =================================
+            // ENABLE KEMBALI
+            // =================================
+
+            dropdown.prop(
+                'disabled',
+                false
+            );
+
+            keteranganInput.prop(
+                'disabled',
+                false
+            );
+
+            statusBayarDropdown.prop(
+                'disabled',
+                false
+            );
+
+        },
+
+        // ====================================
+        // SELESAI
+        // ====================================
+
+        complete: function() {
+
+            console.log('========================================');
+            console.log('8. AJAX COMPLETE');
+            console.log('========================================');
+
         }
 
     });
@@ -934,7 +1213,6 @@ JS;
 $this->registerJs($script);
 
 ?>
-
 
 
 
