@@ -1182,7 +1182,7 @@ class PengajuanController extends Controller
 			return [
 				'Result' => [
 					'status_code' => 200,
-				'	kode_response' => "08",
+				    'kode_response' => "08",
 					'message' => 'Status Dokumen CBC belum disetujui',
 				]
 			];
