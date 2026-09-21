@@ -720,4 +720,295 @@ class MemberClaimController extends Controller
         Yii::$app->session->setFlash('success', "Successfully Confirmation Daluwarsa");
         return $this->redirect(['index']);
 	}
+	
+	
+	public function actionApprovedoc($id_loan)
+	{
+		Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
+
+		try {
+
+		
+			if (!Yii::$app->request->isPost) {
+				return [
+					'Result' => [
+						'message' => 'Request harus POST',
+						'kode_response' => '01',
+						'status' => '405',
+					],
+				];
+			}
+
+			$action = Yii::$app->request->post('action');
+			$keterangan = Yii::$app->request->post('keterangan');
+			$keterangan = trim((string) $keterangan);
+			
+						
+			$status_bayar = Yii::$app->request->post('status_bayar');
+			$status_bayar = trim((string) $status_bayar);
+
+			if (!in_array($status_bayar, ['1', '2'], true)) {
+				return [
+					'Result' => [
+						'message' => 'Status bayar tidak valid',
+						'kode_response' => '04',
+						'status' => '400',
+					],
+				];
+			}
+
+			$allowedAction = [
+							'1',
+							'2',
+							'3',
+							'4',
+							'5',
+							'6',
+							'7',
+							'8',
+						];
+
+			if (!in_array((string) $action, $allowedAction, true)) {
+			return [
+				'Result' => [
+					'message' => 'Status claim tidak valid',
+					'kode_response' => '05',
+					'status' => '400',
+				],
+			];
+		}
+
+
+			if (empty($keterangan)) {
+				return [
+					'Result' => [
+						'message' => 'Keterangan wajib diisi',
+						'kode_response' => '04',
+						'status' => '400',
+					],
+				];
+			}
+			
+			$document = map_member_dokumen_medis::find()
+			->where([
+				'id_loan' => $id_loan,
+				'jenis_dokumen' => 'claim',
+			])
+			->orderBy(['id' => SORT_DESC])
+			->one();	
+
+			if ($document === null) {
+				return [
+					'Result' => [
+						'message' => 'Document tidak ditemukan',
+						'kode_response' => '02',
+						'status' => '404',
+					],
+				];
+			}
+				switch ((string) $action) 
+				{
+
+					case '1':
+						$document->approve = '1'; // Restitusi Register
+						break;
+
+					case '2':
+						$document->approve = '2'; // Restitusi Proses
+						break;
+
+					case '3':
+						$document->approve = '3'; // Restitusi Diterima
+						break;
+
+					case '4':
+						$document->approve = '4'; // Restitusi Ditolak
+						break;
+
+					case '5':
+						$document->approve = '5'; // Restitusi Dibayar
+						break;
+
+					case '6':
+						$document->approve = '6'; // Menunggu kelengkapan
+						break;
+						
+					case '7':
+						$document->approve = '7'; // Menunggu kelengkapan
+						break;
+						
+					case '8':
+						$document->approve = '8'; // Menunggu kelengkapan
+						break;		
+					}
+			
+
+			$document->keterangan = $keterangan;
+			// $document->status_bayar = $status_bayar;
+
+			if (!$document->save(false)) {
+
+				return [
+					'Result' => [
+						'message' => 'Gagal menyimpan status dokumen',
+						'kode_response' => '03',
+						'status' => '500',
+					],
+					'debug' => [
+						'errors' => $document->getErrors(),
+					],
+				];
+			}
+
+			$model = member::findOne([
+				'no_akad' => $id_loan,
+			]);
+
+			if ($model === null) {
+				return [
+					'Result' => [
+						'message' => 'Data member tidak ditemukan',
+						'kode_response' => '06',
+						'status' => '404',
+					],
+				];
+			}
+			
+			$claim = MemberClaim::findOne([
+				'no_akad' => $id_loan,
+			]);
+			 
+
+			if ($claim === null) {
+				return [
+					'Result' => [
+						'message' => 'Data member claim tidak ditemukan',
+						'kode_response' => '06',
+						'status' => '404',
+					],
+				];
+			}
+			
+			$claim->status_bayar = $status_bayar;
+			$claim->status_restitusi = $action;
+			
+
+			if (!$claim->save(false)) {
+
+				return [
+					'Result' => [
+						'message' => 'Gagal menyimpan status bayar',
+						'kode_response' => '03',
+						'status' => '500',
+					],
+					'debug' => [
+						'errors' => $claim->getErrors(),
+					],
+				];
+			}
+
+			$loginResponse = $claim->callAPIPostMemberLoginRiau();
+
+			if (empty($loginResponse['token'])) {
+
+				return [
+					'Result' => [
+						'message' => 'Token Bank tidak didapat',
+						'kode_response' => '04',
+						'status' => '401',
+					],
+
+					'debug' => [
+						'login_response' => $loginResponse,
+					],
+				];
+			}
+
+			$token = $loginResponse['token'];
+
+			$apiResponse = $claim->callAPIPostDebitur(
+				$token,
+				$model,
+				$document,
+				$claim
+			);
+			
+			Yii::info(
+				'HASIL callAPIPostDebitur: ' . json_encode($apiResponse),
+				'restitusi'
+			);
+						
+			return [
+					'Result' => [
+						'status' => '200',
+						'kode_response' => '00',
+						'message' => 'Update berhasil'
+					],
+					'debug' => $apiResponse
+				];
+			
+			// DEBUG HASIL ENDPOINT DI BROWSER
+
+
+			if (isset($apiResponse['response']['Result'])) {
+
+				$result = $apiResponse['response']['Result'];
+
+				return [
+					'Result' => [
+						'message' =>
+							$result['message'] ?? 'Response Bank',
+
+						'kode_response' =>
+							$result['kode_response'] ?? '00',
+
+						'status' =>
+							$result['status'] ?? '500',
+					],
+
+					'debug' => [
+						'payload' =>
+							$apiResponse['payload'] ?? null,
+
+						'http_code' =>
+							$apiResponse['http_code'] ?? null,
+
+						'body' =>
+							$apiResponse['body'] ?? null,
+					],
+				];
+			}
+
+			return [
+				'Result' => [
+					'message' => 'Bank tidak memberikan response Result',
+					'kode_response' => '07',
+					'status' => '500',
+				],
+
+				'debug' => [
+					'api_response' => $apiResponse,
+				],
+			];
+
+		} catch (\Throwable $e) {
+
+			Yii::error(
+				'Approvedoc Error: ' .
+				$e->getMessage() .
+				"\n" .
+				$e->getTraceAsString(),
+				'api'
+			);
+
+			return [
+				'Result' => [
+					'message' => $e->getMessage(),
+					'kode_response' => '99',
+					'status' => '500',
+				],
+			];
+		}
+	}
+	
 }
