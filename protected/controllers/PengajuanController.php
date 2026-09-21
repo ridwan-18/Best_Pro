@@ -4952,7 +4952,7 @@ if (file_exists($zipPath)) {
 					// BELUM ADA -> INSERT
 					$memberClaim = new MemberClaim();
 
-					$memberClaim->nomor_akad =
+					$memberClaim->no_akad =
 						$body['no_akad'];
 
 					$memberClaim->id_transaksi =
