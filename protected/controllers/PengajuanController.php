@@ -1458,57 +1458,43 @@ class PengajuanController extends Controller
 				'tipe_pengajuan_polis' => 'Pembiayaan Baru',
 				'message' => 'Berhasil kirim pengajuan polis baru',
 				'nama' => $nama,
-				'nomor_rekening' =>$nomorRekening,
-				'nomor_akad' =>$nomorAkad,
-				'jenis_pengajuan' =>$jenisPengajuan,
-				'coverage' =>$coverage,
-				'jenis_penjaminan' =>'Asuransi Jiwa',
-				
-				
+				'nomor_rekening' => $nomorRekening,
+				'nomor_akad' => $nomorAkad,
+				'jenis_pengajuan' => $jenisPengajuan,
+				'coverage' => $coverage,
+				'jenis_penjaminan' => 'Asuransi Jiwa',
+
 				'polis_jiwa' => [
-					'no_polis' =>
-						$policybyproduk->policy_no,
+					'no_polis' => $policybyproduk->policy_no,
+					's&k' => '-',
 
-					's&k' =>
-						'-',
+					'asuransi' => 'Reliance Life Unit Syariah',
 
-					'asuransi' =>
-						'Reliance Life Unit Syariah',
+					'jenis_penjaminan' => 'Penjaminan Pembiayaan Konsumer',
 
-					'periode_awal' =>
-						date(
-							'Ymd',
-							strtotime($tglBuka)
-						),
+					'periode_awal' => date('Ymd', strtotime($tglBuka)),
+					'periode_akhir' => date('Ymd', strtotime($tglAkhir)),
 
-					'periode_akhir' =>
-						date(
-							'Ymd',
-							strtotime($tglAkhir)
-						),
+					'nilai_penjaminan' => $plafonPertanggungan,
 
-					'nilai_penjaminan' =>
-						$plafonPertanggungan,
+					'tarif_imbal_jasa' => $ratePolis,
 
-					'tarif_imbal_jasa' =>
-						$ratePolis,
+					'jumlah_imbal_jasa' => number_format(
+						$nettPremium,
+						3,
+						'.',
+						''
+					),
 
-					'jumlah_imbal_jasa' =>
-						number_format(
-							$nettPremium,
-							3,
-							'.',
-							''
-						),
-
-					'tarif_extra_premi' =>
-						0,
-
-					'jumlah_extra_premi' =>
-						0,
+					'tarif_extra_premi' => 0,
+					'jumlah_extra_premi' => 0,
 				],
+
+				'polis_pembiayaan' => null,
+				'polis_kebakaran' => null,
+				'restitusi_pembiayaan' => null,
+				'restitusi_kebakaran' => null,
 			],
-		
 		];
 	}
 	
