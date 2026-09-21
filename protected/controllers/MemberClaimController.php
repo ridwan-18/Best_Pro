@@ -996,27 +996,38 @@ class MemberClaimController extends Controller
 			// =====================================================
 			// DEBUG
 			// =====================================================
-			if (isset($apiResponse['response']['Result'])) {
+	return [
+    'Result' => [
+        'message' => 'DEBUG HASIL CALL API DEBITUR',
+        'kode_response' => '07',
+        'status' => '500',
+    ],
+    'debug' => [
+        'type' => gettype($apiResponse),
+        'apiResponse' => $apiResponse,
 
-    $result = $apiResponse['response']['Result'];
+        'http_code' => is_array($apiResponse)
+            ? ($apiResponse['http_code'] ?? null)
+            : null,
 
-    return [
-        'Result' => [
-            'message' => $result['message'] ?? 'Response Bank',
+        'body' => is_array($apiResponse)
+            ? ($apiResponse['body'] ?? null)
+            : null,
 
-            'kode_response' => $result['kode_response'] ?? '00',
+        'response' => is_array($apiResponse)
+            ? ($apiResponse['response'] ?? null)
+            : null,
 
-            'status' => $result['status'] ?? '500',
-        ],
+        'message' => is_array($apiResponse)
+            ? ($apiResponse['message'] ?? null)
+            : null,
 
-        'debug' => [
-            'payload' => $apiResponse['payload'] ?? null,
-            'http_code' => $apiResponse['http_code'] ?? null,
-            'body' => $apiResponse['body'] ?? null,
-        ],
-    ];
-}
-
+        'json' => json_encode(
+            $apiResponse,
+            JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE
+        ),
+    ],
+];
 
 			// =====================================================
 			// RESPONSE DARI BANK

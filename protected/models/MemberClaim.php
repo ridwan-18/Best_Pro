@@ -611,34 +611,34 @@ class MemberClaim extends \yii\db\ActiveRecord
 			Yii::error(
 				"===== DEBUG MODEL KLAIM =====\n" .
 				"ID Transaksi       : " .
-					var_export($klaim->id_transaksi, true) . "\n" .
+					var_export($claim->id_transaksi, true) . "\n" .
 
 				"ID Pengajuan       : " .
-					var_export($klaim->id_pengajuan, true) . "\n" .
+					var_export($claim->id_pengajuan, true) . "\n" .
 
 				"Status Klaim       : " .
-					var_export($klaim->status_klaim, true) . "\n" .
+					var_export($claim->status_klaim, true) . "\n" .
 
 				"Status Bayar       : " .
-					var_export($klaim->status_bayar, true) . "\n" .
+					var_export($claim->status_bayar, true) . "\n" .
 
 				"Klaim Dibayarkan   : " .
-					var_export($klaim->klaim_dibayarkan, true) . "\n" .
+					var_export($claim->klaim_dibayarkan, true) . "\n" .
 
 				"Asuransi           : " .
-					var_export($klaim->asuransi, true) . "\n" .
+					var_export($claim->asuransi, true) . "\n" .
 
 				"Nomor Rekening     : " .
-					var_export($klaim->nomor_rekening, true) . "\n" .
+					var_export($claim->nomor_rekening, true) . "\n" .
 
 				"Kode Broker        : " .
-					var_export($klaim->kode_broker, true) . "\n" .
+					var_export($claim->kode_broker, true) . "\n" .
 
 				"Nomor Akad         : " .
-					var_export($klaim->nomor_akad, true) . "\n" .
+					var_export($claim->nomor_akad, true) . "\n" .
 
 				"Kode Cabang        : " .
-					var_export($klaim->kode_cabang, true) . "\n" .
+					var_export($claim->kode_cabang, true) . "\n" .
 
 				"================================",
 				'api'
@@ -697,17 +697,17 @@ class MemberClaim extends \yii\db\ActiveRecord
 			// 6. STATUS KLAIM
 			// =========================================================
 
-			$statusKlaim = (string) $klaim->status_klaim;
+			$statusKlaim = (string) $claim->status_klaim;
 
-			$statusBayar = (string) $klaim->status_bayar;
+			$statusBayar = (string) $claim->status_bayar;
 
-			$klaimDibayarkan = (string) $klaim->klaim_dibayarkan;
+			$klaimDibayarkan = (string) $claim->klaim_dibayarkan;
 
 
 			Yii::error(
 				"===== DEBUG STATUS KLAIM =====\n" .
 				"STATUS KLAIM RAW : " .
-					var_export($klaim->status_klaim, true) . "\n" .
+					var_export($claim->status_klaim, true) . "\n" .
 
 				"STATUS KLAIM STR : " .
 					var_export($statusKlaim, true) . "\n" .
