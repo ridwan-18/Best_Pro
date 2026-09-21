@@ -19,6 +19,7 @@ use app\models\MemberClaim;
 use app\models\claim_bank_jatim_detail;
 use app\models\dokument_claim_jatim;
 use yii\web\UploadedFile;
+use app\models\map_member_dokumen_medis;
 
 /**
  * AlterationRefundController implements the CRUD actions for AlterationRefund model.
