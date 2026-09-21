@@ -231,9 +231,6 @@ $val = function ($value) {
 
 <div class="member-view claim-page">
 
-    <!-- =========================================================
-         HEADER
-         ========================================================= -->
 
     <div class="row claim-header">
 
@@ -270,10 +267,6 @@ $val = function ($value) {
 
     <?= Alert::widget() ?>
 
-
-    <!-- =========================================================
-         INFORMASI TRANSAKSI
-         ========================================================= -->
 
     <div class="claim-card">
 
@@ -729,67 +722,6 @@ $val = function ($value) {
 
     <?php endif; ?>
 
-
-    <!-- =========================================================
-         UPDATE STATUS
-         ========================================================= -->
-
-    <div class="claim-card">
-
-        <div class="claim-card-header">
-
-            <h4>
-                <i class="fa fa-check-circle"></i>
-                Update Status Claim
-            </h4>
-
-        </div>
-
-        <div class="claim-card-body">
-
-            <?= Html::beginForm(
-                ['update', 'id' => $model->id],
-                'post',
-                [
-                    'id' => 'claim-form',
-                    'class' => 'claim-form'
-                ]
-            ) ?>
-
-            <div class="row">
-
-                <div class="col-md-6">
-
-                    <div class="form-group">
-
-                        <label
-                            for="status_claim"
-                            class="claim-form-label"
-                        >
-                            Status Claim
-                        </label>
-
-                        <?= Html::dropDownList(
-                            'status_claim',
-                            $model->status_claim,
-                            [
-                                '0' => 'Analisa',
-                                '1' => 'Approved',
-                                '2' => 'Ditolak',
-                            ],
-                            [
-                                'class' => 'form-control',
-                                'id' => 'status_claim',
-                                'prompt' => 'Pilih Status'
-                            ]
-                        ) ?>
-
-                    </div>
-
-                </div>
-
-            </div>
-			
 			
 			
 			
@@ -819,7 +751,7 @@ $val = function ($value) {
                             <tr>
 
                                 <td>
-                                    Restitusi
+                                    Klaim
                                 </td>
 
                                 <td>

@@ -162,9 +162,25 @@ class MemberClaimController extends Controller
 				'Data claim dengan ID ' . $id . ' tidak ditemukan.'
 			);
 		}
+		
+		$filecbc = [];
+		
+		// var_dump($model);
+		
+		
+		if ($model !== null && $model->id_pengajuan != null) {
+			$filecbc = map_member_dokumen_medis::find()
+				->asArray()
+				->where([
+					'id_loan' => $model->id_pengajuan,
+					'jenis_dokumen' => 'Restitusi',
+				])
+				->all();
+		}
 
 		return $this->render('view', [
 			'model' => $model,
+			'filecbc' => $filecbc,
 		]);
 	}
 
