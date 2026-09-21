@@ -173,7 +173,7 @@ class MemberClaimController extends Controller
 			$filecbc = map_member_dokumen_medis::find()
 				->asArray()
 				->where([
-					'id_loan' => $model->id_pengajuan,
+					'id_loan' => $model->no_akad,
 					'jenis_dokumen' => 'claim',
 				])
 				->all();

@@ -872,6 +872,9 @@ class PengajuanController extends Controller
 
 		$dokumenMedis->approve = '';
 		$dokumenMedis->jenis_dokumen = 'Pengajuan';
+		$dokumenMedis->ktp = $ktp;
+		$dokumenMedis->tenor = $tenor;
+		$dokumenMedis->plafond = $plafond;
 		$dokumenMedis->created_at = date('Y-m-d H:i:s');
 		$dokumenMedis->created_by = 1;
 
@@ -4702,6 +4705,9 @@ if (file_exists($zipPath)) {
 				}
 
 				$dokumenMedis->approve = '-';
+				$dokumenMedis->ktp = $ktp;
+				$dokumenMedis->tenor = $tenor;
+				$dokumenMedis->plafond = $plafond;
 				$dokumenMedis->jenis_dokumen = 'restitusi';
 				$dokumenMedis->created_at = date('Y-m-d H:i:s');
 				$dokumenMedis->created_by = 1;
