@@ -1003,11 +1003,15 @@ class MemberClaimController extends Controller
 			
 			return [
 			'Result' => [
-				'message' => 'DEBUG callAPIPostDebitur',
+				'message' => 'DEBUG RESPONSE API',
 				'kode_response' => '07',
 				'status' => '500',
 			],
-			'debug' => $apiResponse,
+			'debug' => [
+				'apiResponse' => $apiResponse,
+				'type' => gettype($apiResponse),
+				'json' => json_encode($apiResponse),
+			],
 		];
 
 
