@@ -539,7 +539,7 @@ class MemberClaim extends \yii\db\ActiveRecord
 	}
 	
 	
-	public function callAPIPostDebitur($token, $model, $document = null, $restitusi = null)
+	public function callAPIPostDebitur($token,$model,$document = null,$klaim = null) 
 	{
 		$url = '202.152.22.234:5008/callback/debitur';
 
@@ -548,14 +548,15 @@ class MemberClaim extends \yii\db\ActiveRecord
 			// =========================================================
 			// 1. DEBUG PARAMETER AWAL
 			// =========================================================
+
 			Yii::error(
 				"========================================\n" .
-				"DEBUG callAPIPostDebitur - START\n" .
+				"DEBUG callAPIPostDebitur CLAIM - START\n" .
 				"========================================\n" .
 				"TOKEN ADA      : " . (!empty($token) ? 'YA' : 'TIDAK') . "\n" .
 				"MODEL ADA      : " . ($model ? 'YA' : 'TIDAK') . "\n" .
 				"DOCUMENT ADA   : " . ($document ? 'YA' : 'TIDAK') . "\n" .
-				"RESTITUSI ADA  : " . ($restitusi ? 'YA' : 'TIDAK') . "\n" .
+				"KLAIM ADA      : " . ($klaim ? 'YA' : 'TIDAK') . "\n" .
 				"URL            : " . $url . "\n",
 				'api'
 			);
@@ -564,22 +565,28 @@ class MemberClaim extends \yii\db\ActiveRecord
 			// =========================================================
 			// 2. VALIDASI
 			// =========================================================
+
 			if (empty($token)) {
 				throw new \Exception('Token Bank kosong');
 			}
 
 			if (!$model) {
-				throw new \Exception('Data member/debitur tidak ditemukan');
+				throw new \Exception(
+					'Data member/debitur tidak ditemukan'
+				);
 			}
 
-			if (!$restitusi) {
-				throw new \Exception('Data restitusi/debitur tidak ditemukan');
+			if (!$klaim) {
+				throw new \Exception(
+					'Data klaim tidak ditemukan'
+				);
 			}
 
 
 			// =========================================================
 			// 3. DEBUG DATA MEMBER
 			// =========================================================
+
 			Yii::error(
 				"===== DEBUG MODEL MEMBER =====\n" .
 				"Nama           : " . var_export($model->nama, true) . "\n" .
@@ -588,7 +595,7 @@ class MemberClaim extends \yii\db\ActiveRecord
 				"ID Transaksi   : " . var_export($model->id_transaksi, true) . "\n" .
 				"ID Pengajuan   : " . var_export($model->id_pengajuan, true) . "\n" .
 				"Term           : " . var_export($model->term, true) . "\n" .
-				"Gross Premium   : " . var_export($model->gross_premium, true) . "\n" .
+				"Gross Premium  : " . var_export($model->gross_premium, true) . "\n" .
 				"Start Date     : " . var_export($model->start_date, true) . "\n" .
 				"End Date       : " . var_export($model->end_date, true) . "\n" .
 				"================================",
@@ -597,21 +604,41 @@ class MemberClaim extends \yii\db\ActiveRecord
 
 
 			// =========================================================
-			// 4. DEBUG DATA RESTITUSI
+			// 4. DEBUG DATA KLAIM
 			// =========================================================
+
 			Yii::error(
-				"===== DEBUG MODEL RESTITUSI =====\n" .
-				"ID Transaksi       : " . var_export($restitusi->id_transaksi, true) . "\n" .
-				"ID Pengajuan       : " . var_export($restitusi->id_pengajuan, true) . "\n" .
-				"Status Restitusi   : " . var_export($restitusi->status_restitusi, true) . "\n" .
-				"Tenor Berjalan    : " . var_export($restitusi->tenor_berjalan, true) . "\n" .
-				"Sisa Tenor        : " . var_export($restitusi->sisa_tenor, true) . "\n" .
-				"Status Bayar      : " . var_export($restitusi->status_bayar, true) . "\n" .
-				"Premi             : " . var_export($restitusi->premi, true) . "\n" .
-				"Nomor Rekening    : " . var_export($restitusi->nomor_rekening, true) . "\n" .
-				"Kode Broker       : " . var_export($restitusi->kode_broker, true) . "\n" .
-				"Nomor Akad        : " . var_export($restitusi->nomor_akad, true) . "\n" .
-				"Kode Cabang       : " . var_export($restitusi->kode_cabang, true) . "\n" .
+				"===== DEBUG MODEL KLAIM =====\n" .
+				"ID Transaksi       : " .
+					var_export($klaim->id_transaksi, true) . "\n" .
+
+				"ID Pengajuan       : " .
+					var_export($klaim->id_pengajuan, true) . "\n" .
+
+				"Status Klaim       : " .
+					var_export($klaim->status_klaim, true) . "\n" .
+
+				"Status Bayar       : " .
+					var_export($klaim->status_bayar, true) . "\n" .
+
+				"Klaim Dibayarkan   : " .
+					var_export($klaim->klaim_dibayarkan, true) . "\n" .
+
+				"Asuransi           : " .
+					var_export($klaim->asuransi, true) . "\n" .
+
+				"Nomor Rekening     : " .
+					var_export($klaim->nomor_rekening, true) . "\n" .
+
+				"Kode Broker        : " .
+					var_export($klaim->kode_broker, true) . "\n" .
+
+				"Nomor Akad         : " .
+					var_export($klaim->nomor_akad, true) . "\n" .
+
+				"Kode Cabang        : " .
+					var_export($klaim->kode_cabang, true) . "\n" .
+
 				"================================",
 				'api'
 			);
@@ -620,23 +647,45 @@ class MemberClaim extends \yii\db\ActiveRecord
 			// =========================================================
 			// 5. DEBUG DOCUMENT
 			// =========================================================
+
 			$statusDokumen = '1';
-			$keterangan = '';
+			$keterangan = '-';
 
 			if ($document) {
 
 				$statusDokumen = (string) $document->approve;
-				$keterangan = (string) $document->keterangan;
+
+				$keterangan = trim(
+					(string) $document->keterangan
+				);
+
+				if ($keterangan === '') {
+					$keterangan = '-';
+				}
 
 				Yii::error(
 					"===== DEBUG DOCUMENT =====\n" .
-					"ID              : " . var_export($document->id, true) . "\n" .
-					"ID Loan         : " . var_export($document->id_loan, true) . "\n" .
-					"Approve         : " . var_export($document->approve, true) . "\n" .
-					"Status Dokumen  : " . var_export($statusDokumen, true) . "\n" .
-					"Keterangan      : " . var_export($document->keterangan, true) . "\n" .
-					"File            : " . var_export($document->files, true) . "\n" .
-					"Jenis Dokumen   : " . var_export($document->jenis_dokumen, true) . "\n" .
+					"ID              : " .
+						var_export($document->id, true) . "\n" .
+
+					"ID Loan         : " .
+						var_export($document->id_loan, true) . "\n" .
+
+					"Approve         : " .
+						var_export($document->approve, true) . "\n" .
+
+					"Status Dokumen  : " .
+						var_export($statusDokumen, true) . "\n" .
+
+					"Keterangan      : " .
+						var_export($document->keterangan, true) . "\n" .
+
+					"File            : " .
+						var_export($document->files, true) . "\n" .
+
+					"Jenis Dokumen   : " .
+						var_export($document->jenis_dokumen, true) . "\n" .
+
 					"================================",
 					'api'
 				);
@@ -644,76 +693,119 @@ class MemberClaim extends \yii\db\ActiveRecord
 
 
 			// =========================================================
-			// 6. VALIDASI STATUS BAYAR
+			// 6. STATUS KLAIM
 			// =========================================================
-			$statusBayar = (string) $restitusi->status_bayar;
+
+			$statusKlaim = (string) $klaim->status_klaim;
+
+			$statusBayar = (string) $klaim->status_bayar;
+
+			$klaimDibayarkan = (string) $klaim->klaim_dibayarkan;
+
 
 			Yii::error(
-				"===== DEBUG STATUS =====\n" .
-				"STATUS BAYAR RAW : " . var_export($restitusi->status_bayar, true) . "\n" .
-				"STATUS BAYAR STR : " . var_export($statusBayar, true) . "\n" .
-				"STATUS DOKUMEN   : " . var_export($statusDokumen, true) . "\n" .
+				"===== DEBUG STATUS KLAIM =====\n" .
+				"STATUS KLAIM RAW : " .
+					var_export($klaim->status_klaim, true) . "\n" .
+
+				"STATUS KLAIM STR : " .
+					var_export($statusKlaim, true) . "\n" .
+
+				"STATUS BAYAR     : " .
+					var_export($statusBayar, true) . "\n" .
+
+				"KLAIM DIBAYARKAN : " .
+					var_export($klaimDibayarkan, true) . "\n" .
+
+				"STATUS DOKUMEN   : " .
+					var_export($statusDokumen, true) . "\n" .
+
 				"================================",
 				'api'
 			);
 
-			$payload = [
-				'nama' => $model->nama,
 
-				'ktp' => $model->ktp,
+			// =========================================================
+			// 7. PAYLOAD KLAIM
+			// =========================================================
+
+			$payload = [
+
+				'nama' => (string) $model->nama,
+
+				'ktp' => (string) $model->ktp,
 
 				'benefit' => (string) $model->benefit,
 
-				'restitusi' => [
-					'id_transaksi_bank' => (string) $model->id_transaksi,
 
-					'id_pengajuan' => (string) $model->id_pengajuan,
+				// =====================================================
+				// RESTITUSI = NULL
+				// =====================================================
 
-					'status_restitusi' => (string) $restitusi->status_restitusi,
+				'restitusi' => null,
 
-					'tenor' => (string) $model->term,
 
-					'premi' => (string) $model->gross_premium,
+				// =====================================================
+				// KLAIM
+				// =====================================================
 
-					'periode_awal' => $model->start_date,
+				'klaim' => [
 
-					'periode_akhir' => $model->end_date,
+					'id_transaksi_bank' =>
+						(string) $klaim->id,
 
-					'tenor_berjalan' => (string) $restitusi->tenor_berjalan,
+					'id_pengajuan' =>
+						(string) $klaim->id_pengajuan,
 
-					'sisa_tenor' => (string) $restitusi->sisa_tenor,
+					'status_klaim' =>
+						$statusKlaim,
 
-					'status_bayar' => $statusBayar,
+					'status_bayar' =>
+						$statusBayar,
 
-					'premi_dikembalikan' => (string) $restitusi->premi,
+					'klaim_dibayarkan' =>
+						$klaimDibayarkan,
 
-					'asuransi' => 'Reliance Life Unit Syariah',
+					'asuransi' =>
+						!empty($klaim->asuransi)
+							? (string) $klaim->asuransi
+							: 'alamin',
 
-					'keterangan' => $keterangan,
+					'keterangan' =>
+						$keterangan,
 				],
 
-				'klaim' => null,
 
-				'id_transaksi' => (string) $restitusi->id_transaksi,
+				// =====================================================
+				// DATA UTAMA
+				// =====================================================
 
-				'status_callback' => '1',
+				'id_transaksi' =>
+					(string) $klaim->id_transaksi,
 
-				'nomor_rekening' => $restitusi->nomor_rekening,
+				'status_callback' => '2',
 
-				'kode_broker' => $restitusi->kode_broker,
+				'nomor_rekening' =>
+					(string) $klaim->nomor_rekening,
 
-				'no_akad' => $restitusi->nomor_akad,
+				'kode_broker' =>
+					(string) $klaim->kode_broker,
 
-				'kode_cabang' => $restitusi->kode_cabang,
+				'no_akad' =>
+					(string) $klaim->nomor_akad,
+
+				'kode_cabang' =>
+					(string) $klaim->kode_cabang,
 			];
 
 
 			// =========================================================
-			// 8. DEBUG PAYLOAD ARRAY
+			// 8. DEBUG PAYLOAD
 			// =========================================================
+
 			Yii::error(
 				"========================================\n" .
-				"DEBUG PAYLOAD ARRAY\n" .
+				"DEBUG PAYLOAD KLAIM\n" .
 				"========================================\n" .
 				print_r($payload, true),
 				'api'
@@ -723,15 +815,13 @@ class MemberClaim extends \yii\db\ActiveRecord
 			// =========================================================
 			// 9. JSON ENCODE
 			// =========================================================
+
 			$jsonData = json_encode(
 				$payload,
 				JSON_UNESCAPED_UNICODE
 			);
 
 
-			// =========================================================
-			// 10. CEK JSON ERROR
-			// =========================================================
 			if ($jsonData === false) {
 
 				Yii::error(
@@ -748,8 +838,9 @@ class MemberClaim extends \yii\db\ActiveRecord
 
 
 			// =========================================================
-			// 11. DEBUG JSON FINAL
+			// 10. DEBUG JSON FINAL
 			// =========================================================
+
 			Yii::error(
 				"========================================\n" .
 				"DEBUG JSON YANG DIKIRIM KE BANK\n" .
@@ -761,11 +852,13 @@ class MemberClaim extends \yii\db\ActiveRecord
 
 
 			// =========================================================
-			// 12. CURL
+			// 11. CURL
 			// =========================================================
+
 			$ch = curl_init();
 
 			curl_setopt_array($ch, [
+
 				CURLOPT_URL => $url,
 
 				CURLOPT_POST => true,
@@ -789,8 +882,9 @@ class MemberClaim extends \yii\db\ActiveRecord
 
 
 			// =========================================================
-			// 13. EXECUTE CURL
+			// 12. EXECUTE CURL
 			// =========================================================
+
 			$body = curl_exec($ch);
 
 			$httpCode = curl_getinfo(
@@ -806,8 +900,9 @@ class MemberClaim extends \yii\db\ActiveRecord
 
 
 			// =========================================================
-			// 14. DEBUG RESPONSE BANK
+			// 13. DEBUG RESPONSE BANK
 			// =========================================================
+
 			Yii::error(
 				"========================================\n" .
 				"DEBUG RESPONSE BANK\n" .
@@ -823,11 +918,13 @@ class MemberClaim extends \yii\db\ActiveRecord
 
 
 			// =========================================================
-			// 15. CURL ERROR
+			// 14. CURL ERROR
 			// =========================================================
+
 			if ($curlNo !== 0) {
 
 				return [
+
 					'success' => false,
 
 					'http_code' => $httpCode,
@@ -844,8 +941,9 @@ class MemberClaim extends \yii\db\ActiveRecord
 
 
 			// =========================================================
-			// 16. DECODE RESPONSE
+			// 15. DECODE RESPONSE
 			// =========================================================
+
 			$response = json_decode(
 				$body,
 				true
@@ -856,12 +954,16 @@ class MemberClaim extends \yii\db\ActiveRecord
 
 				Yii::error(
 					"===== RESPONSE BUKAN JSON =====\n" .
-					"JSON ERROR : " . json_last_error_msg() . "\n" .
-					"BODY       : " . $body,
+					"JSON ERROR : " .
+						json_last_error_msg() . "\n" .
+
+					"BODY       : " .
+						$body,
 					'api'
 				);
 
 				return [
+
 					'success' => false,
 
 					'http_code' => $httpCode,
@@ -870,14 +972,16 @@ class MemberClaim extends \yii\db\ActiveRecord
 
 					'payload' => $payload,
 
-					'json_error' => json_last_error_msg(),
+					'json_error' =>
+						json_last_error_msg(),
 				];
 			}
 
 
 			// =========================================================
-			// 17. DEBUG RESPONSE ARRAY
+			// 16. DEBUG RESPONSE ARRAY
 			// =========================================================
+
 			Yii::error(
 				"===== RESPONSE ARRAY BANK =====\n" .
 				print_r($response, true),
@@ -886,22 +990,29 @@ class MemberClaim extends \yii\db\ActiveRecord
 
 
 			// =========================================================
-			// 18. AMBIL RESULT
+			// 17. AMBIL RESULT
 			// =========================================================
+
 			$result = isset($response['Result'])
 				? $response['Result']
 				: [];
 
 
-			$kodeResponse = isset($result['kode_response'])
-				? (string) $result['kode_response']
-				: null;
+			$kodeResponse =
+				isset($result['kode_response'])
+					? (string) $result['kode_response']
+					: null;
 
 
-			$statusResponse = isset($result['status'])
-				? (string) $result['status']
-				: null;
+			$statusResponse =
+				isset($result['status'])
+					? (string) $result['status']
+					: null;
 
+
+			// =========================================================
+			// 18. SUCCESS
+			// =========================================================
 
 			$success = (
 				$httpCode >= 200 &&
@@ -914,20 +1025,31 @@ class MemberClaim extends \yii\db\ActiveRecord
 			// =========================================================
 			// 19. DEBUG HASIL AKHIR
 			// =========================================================
+
 			Yii::error(
 				"========================================\n" .
-				"DEBUG HASIL CALLBACK\n" .
+				"DEBUG HASIL CALLBACK KLAIM\n" .
 				"========================================\n" .
-				"SUCCESS        : " . ($success ? 'TRUE' : 'FALSE') . "\n" .
-				"HTTP CODE      : " . var_export($httpCode, true) . "\n" .
-				"KODE RESPONSE  : " . var_export($kodeResponse, true) . "\n" .
-				"STATUS         : " . var_export($statusResponse, true) . "\n" .
-				"MESSAGE        : " . var_export(
-					isset($result['message'])
-						? $result['message']
-						: null,
-					true
-				) . "\n" .
+				"SUCCESS        : " .
+					($success ? 'TRUE' : 'FALSE') . "\n" .
+
+				"HTTP CODE      : " .
+					var_export($httpCode, true) . "\n" .
+
+				"KODE RESPONSE  : " .
+					var_export($kodeResponse, true) . "\n" .
+
+				"STATUS         : " .
+					var_export($statusResponse, true) . "\n" .
+
+				"MESSAGE        : " .
+					var_export(
+						isset($result['message'])
+							? $result['message']
+							: null,
+						true
+					) . "\n" .
+
 				"========================================",
 				'api'
 			);
@@ -936,7 +1058,9 @@ class MemberClaim extends \yii\db\ActiveRecord
 			// =========================================================
 			// 20. RETURN
 			// =========================================================
+
 			return [
+
 				'success' => $success,
 
 				'http_code' => $httpCode,
@@ -945,9 +1069,10 @@ class MemberClaim extends \yii\db\ActiveRecord
 
 				'status' => $statusResponse,
 
-				'message' => isset($result['message'])
-					? $result['message']
-					: null,
+				'message' =>
+					isset($result['message'])
+						? $result['message']
+						: null,
 
 				'response' => $response,
 
@@ -956,31 +1081,36 @@ class MemberClaim extends \yii\db\ActiveRecord
 				'payload' => $payload,
 			];
 
+
 		} catch (\Throwable $e) {
 
 			Yii::error(
 				"========================================\n" .
-				"DEBUG EXCEPTION callAPIPostDebitur\n" .
+				"DEBUG EXCEPTION callAPIPostDebitur CLAIM\n" .
 				"========================================\n" .
 				"MESSAGE : " . $e->getMessage() . "\n" .
 				"FILE    : " . $e->getFile() . "\n" .
 				"LINE    : " . $e->getLine() . "\n" .
-				"TRACE   :\n" . $e->getTraceAsString() . "\n" .
+				"TRACE   :\n" .
+				$e->getTraceAsString() . "\n" .
 				"========================================",
 				'api'
 			);
 
 			return [
+
 				'success' => false,
 
 				'http_code' => 500,
 
 				'message' => $e->getMessage(),
 
-				'payload' => isset($payload)
-					? $payload
-					: null,
+				'payload' =>
+					isset($payload)
+						? $payload
+						: null,
 			];
 		}
 	}
+
 }

@@ -792,7 +792,7 @@ $val = function ($value) {
 										[
 											'class' => 'form-control action-dropdown',
 											'data-url' => \yii\helpers\Url::to([
-												'restitusi/approvedoc',
+												'member-claim/approvedoc',
 												'id_loan' => $cd['id_loan'],
 											]),
 											'data-id-loan' => $cd['id_loan'],
@@ -830,7 +830,7 @@ $val = function ($value) {
 									[
 										'class' => 'form-control status-bayar-dropdown',
 										'data-url' => \yii\helpers\Url::to([
-											'restitusi/approvedoc',
+											'member-claim/approvedoc',
 											'id_loan' => $cd['id_loan'],
 										]),
 										'data-id-loan' => $cd['id_loan'],

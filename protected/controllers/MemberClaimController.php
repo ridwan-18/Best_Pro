@@ -827,35 +827,35 @@ class MemberClaimController extends Controller
 				{
 
 					case '1':
-						$document->approve = '1'; // Restitusi Register
+						$document->approve = '1'; // Klaim  Register
 						break;
 
 					case '2':
-						$document->approve = '2'; // Restitusi Proses
+						$document->approve = '2'; // Klaim  Proses
 						break;
 
 					case '3':
-						$document->approve = '3'; // Restitusi Diterima
+						$document->approve = '3'; // Klaim  Diterima
 						break;
 
 					case '4':
-						$document->approve = '4'; // Restitusi Ditolak
+						$document->approve = '4'; // Klaim  Ditolak
 						break;
 
 					case '5':
-						$document->approve = '5'; // Restitusi Dibayar
+						$document->approve = '5'; // Klaim  Dibayar
 						break;
 
 					case '6':
-						$document->approve = '6'; // Menunggu kelengkapan
+						$document->approve = '6'; // Klaim  kelengkapan
 						break;
 						
 					case '7':
-						$document->approve = '7'; // Menunggu kelengkapan
+						$document->approve = '7'; // Klaim  kelengkapan
 						break;
 						
 					case '8':
-						$document->approve = '8'; // Menunggu kelengkapan
+						$document->approve = '8'; // Klaim  kelengkapan
 						break;		
 					}
 			
@@ -907,7 +907,7 @@ class MemberClaimController extends Controller
 			}
 			
 			$claim->status_bayar = $status_bayar;
-			$claim->status_restitusi = $action;
+			$claim->status_claim = $action;
 			
 
 			if (!$claim->save(false)) {
