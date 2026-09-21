@@ -5073,7 +5073,7 @@ if (file_exists($zipPath)) {
 				$plafond = $member->plafond;
 			}
 
-			$codeDoc = '003';
+			$codeDoc = '004';
 
 			$fileBenefit =
 				(string)$benefit;
@@ -5131,11 +5131,10 @@ if (file_exists($zipPath)) {
 			$dokumenMedis->tenor =
 				$tenor;
 
-			$dokumenMedis->plafond =
-				$plafond;
-
+			$dokumenMedis->plafond =$body['jumlah_diajukan'];
+			
 			$dokumenMedis->jenis_dokumen =
-				'restitusi';
+				'claim';
 
 			$dokumenMedis->created_at =
 				date('Y-m-d H:i:s');
