@@ -914,7 +914,7 @@ $val = function ($value) {
 
                         <tr>
                             <td colspan="4" class="text-center">
-                                Tidak ada dokumen restitusi
+                                Tidak ada dokumen klaim
                             </td>
                         </tr>
 
