@@ -1454,22 +1454,16 @@ class PengajuanController extends Controller
 		return [
 			'Result' => [
 				'status' => '200',
-				
 				'kode_response' => '00',
+				'tipe_pengajuan_polis' => 'Pembiayaan Baru',
 				'message' => 'Berhasil kirim pengajuan polis baru',
-
 				'nama' => $nama,
 				'nomor_rekening' =>$nomorRekening,
 				'nomor_akad' =>$nomorAkad,
 				'jenis_pengajuan' =>$jenisPengajuan,
-				'jenis_penjaminan' =>'Asuransi Jiwa',
 				'coverage' =>$coverage,
+				'jenis_penjaminan' =>'Asuransi Jiwa',
 				
-				 // 'sertifikat' => [
-				// 'file_name' => $sertifikat['file_name'],
-				// 'file_url' => $sertifikat['file_url'],
-				// ],
-					
 				
 				'polis_jiwa' => [
 					'no_polis' =>

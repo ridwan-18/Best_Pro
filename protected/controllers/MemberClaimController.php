@@ -992,6 +992,10 @@ class MemberClaimController extends Controller
 				$document,
 				$klaim
 			);
+			
+			return [
+    'api_response' => $apiResponse,
+];
 
 			// =========================================================
 			// 14. TAMPILKAN RESPONSE CALLBACK JIKA GAGAL
