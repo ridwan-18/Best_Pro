@@ -878,7 +878,7 @@ class MemberClaimController extends Controller
 			}
 
 			$model = member::findOne([
-				'no_akad' => $id_loan,
+				'nomor_akad' => $id_loan,
 			]);
 
 			if ($model === null) {
