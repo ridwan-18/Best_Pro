@@ -730,72 +730,28 @@ class MemberClaim extends \yii\db\ActiveRecord
 			// =========================================================
 
 			$payload = [
-
 				'nama' => (string) $model->nama,
-
 				'ktp' => (string) $model->ktp,
-
 				'benefit' => (string) $model->benefit,
-
-
-				// =====================================================
-				// RESTITUSI = NULL
-				// =====================================================
 
 				'restitusi' => null,
 
-
-				// =====================================================
-				// KLAIM
-				// =====================================================
-
 				'klaim' => [
-
-					'id_transaksi_bank' =>
-						(string) $klaim->id,
-
-					'id_pengajuan' =>
-						(string) $klaim->id_pengajuan,
-
-					'status_klaim' =>
-						$statusKlaim,
-
-					'status_bayar' =>
-						$statusBayar,
-
-					'klaim_dibayarkan' =>
-						$klaimDibayarkan,
-
-					'asuransi' =>
-						!empty($klaim->asuransi)
-							? (string) $klaim->asuransi
-							: 'alamin',
-
-					'keterangan' =>
-						$keterangan,
+					'id_transaksi_bank' => (string) $claim->id,
+					'id_pengajuan' => (string) $claim->id_pengajuan,
+					'status_klaim' => (string) $claim->status_claim,
+					'status_bayar' => (string) $claim->status_bayar,
+					'klaim_dibayarkan' => (string) $claim->jumlah_diajukan,
+					'asuransi' => 'alamin',
+					'keterangan' => (string) $document->keterangan,
 				],
 
-
-				// =====================================================
-				// DATA UTAMA
-				// =====================================================
-
-				'id_transaksi' =>
-					(string) $klaim->id_transaksi,
-
+				'id_transaksi' => (string) $claim->id_transaksi,
 				'status_callback' => '2',
-
-				'nomor_rekening' =>
-					(string) $klaim->nomor_rekening,
-
-				'kode_broker' =>
-					(string) $klaim->kode_broker,
-
-				'no_akad' =>
-					(string) $klaim->nomor_akad,
-
-				'kode_cabang' =>
-					(string) $klaim->kode_cabang,
+				'nomor_rekening' => (string) $claim->nomor_rekening,
+				'kode_broker' => (string) $claim->kode_broker,
+				'no_akad' => (string) $claim->no_akad,
+				'kode_cabang' => (string) $claim->kode_cabang,
 			];
 
 
