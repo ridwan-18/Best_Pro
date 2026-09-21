@@ -5105,8 +5105,8 @@ if (file_exists($zipPath)) {
 			$dokumenMedis =
 				new \app\models\map_member_dokumen_medis();
 
-			$dokumenMedis->id_loan =
-			$member->id_pengajuan;
+			$dokumenMedis->id_loan = $body['no_akad'];
+			$member->id_pengajuan; $body['id_pengajuan'];
 			$dokumenMedis->kode_dokumen =$codeDoc;
 
 			if (
