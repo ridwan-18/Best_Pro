@@ -5108,7 +5108,7 @@ if (file_exists($zipPath)) {
 				$countDokumen =
 					\app\models\map_member_dokumen_medis::find()
 						->where([
-							'id_loan' => $body['no_akad'];,
+							'id_loan' => $body['no_akad'],
 							'jenis_dokumen' => 'claim',
 						])
 						->count();
