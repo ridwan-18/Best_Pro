@@ -1174,9 +1174,19 @@ class PengajuanController extends Controller
 			];
 		}
 		
-		$cekdokumen = map_member_dokumen_medis::findOne([
-			'id_loan' => $idPengajuan,
-		]);
+		// $cekdokumen = map_member_dokumen_medis::findOne([
+			// 'id_loan' => $idPengajuan,
+			// 'jenis_dokumen' => 'restitusi',
+		// ]);
+		
+		
+		$cekdokumen = map_member_dokumen_medis::find()
+			->where([
+				'id_loan' => $idPengajuan,
+				'jenis_dokumen' => 'Pengajuan',
+			])
+			->orderBy(['id' => SORT_DESC])
+			->one();	
 
 		if ($cekdokumen->approve != 'DISETUJUI') {
 			return [
