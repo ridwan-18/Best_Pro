@@ -996,56 +996,59 @@ class MemberClaimController extends Controller
 			// =====================================================
 			// DEBUG
 			// =====================================================
-			Yii::error(
-				'DEBUG API RESPONSE: ' . print_r($apiResponse, true),
-				'claim'
-			);
-			
-			return [
-			'Result' => [
-				'message' => 'DEBUG RESPONSE API',
-				'kode_response' => '07',
-				'status' => '500',
-			],
-			'debug' => [
-				'apiResponse' => $apiResponse,
-				'type' => gettype($apiResponse),
-				'json' => json_encode($apiResponse),
-			],
-		];
+			if (isset($apiResponse['response']['Result'])) {
+
+    $result = $apiResponse['response']['Result'];
+
+    return [
+        'Result' => [
+            'message' => $result['message'] ?? 'Response Bank',
+
+            'kode_response' => $result['kode_response'] ?? '00',
+
+            'status' => $result['status'] ?? '500',
+        ],
+
+        'debug' => [
+            'payload' => $apiResponse['payload'] ?? null,
+            'http_code' => $apiResponse['http_code'] ?? null,
+            'body' => $apiResponse['body'] ?? null,
+        ],
+    ];
+}
 
 
 			// =====================================================
 			// RESPONSE DARI BANK
 			// =====================================================
-			if (isset($apiResponse['response']['Result'])) {
+			// if (isset($apiResponse['response']['Result'])) {
 
-				$result = $apiResponse['response']['Result'];
+				// $result = $apiResponse['response']['Result'];
 
-				return [
-					'Result' => [
-						'message' =>
-							$result['message'] ?? 'Response Bank',
+				// return [
+					// 'Result' => [
+						// 'message' =>
+							// $result['message'] ?? 'Response Bank',
 
-						'kode_response' =>
-							$result['kode_response'] ?? '00',
+						// 'kode_response' =>
+							// $result['kode_response'] ?? '00',
 
-						'status' =>
-							$result['status'] ?? '500',
-					],
+						// 'status' =>
+							// $result['status'] ?? '500',
+					// ],
 
-					'debug' => [
-						'payload' =>
-							$apiResponse['payload'] ?? null,
+					// 'debug' => [
+						// 'payload' =>
+							// $apiResponse['payload'] ?? null,
 
-						'http_code' =>
-							$apiResponse['http_code'] ?? null,
+						// 'http_code' =>
+							// $apiResponse['http_code'] ?? null,
 
-						'body' =>
-							$apiResponse['body'] ?? null,
-					],
-				];
-			}
+						// 'body' =>
+							// $apiResponse['body'] ?? null,
+					// ],
+				// ];
+			// }
 
 
 			// =====================================================

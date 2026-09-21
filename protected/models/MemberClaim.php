@@ -539,9 +539,10 @@ class MemberClaim extends \yii\db\ActiveRecord
 	}
 	
 	
-	public function callAPIPostDebitur($token,$model,$document = null,$klaim = null) 
+	public function callAPIPostDebitur($token,$model,$document = null,$claim = null) 
 	{
-		$url = '202.152.22.234:5008/callback/debitur';
+		// $url = '202.152.22.234:5008/callback/debitur';
+		$url = 'http://202.152.22.234:5008/callback/debitur';
 
 		try {
 
