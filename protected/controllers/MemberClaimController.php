@@ -1050,6 +1050,24 @@ class MemberClaimController extends Controller
 					'api_response' => $apiResponse,
 				],
 			];
+
+		} catch (\Throwable $e) {
+
+			Yii::error(
+				'Approvedoc Error: ' .
+				$e->getMessage() .
+				"\n" .
+				$e->getTraceAsString(),
+				'claim'
+			);
+
+			return [
+				'Result' => [
+					'message' => $e->getMessage(),
+					'kode_response' => '99',
+					'status' => '500',
+				],
+			];
 		}
 	}
 	
