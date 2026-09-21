@@ -4796,13 +4796,13 @@ if (file_exists($zipPath)) {
 			}
 		}
 
+
 	public function actionSubmitClaim()
 	{
 		Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
 
 		$request = Yii::$app->request;
 
-	
 		$authorization = $request->headers->get('Authorization');
 
 		if (!$authorization) {
@@ -4869,7 +4869,6 @@ if (file_exists($zipPath)) {
 			}
 		}
 
-
 		$dateFields = [
 			'periode_awal',
 			'periode_akhir',
@@ -4901,7 +4900,6 @@ if (file_exists($zipPath)) {
 			$dateValues[$field] = $date->format('Y-m-d');
 		}
 
-
 		$idAgunan = isset($body['id_agunan'])
 			? trim($body['id_agunan'])
 			: '';
@@ -4917,7 +4915,8 @@ if (file_exists($zipPath)) {
 					'Result' => [
 						'status' => '400',
 						'kode_response' => '01',
-						'message' => 'Field id_agunan wajib diisi jika benefit = 4 (Kebakaran)'
+						'message' =>
+							'Field id_agunan wajib diisi jika benefit = 4 (Kebakaran)'
 					]
 				];
 			}
@@ -4927,7 +4926,8 @@ if (file_exists($zipPath)) {
 					'Result' => [
 						'status' => '400',
 						'kode_response' => '01',
-						'message' => 'Field nomor_bukti wajib diisi jika benefit = 4 (Kebakaran)'
+						'message' =>
+							'Field nomor_bukti wajib diisi jika benefit = 4 (Kebakaran)'
 					]
 				];
 			}
@@ -4936,7 +4936,6 @@ if (file_exists($zipPath)) {
 		$transaction = Yii::$app->db->beginTransaction();
 
 		try {
-
 
 			$model = new \app\models\claim_riau();
 
@@ -4986,10 +4985,14 @@ if (file_exists($zipPath)) {
 				$body['benefit'];
 
 			$model->id_agunan =
-				$idAgunan !== '' ? $idAgunan : null;
+				$idAgunan !== ''
+					? $idAgunan
+					: null;
 
 			$model->nomor_bukti =
-				$nomorBukti !== '' ? $nomorBukti : null;
+				$nomorBukti !== ''
+					? $nomorBukti
+					: null;
 
 			$model->jenis_klaim =
 				$body['jenis_klaim'];
@@ -5011,9 +5014,9 @@ if (file_exists($zipPath)) {
 
 			$model->tanggal_kirim =
 				$dateValues['tanggal_kirim'];
-				
-			$model->created_at =date('Y-m-d H:i:s');
 
+			$model->created_at =
+				date('Y-m-d H:i:s');
 
 			if (!$model->save()) {
 
@@ -5023,23 +5026,196 @@ if (file_exists($zipPath)) {
 					'Result' => [
 						'status' => '400',
 						'kode_response' => '01',
-						'message' => 'Gagal menyimpan data pengajuan claim',
+						'message' =>
+							'Gagal menyimpan data pengajuan claim',
 						'status_claim' => '0',
 						'errors' => $model->getErrors()
 					]
 				];
 			}
 
+			$countDokumen =
+				\app\models\map_member_dokumen_medis::find()
+					->where([
+						'id_loan' => $member->id_pengajuan,
+						'jenis_dokumen' => 'claim',
+					])
+					->count();
+
+			$sequence = str_pad(
+				$countDokumen + 1,
+				2,
+				'0',
+				STR_PAD_LEFT
+			);
+
+			$idTransaksi =
+				$body['id_transaksi'];
+
+			$norek =
+				$body['nomor_rekening'];
+
+			$noakad =
+				$body['no_akad'];
+
+			$benefit =
+				$body['benefit'];
+
+			$ktp =
+				$body['ktp'];
+
+			$tenor =
+				$body['tenor'];
+
+			$plafond = null;
+
+			if (isset($member->plafond)) {
+				$plafond = $member->plafond;
+			}
+
+			$codeDoc = '003';
+
+			$fileBenefit =
+				(string)$benefit;
+
+			$fileName =
+				$norek . '_' .
+				$noakad . '_' .
+				$codeDoc . '_' .
+				$fileBenefit . '_' .
+				$sequence .
+				'.zip';
+
+			Yii::info(
+				'Mulai download dokumen claim dari SFTP. ' .
+				'file=' . $fileName .
+				', id_loan=' . $member->id_pengajuan,
+				'claim-sftp'
+			);
+
+			$sftpResult =
+				$this->downloadFileFromBankSftp($fileName);
+
+			Yii::info(
+				'Hasil download SFTP claim: ' .
+				json_encode($sftpResult),
+				'claim-sftp'
+			);
+
+			$dokumenMedis =
+				new \app\models\map_member_dokumen_medis();
+
+			$dokumenMedis->id_loan =
+			$member->id_pengajuan;
+			$dokumenMedis->kode_dokumen =$codeDoc;
+
+			if (
+				!empty($sftpResult['success']) &&
+				!empty($sftpResult['file_name'])
+			) {
+
+				$dokumenMedis->files =
+					$sftpResult['file_name'];
+
+			} else {
+
+				$dokumenMedis->files = null;
+			}
+
+			$dokumenMedis->approve =
+				'-';
+
+			$dokumenMedis->ktp =
+				$ktp;
+
+			$dokumenMedis->tenor =
+				$tenor;
+
+			$dokumenMedis->plafond =
+				$plafond;
+
+			$dokumenMedis->jenis_dokumen =
+				'restitusi';
+
+			$dokumenMedis->created_at =
+				date('Y-m-d H:i:s');
+
+			$dokumenMedis->created_by =
+				1;
+
+			if (!$dokumenMedis->save()) {
+
+				$transaction->rollBack();
+
+				Yii::error(
+					'Gagal menyimpan mapping dokumen Claim: ' .
+					json_encode($dokumenMedis->errors),
+					'claim-sftp'
+				);
+
+				return [
+					'Result' => [
+						'status' => '400',
+						'kode_response' => '01',
+						'message' =>
+							'Pengajuan berhasil, tetapi dokumen gagal disimpan',
+						'jenis_pengajuan' => 'CLAIM',
+						'status_claim' => '0',
+						'status_dokumen' => 0,
+						'keterangan' =>
+							json_encode($dokumenMedis->errors)
+					]
+				];
+			}
 
 			$transaction->commit();
 
+			Yii::info(
+				'Mapping dokumen Claim berhasil disimpan. ' .
+				'id_loan=' . $member->id_pengajuan .
+				', kode_dokumen=' . $codeDoc .
+				', file=' .
+				(
+					!empty($sftpResult['file_name'])
+						? $sftpResult['file_name']
+						: 'NULL'
+				),
+				'claim-sftp'
+			);
+
+			if (
+				!empty($sftpResult['success']) &&
+				!empty($sftpResult['file_name'])
+			) {
+
+				return [
+					'Result' => [
+						'status' => '200',
+						'kode_response' => '00',
+						'message' =>
+							'Berhasil kirim data pengajuan claim',
+						'status_claim' => '1',
+						'jenis_pengajuan' => 'CLAIM',
+						'status_dokumen' => 1,
+						'keterangan' =>
+							'Dokumen Claim berhasil diterima'
+					]
+				];
+			}
 
 			return [
 				'Result' => [
 					'status' => '200',
 					'kode_response' => '00',
-					'message' => 'Berhasil kirim data pengajuan claim',
-					'status_claim' => '1'
+					'message' =>
+						'Pengajuan claim berhasil, dokumen belum tersedia di SFTP Bank',
+					'status_claim' => '1',
+					'jenis_pengajuan' => 'CLAIM',
+					'status_dokumen' => 0,
+					'keterangan' =>
+						!empty($sftpResult['message'])
+							? $sftpResult['message']
+							: 'Dokumen belum tersedia di SFTP Bank'
 				]
 			];
 
@@ -5048,6 +5224,14 @@ if (file_exists($zipPath)) {
 			if ($transaction->getIsActive()) {
 				$transaction->rollBack();
 			}
+
+			Yii::error(
+				'ERROR actionSubmitClaim: ' .
+				$e->getMessage() .
+				"\nTRACE:\n" .
+				$e->getTraceAsString(),
+				'claim-sftp'
+			);
 
 			return [
 				'Result' => [
@@ -5059,6 +5243,8 @@ if (file_exists($zipPath)) {
 			];
 		}
 	}
+
+
 
 	public function actionListIncomingFiles()
 	{
