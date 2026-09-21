@@ -996,11 +996,19 @@ class MemberClaimController extends Controller
 			// =====================================================
 			// DEBUG
 			// =====================================================
-			Yii::info(
-				'HASIL callAPIPostDebitur: ' .
-				json_encode($apiResponse),
+			Yii::error(
+				'DEBUG API RESPONSE: ' . print_r($apiResponse, true),
 				'claim'
 			);
+			
+			return [
+			'Result' => [
+				'message' => 'DEBUG callAPIPostDebitur',
+				'kode_response' => '07',
+				'status' => '500',
+			],
+			'debug' => $apiResponse,
+		];
 
 
 			// =====================================================
