@@ -4798,641 +4798,825 @@ if (file_exists($zipPath)) {
 
 
 	public function actionSubmitClaim()
-	{
-		Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
-
-		$request = Yii::$app->request;
-
-		$authorization = $request->headers->get('Authorization');
-
-		if (!$authorization) {
-			return [
-				'Result' => [
-					'status' => '401',
-					'kode_response' => '01',
-					'message' => 'Authorization header tidak ditemukan'
-				]
-			];
-		}
-
-		$body = $request->getBodyParams();
-
-		if (empty($body)) {
-			return [
-				'Result' => [
-					'status' => '400',
-					'kode_response' => '01',
-					'message' => 'Request body tidak boleh kosong'
-				]
-			];
-		}
-
-		/*
-		 * =========================================================
-		 * REQUIRED FIELD
-		 * =========================================================
-		 */
-
-		$requiredFields = [
-			'id_transaksi',
-			'id_pengajuan',
-			'kode_broker',
-			'ktp',
-			'nama',
-			'kode_cabang',
-			'nomor_rekening',
-			'no_akad',
-			'tenor',
-			'premi',
-			'periode_awal',
-			'periode_akhir',
-			'tenor_berjalan',
-			'sisa_tenor',
-			'benefit',
-			'jenis_klaim',
-			'penyebab_klaim',
-			'tanggal_kejadian',
-			'tempat_kejadian',
-			'jumlah_diajukan',
-			'tujuan_pembayaran',
-			'tanggal_kirim'
-		];
-
-		foreach ($requiredFields as $field) {
-
-			if (
-				!array_key_exists($field, $body) ||
-				$body[$field] === null ||
-				$body[$field] === ''
-			) {
-				return [
-					'Result' => [
-						'status' => '400',
-						'kode_response' => '01',
-						'message' => "Field {$field} wajib diisi"
-					]
-				];
-			}
-		}
-
-
-		/*
-		 * =========================================================
-		 * NORMALISASI
-		 * =========================================================
-		 */
-
-		$noAkad = trim($body['no_akad']);
-		$idTransaksi = trim($body['id_transaksi']);
-		$idPengajuan = trim($body['id_pengajuan']);
-		$ktp = trim($body['ktp']);
-
-
-		/*
-		 * =========================================================
-		 * VALIDASI TANGGAL
-		 * =========================================================
-		 */
-
-		$dateFields = [
-			'periode_awal',
-			'periode_akhir',
-			'tanggal_kejadian',
-			'tanggal_kirim'
-		];
-
-		$dateValues = [];
-
-		foreach ($dateFields as $field) {
-
-			$value = trim($body[$field]);
-
-			$date = \DateTime::createFromFormat('Ymd', $value);
-
-			if (
-				!$date ||
-				$date->format('Ymd') !== $value
-			) {
-				return [
-					'Result' => [
-						'status' => '400',
-						'kode_response' => '01',
-						'message' => "Format {$field} harus YYYYMMDD"
-					]
-				];
-			}
-
-			$dateValues[$field] = $date->format('Y-m-d');
-		}
-
-
-		/*
-		 * =========================================================
-		 * BENEFIT
-		 * =========================================================
-		 */
-
-		$idAgunan = isset($body['id_agunan'])
-			? trim($body['id_agunan'])
-			: '';
-
-		$nomorBukti = isset($body['nomor_bukti'])
-			? trim($body['nomor_bukti'])
-			: '';
-
-		if ((string)$body['benefit'] === '4') {
-
-			if ($idAgunan === '') {
-				return [
-					'Result' => [
-						'status' => '400',
-						'kode_response' => '01',
-						'message' =>
-							'Field id_agunan wajib diisi jika benefit = 4 (Kebakaran)'
-					]
-				];
-			}
-
-			if ($nomorBukti === '') {
-				return [
-					'Result' => [
-						'status' => '400',
-						'kode_response' => '01',
-						'message' =>
-							'Field nomor_bukti wajib diisi jika benefit = 4 (Kebakaran)'
-					]
-				];
-			}
-		}
-
-
-		/*
-		 * =========================================================
-		 * TRANSACTION
-		 * =========================================================
-		 */
-
-		$transaction = Yii::$app->db->beginTransaction();
-
-		try {
-
-			/*
-			 * =====================================================
-			 * MEMBER CLAIM
-			 *
-			 * LOGIC:
-			 *
-			 * jika belum ada berdasarkan no_akad
-			 *      INSERT
-			 *
-			 * jika sudah ada
-			 *      UPDATE id_transaksi
-			 * =====================================================
-			 */
-
-			$checkMember = MemberClaim::find()
-				->where(['no_akad' => $noAkad])
-				->one();
-
-
-			if ($checkMember === null) {
-
-				/*
-				 * ================================================
-				 * BELUM ADA -> INSERT
-				 * ================================================
-				 */
-
-				$memberClaim = new MemberClaim();
-
-				$memberClaim->no_akad =
-					$noAkad;
-
-				$memberClaim->id_transaksi =
-					$idTransaksi;
+{
+    Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
+
+    $request = Yii::$app->request;
+
+    /*
+     * =========================================================
+     * AUTHORIZATION
+     * =========================================================
+     */
+
+    $authorization = $request->headers->get('Authorization');
+
+    if (!$authorization) {
+        return [
+            'Result' => [
+                'status' => '401',
+                'kode_response' => '01',
+                'message' => 'Authorization header tidak ditemukan'
+            ]
+        ];
+    }
+
+
+    /*
+     * =========================================================
+     * REQUEST BODY
+     * =========================================================
+     */
+
+    $body = $request->getBodyParams();
+
+    if (empty($body)) {
+        return [
+            'Result' => [
+                'status' => '400',
+                'kode_response' => '01',
+                'message' => 'Request body tidak boleh kosong'
+            ]
+        ];
+    }
+
+
+    /*
+     * =========================================================
+     * REQUIRED FIELD
+     * =========================================================
+     */
+
+    $requiredFields = [
+        'id_transaksi',
+        'id_pengajuan',
+        'kode_broker',
+        'ktp',
+        'nama',
+        'kode_cabang',
+        'nomor_rekening',
+        'no_akad',
+        'tenor',
+        'premi',
+        'periode_awal',
+        'periode_akhir',
+        'tenor_berjalan',
+        'sisa_tenor',
+        'benefit',
+        'jenis_klaim',
+        'penyebab_klaim',
+        'tanggal_kejadian',
+        'tempat_kejadian',
+        'jumlah_diajukan',
+        'tujuan_pembayaran',
+        'tanggal_kirim'
+    ];
+
+    foreach ($requiredFields as $field) {
+
+        if (
+            !array_key_exists($field, $body) ||
+            $body[$field] === null ||
+            $body[$field] === ''
+        ) {
+            return [
+                'Result' => [
+                    'status' => '400',
+                    'kode_response' => '01',
+                    'message' => "Field {$field} wajib diisi"
+                ]
+            ];
+        }
+    }
+
+
+    /*
+     * =========================================================
+     * NORMALISASI
+     * =========================================================
+     */
+
+    $noAkad = trim($body['no_akad']);
+
+    $idTransaksi = trim($body['id_transaksi']);
+
+    $idPengajuan = trim($body['id_pengajuan']);
+
+    $ktp = trim($body['ktp']);
+
+
+    /*
+     * =========================================================
+     * VALIDASI TANGGAL
+     * =========================================================
+     */
+
+    $dateFields = [
+        'periode_awal',
+        'periode_akhir',
+        'tanggal_kejadian',
+        'tanggal_kirim'
+    ];
+
+    $dateValues = [];
+
+    foreach ($dateFields as $field) {
+
+        $value = trim($body[$field]);
+
+        $date = \DateTime::createFromFormat(
+            'Ymd',
+            $value
+        );
+
+        if (
+            !$date ||
+            $date->format('Ymd') !== $value
+        ) {
+            return [
+                'Result' => [
+                    'status' => '400',
+                    'kode_response' => '01',
+                    'message' =>
+                        "Format {$field} harus YYYYMMDD"
+                ]
+            ];
+        }
+
+        $dateValues[$field] =
+            $date->format('Y-m-d');
+    }
+
+
+    /*
+     * =========================================================
+     * BENEFIT
+     * =========================================================
+     */
+
+    $idAgunan = isset($body['id_agunan'])
+        ? trim($body['id_agunan'])
+        : '';
+
+    $nomorBukti = isset($body['nomor_bukti'])
+        ? trim($body['nomor_bukti'])
+        : '';
+
+
+    if ((string)$body['benefit'] === '4') {
+
+        if ($idAgunan === '') {
+
+            return [
+                'Result' => [
+                    'status' => '400',
+                    'kode_response' => '01',
+                    'message' =>
+                        'Field id_agunan wajib diisi jika benefit = 4 (Kebakaran)'
+                ]
+            ];
+        }
+
+
+        if ($nomorBukti === '') {
+
+            return [
+                'Result' => [
+                    'status' => '400',
+                    'kode_response' => '01',
+                    'message' =>
+                        'Field nomor_bukti wajib diisi jika benefit = 4 (Kebakaran)'
+                ]
+            ];
+        }
+    }
+
+
+    /*
+     * =========================================================
+     * LOG REQUEST
+     * =========================================================
+     */
+
+    Yii::info(
+        'START actionSubmitClaim. ' .
+        'no_akad=' . $noAkad .
+        ', id_transaksi=' . $idTransaksi .
+        ', id_pengajuan=' . $idPengajuan,
+        'claim-sftp'
+    );
+
+
+    /*
+     * =========================================================
+     * MYSQL NAMED LOCK
+     *
+     * Lock berdasarkan no_akad.
+     *
+     * Jika request yang sama masuk bersamaan,
+     * request kedua menunggu request pertama selesai.
+     * =========================================================
+     */
+
+    $lockName =
+        'CLAIM_' . md5($noAkad);
+
+    $lockResult = Yii::$app->db
+        ->createCommand(
+            "SELECT GET_LOCK(:lock_name, 30)"
+        )
+        ->bindValue(
+            ':lock_name',
+            $lockName
+        )
+        ->queryScalar();
+
+
+    if ((int)$lockResult !== 1) {
+
+        Yii::error(
+            'Gagal mendapatkan GET_LOCK. ' .
+            'no_akad=' . $noAkad,
+            'claim-sftp'
+        );
+
+        return [
+            'Result' => [
+                'status' => '500',
+                'kode_response' => '99',
+                'message' =>
+                    'Gagal mendapatkan lock proses claim',
+                'status_claim' => '0'
+            ]
+        ];
+    }
+
+
+    /*
+     * =========================================================
+     * TRANSACTION
+     * =========================================================
+     */
+
+    $transaction = null;
+
+
+    try {
+
+        $transaction =
+            Yii::$app->db->beginTransaction();
+
+
+        /*
+         * =====================================================
+         * MEMBER CLAIM
+         *
+         * LOGIC:
+         *
+         * NULL  -> INSERT
+         * ADA   -> UPDATE id_transaksi
+         * =====================================================
+         */
+
+        $checkMember =
+            MemberClaim::find()
+                ->where([
+                    'no_akad' => $noAkad
+                ])
+                ->one();
+
+
+        if ($checkMember === null) {
+
+            /*
+             * ==============================================
+             * INSERT MEMBER CLAIM
+             * ==============================================
+             */
+
+            Yii::info(
+                'MemberClaim tidak ditemukan. INSERT. ' .
+                'no_akad=' . $noAkad,
+                'claim-sftp'
+            );
+
+
+            $memberClaim =
+                new MemberClaim();
+
+            $memberClaim->no_akad =
+                $noAkad;
+
+            $memberClaim->id_transaksi =
+                $idTransaksi;
+
+
+            if (!$memberClaim->save()) {
+
+                throw new \Exception(
+                    'Gagal menyimpan MemberClaim: ' .
+                    json_encode(
+                        $memberClaim->getErrors()
+                    )
+                );
+            }
+
+
+        } else {
+
+            /*
+             * ==============================================
+             * UPDATE MEMBER CLAIM
+             * ==============================================
+             */
 
-				if (!$memberClaim->save()) {
-
-					$transaction->rollBack();
+            Yii::info(
+                'MemberClaim ditemukan. UPDATE id_transaksi. ' .
+                'no_akad=' . $noAkad .
+                ', id_lama=' .
+                $checkMember->id_transaksi .
+                ', id_baru=' .
+                $idTransaksi,
+                'claim-sftp'
+            );
 
-					return [
-						'Result' => [
-							'status' => '400',
-							'kode_response' => '01',
-							'message' =>
-								'Gagal menyimpan MemberClaim',
-							'errors' =>
-								$memberClaim->getErrors()
-						]
-					];
-				}
 
-			} else {
+            $checkMember->id_transaksi =
+                $idTransaksi;
 
-				/*
-				 * ================================================
-				 * SUDAH ADA -> UPDATE
-				 * ================================================
-				 */
 
-				$checkMember->id_transaksi =
-					$idTransaksi;
+            if (!$checkMember->save()) {
 
-				if (!$checkMember->save()) {
+                throw new \Exception(
+                    'Gagal update MemberClaim: ' .
+                    json_encode(
+                        $checkMember->getErrors()
+                    )
+                );
+            }
+        }
 
-					$transaction->rollBack();
 
-					return [
-						'Result' => [
-							'status' => '400',
-							'kode_response' => '01',
-							'message' =>
-								'Gagal update id_transaksi MemberClaim',
-							'errors' =>
-								$checkMember->getErrors()
-						]
-					];
-				}
-			}
+        /*
+         * =====================================================
+         * CLAIM RIAU
+         *
+         * LOGIC:
+         *
+         * NULL  -> INSERT
+         * ADA   -> UPDATE
+         * =====================================================
+         */
 
+        $model =
+            \app\models\claim_riau::find()
+                ->where([
+                    'no_akad' => $noAkad
+                ])
+                ->one();
 
-			/*
-			 * =====================================================
-			 * CLAIM RIAU
-			 * =====================================================
-			 */
 
-			$model = new \app\models\claim_riau();
+        if ($model === null) {
 
-			$model->id_transaksi =
-				$idTransaksi;
+            Yii::info(
+                'claim_riau tidak ditemukan. INSERT. ' .
+                'no_akad=' . $noAkad,
+                'claim-sftp'
+            );
 
-			$model->id_pengajuan =
-				$idPengajuan;
 
-			$model->kode_broker =
-				$body['kode_broker'];
-
-			$model->ktp =
-				$ktp;
+            $model =
+                new \app\models\claim_riau();
 
-			$model->nama =
-				$body['nama'];
+        } else {
 
-			$model->kode_cabang =
-				$body['kode_cabang'];
+            Yii::info(
+                'claim_riau ditemukan. UPDATE. ' .
+                'no_akad=' . $noAkad .
+                ', id=' . $model->id,
+                'claim-sftp'
+            );
+        }
 
-			$model->nomor_rekening =
-				$body['nomor_rekening'];
-
-			$model->no_akad =
-				$noAkad;
-
-			$model->tenor =
-				$body['tenor'];
-
-			$model->premi =
-				$body['premi'];
-
-			$model->periode_awal =
-				$dateValues['periode_awal'];
-
-			$model->periode_akhir =
-				$dateValues['periode_akhir'];
-
-			$model->tenor_berjalan =
-				$body['tenor_berjalan'];
-
-			$model->sisa_tenor =
-				$body['sisa_tenor'];
-
-			$model->benefit =
-				$body['benefit'];
-
-			$model->id_agunan =
-				$idAgunan !== ''
-					? $idAgunan
-					: null;
 
-			$model->nomor_bukti =
-				$nomorBukti !== ''
-					? $nomorBukti
-					: null;
-
-			$model->jenis_klaim =
-				$body['jenis_klaim'];
-
-			$model->penyebab_klaim =
-				$body['penyebab_klaim'];
-
-			$model->tanggal_kejadian =
-				$dateValues['tanggal_kejadian'];
-
-			$model->tempat_kejadian =
-				$body['tempat_kejadian'];
+        /*
+         * =====================================================
+         * ISI DATA CLAIM RIAU
+         * =====================================================
+         */
 
-			$model->jumlah_diajukan =
-				$body['jumlah_diajukan'];
-
-			$model->tujuan_pembayaran =
-				$body['tujuan_pembayaran'];
-
-			$model->tanggal_kirim =
-				$dateValues['tanggal_kirim'];
-
-			$model->created_at =
-				date('Y-m-d H:i:s');
+        $model->id_transaksi =
+            $idTransaksi;
 
-
-			/*
-			 * =====================================================
-			 * SAVE CLAIM RIAU
-			 * =====================================================
-			 */
+        $model->id_pengajuan =
+            $idPengajuan;
 
-			if (!$model->save()) {
-
-				$transaction->rollBack();
+        $model->kode_broker =
+            $body['kode_broker'];
 
-				Yii::error(
-					'Gagal menyimpan claim_riau: ' .
-					json_encode($model->getErrors()),
-					'claim-sftp'
-				);
+        $model->ktp =
+            $ktp;
 
-				return [
-					'Result' => [
-						'status' => '400',
-						'kode_response' => '01',
-						'message' =>
-							'Gagal menyimpan data pengajuan claim',
-						'status_claim' => '0',
-						'errors' =>
-							$model->getErrors()
-					]
-				];
-			}
+        $model->nama =
+            $body['nama'];
 
+        $model->kode_cabang =
+            $body['kode_cabang'];
 
-			/*
-			 * =====================================================
-			 * DOKUMEN CLAIM
-			 * =====================================================
-			 */
+        $model->nomor_rekening =
+            $body['nomor_rekening'];
 
-			$countDokumen =
-				\app\models\map_member_dokumen_medis::find()
-					->where([
-						'id_loan' => $noAkad,
-						'jenis_dokumen' => 'claim',
-					])
-					->count();
+        $model->no_akad =
+            $noAkad;
 
-			$sequence = str_pad(
-				$countDokumen + 1,
-				2,
-				'0',
-				STR_PAD_LEFT
-			);
+        $model->tenor =
+            $body['tenor'];
 
+        $model->premi =
+            $body['premi'];
 
-			/*
-			 * =====================================================
-			 * FILE NAME
-			 * =====================================================
-			 */
+        $model->periode_awal =
+            $dateValues['periode_awal'];
 
-			$norek =
-				trim($body['nomor_rekening']);
+        $model->periode_akhir =
+            $dateValues['periode_akhir'];
 
-			$benefit =
-				(string)$body['benefit'];
+        $model->tenor_berjalan =
+            $body['tenor_berjalan'];
 
-			$tenor =
-				$body['tenor'];
+        $model->sisa_tenor =
+            $body['sisa_tenor'];
 
-			$codeDoc = '004';
+        $model->benefit =
+            $body['benefit'];
 
-			$fileName =
-				$norek . '_' .
-				$noAkad . '_' .
-				$codeDoc . '_' .
-				$benefit . '_' .
-				$sequence .
-				'.zip';
+        $model->id_agunan =
+            $idAgunan !== ''
+                ? $idAgunan
+                : null;
 
+        $model->nomor_bukti =
+            $nomorBukti !== ''
+                ? $nomorBukti
+                : null;
 
-			Yii::info(
-				'Mulai download dokumen claim dari SFTP. ' .
-				'file=' . $fileName .
-				', id_pengajuan=' . $idPengajuan,
-				'claim-sftp'
-			);
+        $model->jenis_klaim =
+            $body['jenis_klaim'];
 
+        $model->penyebab_klaim =
+            $body['penyebab_klaim'];
 
-			/*
-			 * =====================================================
-			 * DOWNLOAD SFTP
-			 * =====================================================
-			 */
+        $model->tanggal_kejadian =
+            $dateValues['tanggal_kejadian'];
 
-			$sftpResult =
-				$this->downloadFileFromBankSftp($fileName);
+        $model->tempat_kejadian =
+            $body['tempat_kejadian'];
 
+        $model->jumlah_diajukan =
+            $body['jumlah_diajukan'];
 
-			Yii::info(
-				'Hasil download SFTP claim: ' .
-				json_encode($sftpResult),
-				'claim-sftp'
-			);
+        $model->tujuan_pembayaran =
+            $body['tujuan_pembayaran'];
 
+        $model->tanggal_kirim =
+            $dateValues['tanggal_kirim'];
 
-			/*
-			 * =====================================================
-			 * SAVE MAPPING DOKUMEN
-			 * =====================================================
-			 */
 
-			$dokumenMedis =
-				new \app\models\map_member_dokumen_medis();
-
-			$dokumenMedis->id_loan =
-				$noAkad;
+        /*
+         * created_at HANYA ketika INSERT
+         */
 
-			$dokumenMedis->kode_dokumen =
-				$codeDoc;
+        if ($model->isNewRecord) {
 
-			if (
-				!empty($sftpResult['success']) &&
-				!empty($sftpResult['file_name'])
-			) {
+            $model->created_at =
+                date('Y-m-d H:i:s');
+        }
 
-				$dokumenMedis->files =
-					$sftpResult['file_name'];
-
-			} else {
-
-				$dokumenMedis->files =
-					null;
-			}
-
-			$dokumenMedis->approve =
-				'-';
-
-			$dokumenMedis->ktp =
-				$ktp;
-
-			$dokumenMedis->tenor =
-				$tenor;
-
-			$dokumenMedis->plafond =
-				$body['jumlah_diajukan'];
-
-			$dokumenMedis->jenis_dokumen =
-				'claim';
-
-			$dokumenMedis->created_at =
-				date('Y-m-d H:i:s');
-
-			$dokumenMedis->created_by =
-				1;
-
-
-			/*
-			 * =====================================================
-			 * SAVE DOKUMEN
-			 * =====================================================
-			 */
-
-			if (!$dokumenMedis->save()) {
-
-				$transaction->rollBack();
-
-				Yii::error(
-					'Gagal menyimpan mapping dokumen Claim: ' .
-					json_encode($dokumenMedis->getErrors()),
-					'claim-sftp'
-				);
-
-				return [
-					'Result' => [
-						'status' => '400',
-						'kode_response' => '01',
-						'message' =>
-							'Pengajuan berhasil, tetapi dokumen gagal disimpan',
-						'jenis_pengajuan' => 'CLAIM',
-						'status_claim' => '0',
-						'status_dokumen' => 0,
-						'keterangan' =>
-							json_encode($dokumenMedis->getErrors())
-					]
-				];
-			}
-
-
-			/*
-			 * =====================================================
-			 * COMMIT
-			 * =====================================================
-			 */
-
-			$transaction->commit();
-
-
-			/*
-			 * =====================================================
-			 * LOG SUCCESS
-			 * =====================================================
-			 */
-
-			Yii::info(
-				'Mapping dokumen Claim berhasil disimpan. ' .
-				'no_akad=' . $noAkad .
-				', kode_dokumen=' . $codeDoc .
-				', file=' .
-				(
-					!empty($sftpResult['file_name'])
-						? $sftpResult['file_name']
-						: 'NULL'
-				),
-				'claim-sftp'
-			);
-
-
-			/*
-			 * =====================================================
-			 * RESPONSE - DOKUMEN ADA
-			 * =====================================================
-			 */
-
-			if (
-				!empty($sftpResult['success']) &&
-				!empty($sftpResult['file_name'])
-			) {
-
-				return [
-					'Result' => [
-						'status' => '200',
-						'kode_response' => '00',
-						'message' =>
-							'Berhasil kirim data pengajuan claim',
-						'status_claim' => '1',
-						'jenis_pengajuan' => 'CLAIM',
-						'status_dokumen' => 1,
-						'keterangan' =>
-							'Dokumen Claim berhasil diterima'
-					]
-				];
-			}
-
-
-			/*
-			 * =====================================================
-			 * RESPONSE - DOKUMEN BELUM ADA
-			 * =====================================================
-			 */
-
-			return [
-				'Result' => [
-					'status' => '200',
-					'kode_response' => '00',
-					'message' =>
-						'Pengajuan claim berhasil, dokumen belum tersedia di SFTP Bank',
-					'status_claim' => '1',
-					'jenis_pengajuan' => 'CLAIM',
-					'status_dokumen' => 0,
-					'keterangan' =>
-						!empty($sftpResult['message'])
-							? $sftpResult['message']
-							: 'Dokumen belum tersedia di SFTP Bank'
-				]
-			];
-
-
-		} catch (\Exception $e) {
-
-			if ($transaction->getIsActive()) {
-				$transaction->rollBack();
-			}
-
-			Yii::error(
-				'ERROR actionSubmitClaim: ' .
-				$e->getMessage() .
-				"\nTRACE:\n" .
-				$e->getTraceAsString(),
-				'claim-sftp'
-			);
-
-			return [
-				'Result' => [
-					'status' => '500',
-					'kode_response' => '99',
-					'message' => $e->getMessage(),
-					'status_claim' => '0'
-				]
-			];
-		}
-	}
+
+        /*
+         * =====================================================
+         * SAVE CLAIM RIAU
+         * =====================================================
+         */
+
+        if (!$model->save()) {
+
+            throw new \Exception(
+                'Gagal menyimpan claim_riau: ' .
+                json_encode(
+                    $model->getErrors()
+                )
+            );
+        }
+
+
+        /*
+         * =====================================================
+         * DOKUMEN CLAIM
+         * =====================================================
+         */
+
+        $countDokumen =
+            \app\models\map_member_dokumen_medis::find()
+                ->where([
+                    'id_loan' => $noAkad,
+                    'jenis_dokumen' => 'claim',
+                ])
+                ->count();
+
+
+        $sequence =
+            str_pad(
+                $countDokumen + 1,
+                2,
+                '0',
+                STR_PAD_LEFT
+            );
+
+
+        /*
+         * =====================================================
+         * FILE NAME
+         * =====================================================
+         */
+
+        $norek =
+            trim(
+                $body['nomor_rekening']
+            );
+
+        $benefit =
+            (string)$body['benefit'];
+
+        $tenor =
+            $body['tenor'];
+
+        $codeDoc =
+            '004';
+
+
+        $fileName =
+            $norek . '_' .
+            $noAkad . '_' .
+            $codeDoc . '_' .
+            $benefit . '_' .
+            $sequence .
+            '.zip';
+
+
+        Yii::info(
+            'Mulai download dokumen claim dari SFTP. ' .
+            'file=' . $fileName .
+            ', no_akad=' . $noAkad,
+            'claim-sftp'
+        );
+
+
+        /*
+         * =====================================================
+         * DOWNLOAD SFTP
+         * =====================================================
+         */
+
+        $sftpResult =
+            $this->downloadFileFromBankSftp(
+                $fileName
+            );
+
+
+        Yii::info(
+            'Hasil download SFTP claim: ' .
+            json_encode($sftpResult),
+            'claim-sftp'
+        );
+
+
+        /*
+         * =====================================================
+         * SAVE MAPPING DOKUMEN
+         * =====================================================
+         */
+
+        $dokumenMedis =
+            new \app\models\map_member_dokumen_medis();
+
+
+        $dokumenMedis->id_loan =
+            $noAkad;
+
+        $dokumenMedis->kode_dokumen =
+            $codeDoc;
+
+
+        if (
+            !empty($sftpResult['success']) &&
+            !empty($sftpResult['file_name'])
+        ) {
+
+            $dokumenMedis->files =
+                $sftpResult['file_name'];
+
+        } else {
+
+            $dokumenMedis->files =
+                null;
+        }
+
+
+        $dokumenMedis->approve =
+            '-';
+
+        $dokumenMedis->ktp =
+            $ktp;
+
+        $dokumenMedis->tenor =
+            $tenor;
+
+        $dokumenMedis->plafond =
+            $body['jumlah_diajukan'];
+
+        $dokumenMedis->jenis_dokumen =
+            'claim';
+
+        $dokumenMedis->created_at =
+            date('Y-m-d H:i:s');
+
+        $dokumenMedis->created_by =
+            1;
+
+
+        /*
+         * =====================================================
+         * SAVE DOKUMEN
+         * =====================================================
+         */
+
+        if (!$dokumenMedis->save()) {
+
+            throw new \Exception(
+                'Pengajuan berhasil, tetapi dokumen gagal disimpan: ' .
+                json_encode(
+                    $dokumenMedis->getErrors()
+                )
+            );
+        }
+
+
+        /*
+         * =====================================================
+         * COMMIT
+         * =====================================================
+         */
+
+        $transaction->commit();
+
+
+        /*
+         * =====================================================
+         * RELEASE LOCK
+         * =====================================================
+         */
+
+        Yii::$app->db
+            ->createCommand(
+                "SELECT RELEASE_LOCK(:lock_name)"
+            )
+            ->bindValue(
+                ':lock_name',
+                $lockName
+            )
+            ->queryScalar();
+
+
+        Yii::info(
+            'CLAIM BERHASIL. ' .
+            'no_akad=' . $noAkad .
+            ', id_transaksi=' . $idTransaksi,
+            'claim-sftp'
+        );
+
+
+        /*
+         * =====================================================
+         * RESPONSE DOKUMEN BERHASIL
+         * =====================================================
+         */
+
+        if (
+            !empty($sftpResult['success']) &&
+            !empty($sftpResult['file_name'])
+        ) {
+
+            return [
+                'Result' => [
+                    'status' => '200',
+                    'kode_response' => '00',
+                    'message' =>
+                        'Berhasil kirim data pengajuan claim',
+                    'status_claim' => '1',
+                    'jenis_pengajuan' => 'CLAIM',
+                    'status_dokumen' => 1,
+                    'keterangan' =>
+                        'Dokumen Claim berhasil diterima'
+                ]
+            ];
+        }
+
+
+        /*
+         * =====================================================
+         * RESPONSE DOKUMEN BELUM TERSEDIA
+         * =====================================================
+         */
+
+        return [
+            'Result' => [
+                'status' => '200',
+                'kode_response' => '00',
+                'message' =>
+                    'Pengajuan claim berhasil, dokumen belum tersedia di SFTP Bank',
+                'status_claim' => '1',
+                'jenis_pengajuan' => 'CLAIM',
+                'status_dokumen' => 0,
+                'keterangan' =>
+                    !empty($sftpResult['message'])
+                        ? $sftpResult['message']
+                        : 'Dokumen belum tersedia di SFTP Bank'
+            ]
+        ];
+
+
+    } catch (\Exception $e) {
+
+        /*
+         * =====================================================
+         * ROLLBACK
+         * =====================================================
+         */
+
+        if (
+            $transaction !== null &&
+            $transaction->getIsActive()
+        ) {
+
+            $transaction->rollBack();
+        }
+
+
+        /*
+         * =====================================================
+         * RELEASE LOCK
+         * =====================================================
+         */
+
+        try {
+
+            Yii::$app->db
+                ->createCommand(
+                    "SELECT RELEASE_LOCK(:lock_name)"
+                )
+                ->bindValue(
+                    ':lock_name',
+                    $lockName
+                )
+                ->queryScalar();
+
+        } catch (\Exception $releaseException) {
+
+            Yii::error(
+                'Gagal RELEASE_LOCK: ' .
+                $releaseException->getMessage(),
+                'claim-sftp'
+            );
+        }
+
+
+        /*
+         * =====================================================
+         * LOG ERROR
+         * =====================================================
+         */
+
+        Yii::error(
+            'ERROR actionSubmitClaim: ' .
+            $e->getMessage() .
+            "\nTRACE:\n" .
+            $e->getTraceAsString(),
+            'claim-sftp'
+        );
+
+
+        return [
+            'Result' => [
+                'status' => '500',
+                'kode_response' => '99',
+                'message' =>
+                    $e->getMessage(),
+                'status_claim' => '0'
+            ]
+        ];
+    }
+}
 
 
 
