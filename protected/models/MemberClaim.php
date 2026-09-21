@@ -572,10 +572,6 @@ class MemberClaim extends \yii\db\ActiveRecord
             ];
         }
 
-        /*
-         * PAYLOAD
-         * PERHATIKAN: gunakan $klaim, bukan $claim
-         */
         $payload = [
             'nama' => (string) $model->nama,
             'ktp' => (string) $model->ktp,
@@ -642,18 +638,21 @@ class MemberClaim extends \yii\db\ActiveRecord
             CURLOPT_SSL_VERIFYPEER => false,
             CURLOPT_SSL_VERIFYHOST => false,
         ]);
+	
+		$body = curl_exec($ch);
 
-        $body = curl_exec($ch);
+		$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+		$curlNo = curl_errno($ch);
+		$curlErr = curl_error($ch);
 
-        $httpCode = curl_getinfo(
-            $ch,
-            CURLINFO_HTTP_CODE
-        );
+		curl_close($ch);
 
-        $curlErrno = curl_errno($ch);
-        $curlError = curl_error($ch);
-
-        curl_close($ch);
+		return [
+			'http_code' => $httpCode,
+			'curl_errno' => $curlNo,
+			'curl_error' => $curlErr,
+			'body' => $body,
+		];
 
         /*
          * CURL ERROR
@@ -704,23 +703,6 @@ class MemberClaim extends \yii\db\ActiveRecord
             ];
         }
 
-        /*
-         * CARI RESULT
-         *
-         * Support:
-         *
-         * {
-         *   "Result": {...}
-         * }
-         *
-         * maupun:
-         *
-         * {
-         *   "response": {
-         *      "Result": {...}
-         *   }
-         * }
-         */
         if (isset($response['Result'])) {
 
             $result = $response['Result'];
