@@ -877,44 +877,79 @@ class MemberClaimController extends Controller
 				];
 			}
 
+			// =====================================================
+// CARI MEMBER BERDASARKAN NOMOR AKAD
+// =====================================================
 			$model = member::findOne([
-				'nomor_akad' => $id_loan,
+				'no_akad' => $id_loan,
 			]);
 
 			if ($model === null) {
+
+				Yii::error(
+					'Data member tidak ditemukan. no_akad=' . $id_loan,
+					'claim'
+				);
+
 				return [
 					'Result' => [
-						'message' => 'Data member tidak ditemukan',
+						'message' => 'Data member tidak ditemukan dengan no_akad: ' . $id_loan,
 						'kode_response' => '06',
 						'status' => '404',
 					],
 				];
 			}
-			
+
+
+			// =====================================================
+			// CARI MEMBER CLAIM BERDASARKAN NOMOR AKAD
+			// =====================================================
 			$claim = MemberClaim::findOne([
 				'no_akad' => $id_loan,
 			]);
-			 
 
 			if ($claim === null) {
+
+				Yii::error(
+					'Data member claim tidak ditemukan. no_akad=' . $id_loan,
+					'claim'
+				);
+
 				return [
 					'Result' => [
-						'message' => 'Data member claim tidak ditemukan',
+						'message' => 'Data member claim tidak ditemukan dengan no_akad: ' . $id_loan,
 						'kode_response' => '06',
 						'status' => '404',
 					],
 				];
 			}
-			
+
+
+			// =====================================================
+			// DEBUG DATA
+			// =====================================================
+			Yii::info(
+				'DATA MEMBER: ' . json_encode($model->attributes),
+				'claim'
+			);
+
+			Yii::info(
+				'DATA CLAIM: ' . json_encode($claim->attributes),
+				'claim'
+			);
+
+
+			// =====================================================
+			// UPDATE STATUS CLAIM
+			// =====================================================
 			$claim->status_bayar = $status_bayar;
 			$claim->status_claim = $action;
-			
 
 			if (!$claim->save(false)) {
 
 				return [
 					'Result' => [
-						'message' => 'Gagal menyimpan status bayar',
+						'message' => 'Gagal menyimpan status claim',
 						'kode_response' => '03',
 						'status' => '500',
 					],
@@ -924,6 +959,10 @@ class MemberClaimController extends Controller
 				];
 			}
 
+
+			// =====================================================
+			// LOGIN KE BANK
+			// =====================================================
 			$loginResponse = $claim->callAPIPostMemberLoginRiau();
 
 			if (empty($loginResponse['token'])) {
@@ -934,7 +973,6 @@ class MemberClaimController extends Controller
 						'kode_response' => '04',
 						'status' => '401',
 					],
-
 					'debug' => [
 						'login_response' => $loginResponse,
 					],
@@ -943,30 +981,31 @@ class MemberClaimController extends Controller
 
 			$token = $loginResponse['token'];
 
+
+			// =====================================================
+			// CALL CALLBACK DEBITUR
+			// =====================================================
 			$apiResponse = $claim->callAPIPostDebitur(
 				$token,
 				$model,
 				$document,
 				$claim
 			);
-			
+
+
+			// =====================================================
+			// DEBUG
+			// =====================================================
 			Yii::info(
-				'HASIL callAPIPostDebitur: ' . json_encode($apiResponse),
-				'restitusi'
+				'HASIL callAPIPostDebitur: ' .
+				json_encode($apiResponse),
+				'claim'
 			);
-						
-			return [
-					'Result' => [
-						'status' => '200',
-						'kode_response' => '00',
-						'message' => 'Update berhasil'
-					],
-					'debug' => $apiResponse
-				];
-			
-			// DEBUG HASIL ENDPOINT DI BROWSER
 
 
+			// =====================================================
+			// RESPONSE DARI BANK
+			// =====================================================
 			if (isset($apiResponse['response']['Result'])) {
 
 				$result = $apiResponse['response']['Result'];
@@ -996,6 +1035,10 @@ class MemberClaimController extends Controller
 				];
 			}
 
+
+			// =====================================================
+			// BANK TIDAK MEMBERIKAN RESULT
+			// =====================================================
 			return [
 				'Result' => [
 					'message' => 'Bank tidak memberikan response Result',
@@ -1005,24 +1048,6 @@ class MemberClaimController extends Controller
 
 				'debug' => [
 					'api_response' => $apiResponse,
-				],
-			];
-
-		} catch (\Throwable $e) {
-
-			Yii::error(
-				'Approvedoc Error: ' .
-				$e->getMessage() .
-				"\n" .
-				$e->getTraceAsString(),
-				'api'
-			);
-
-			return [
-				'Result' => [
-					'message' => $e->getMessage(),
-					'kode_response' => '99',
-					'status' => '500',
 				],
 			];
 		}
