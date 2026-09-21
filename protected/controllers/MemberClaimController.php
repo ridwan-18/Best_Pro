@@ -881,7 +881,7 @@ class MemberClaimController extends Controller
 // CARI MEMBER BERDASARKAN NOMOR AKAD
 // =====================================================
 			$model = member::findOne([
-				'no_akad' => $id_loan,
+				'nomor_akad' => $id_loan,
 			]);
 
 			if ($model === null) {
