@@ -174,7 +174,7 @@ class MemberClaimController extends Controller
 				->asArray()
 				->where([
 					'id_loan' => $model->id_pengajuan,
-					'jenis_dokumen' => 'Restitusi',
+					'jenis_dokumen' => 'claim',
 				])
 				->all();
 		}

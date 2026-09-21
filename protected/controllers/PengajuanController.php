@@ -1186,7 +1186,9 @@ class PengajuanController extends Controller
 				'jenis_dokumen' => 'Pengajuan',
 			])
 			->orderBy(['id' => SORT_DESC])
-			->one();	
+			->one();
+
+		var_dump($cekdokumen);
 
 		if ($cekdokumen->approve != 'DISETUJUI') {
 			return [
