@@ -1175,7 +1175,7 @@ class PengajuanController extends Controller
 		}
 		
 		$cekdokumen = map_member_dokumen_medis::findOne([
-			'id_loan' => $idTransaksi,
+			'id_loan' => $idPengajuan,
 		]);
 
 		if ($cekdokumen->approve != 'DISETUJUI') {
