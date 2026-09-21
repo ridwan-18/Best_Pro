@@ -977,6 +977,7 @@ class PengajuanController extends Controller
 		$benefit           = $payload['benefit'] ?? null;
 		$coverage          = (float)($payload['coverage'] ?? 0);
 		$benefitPembiayaan = $payload['benefit_pembiayaan'] ?? null;
+		
 
 		$tglLahirRaw = (string)($payload['tgl_lahir'] ?? '');
 
@@ -1174,32 +1175,17 @@ class PengajuanController extends Controller
 			];
 		}
 		
-		// $cekdokumen = map_member_dokumen_medis::findOne([
-			// 'id_loan' => $idPengajuan,
-			// 'jenis_dokumen' => 'restitusi',
-		// ]);
-		
 		
 		$cekdokumen = map_member_dokumen_medis::find()
 			->where([
-				'id_loan' => $idPengajuan,
+				'ktp' => $ktp,
+				'tenor' => $tenorPertanggungan,
+				'plafond' => $plafond,
 				'jenis_dokumen' => 'Pengajuan',
 			])
 			->orderBy(['id' => SORT_DESC])
 			->one();
 
-		// var_dump($cekdokumen);
-
-		// if ($cekdokumen->approve != 'DISETUJUI') {
-			// return [
-				// 'Result' => [
-					// 'status_code' => 200,
-				    // 'kode_response' => "08",
-					// 'message' => 'Status Dokumen CBC belum disetujui',
-				// ]
-			// ];
-		// }
-		
 		
 		if ($cekdokumen && $cekdokumen->approve === 'DISETUJUI')
 			{
