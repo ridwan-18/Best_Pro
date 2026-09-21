@@ -985,7 +985,7 @@ class MemberClaimController extends Controller
 			// =====================================================
 			// CALL CALLBACK DEBITUR
 			// =====================================================
-			$apiResponse = $claim->callAPIPostDebitur(
+			$apiResponse = $klaim->callAPIPostDebitur(
 				$token,
 				$model,
 				$document,
