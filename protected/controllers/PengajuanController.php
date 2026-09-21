@@ -1190,11 +1190,27 @@ class PengajuanController extends Controller
 
 		// var_dump($cekdokumen);
 
-		if ($cekdokumen->approve != 'DISETUJUI') {
+		// if ($cekdokumen->approve != 'DISETUJUI') {
+			// return [
+				// 'Result' => [
+					// 'status_code' => 200,
+				    // 'kode_response' => "08",
+					// 'message' => 'Status Dokumen CBC belum disetujui',
+				// ]
+			// ];
+		// }
+		
+		
+		if ($cekdokumen && $cekdokumen->approve === 'DISETUJUI')
+			{
+    // Dokumen sudah disetujui, lanjut proses
+		} 
+		else 
+		{
 			return [
 				'Result' => [
 					'status_code' => 200,
-				    'kode_response' => "08",
+					'kode_response' => '08',
 					'message' => 'Status Dokumen CBC belum disetujui',
 				]
 			];
