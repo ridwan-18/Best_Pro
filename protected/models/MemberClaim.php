@@ -539,248 +539,434 @@ class MemberClaim extends \yii\db\ActiveRecord
 	}
 	
 	
-	public function callAPIPostDebitur($token, $model, $document = null, $klaim = null)
-{
-    $url = 'http://202.152.22.234:5008/callback/debitur';
+	public function callAPIPostDebitur(
+    $token,
+    $model,
+    $document = null,
+    $klaim = null
+	) 
+	{
+		// =========================================================
+		// URL BANK
+		// =========================================================
+		$url = 'http://202.152.22.234:5008/callback/debitur';
 
-    try {
+		// =========================================================
+		// VALIDASI TOKEN
+		// =========================================================
+		if (empty($token)) {
 
-        if (empty($token)) {
-            return [
-                'success' => false,
-                'http_code' => 401,
-                'message' => 'Token Bank kosong',
-                'response' => null,
-            ];
-        }
+			return [
+				'success' => false,
+				'http_code' => 0,
+				'curl_errno' => 0,
+				'curl_error' => '',
+				'message' => 'Token Bank kosong',
+				'body' => '',
+				'response' => null,
+			];
+		}
 
-        if (!$model) {
-            return [
-                'success' => false,
-                'http_code' => 404,
-                'message' => 'Data member/debitur tidak ditemukan',
-                'response' => null,
-            ];
-        }
+		// =========================================================
+		// VALIDASI MEMBER
+		// =========================================================
+		if (!$model) {
 
-        if (!$klaim) {
-            return [
-                'success' => false,
-                'http_code' => 404,
-                'message' => 'Data klaim tidak ditemukan',
-                'response' => null,
-            ];
-        }
+			return [
+				'success' => false,
+				'http_code' => 0,
+				'curl_errno' => 0,
+				'curl_error' => '',
+				'message' => 'Data member kosong',
+				'body' => '',
+				'response' => null,
+			];
+		}
 
-        $payload = [
-            'nama' => (string) $model->nama,
-            'ktp' => (string) $model->ktp,
-            'benefit' => (string) $model->benefit,
+		// =========================================================
+		// VALIDASI CLAIM
+		// =========================================================
+		if (!$klaim) {
 
-            'restitusi' => null,
+			return [
+				'success' => false,
+				'http_code' => 0,
+				'curl_errno' => 0,
+				'curl_error' => '',
+				'message' => 'Data claim kosong',
+				'body' => '',
+				'response' => null,
+			];
+		}
 
-            'klaim' => [
-                'id_transaksi_bank' => (string) $klaim->id,
-                'id_pengajuan' => (string) $klaim->id_pengajuan,
-                'status_klaim' => (string) $klaim->status_claim,
-                'status_bayar' => (string) $klaim->status_bayar,
-                'klaim_dibayarkan' => (string) $klaim->jumlah_diajukan,
-                'asuransi' => 'alamin',
-                'keterangan' => $document
-                    ? (string) $document->keterangan
-                    : '-',
-            ],
+		// =========================================================
+		// BUAT PAYLOAD
+		//
+		// PERHATIKAN:
+		// SEMUA DATA CLAIM MENGGUNAKAN $klaim
+		// BUKAN $claim
+		// =========================================================
+		$payload = [
+			'nama' => (string) $model->nama,
 
-            'id_transaksi' => (string) $klaim->id_transaksi,
-            'status_callback' => '2',
-            'nomor_rekening' => (string) $klaim->nomor_rekening,
-            'kode_broker' => (string) $klaim->kode_broker,
-            'no_akad' => (string) $klaim->no_akad,
-            'kode_cabang' => (string) $klaim->kode_cabang,
-        ];
+			'ktp' => (string) $model->ktp,
 
-        $jsonData = json_encode(
-            $payload,
-            JSON_UNESCAPED_UNICODE
-        );
+			'benefit' => (string) $model->benefit,
 
-        if ($jsonData === false) {
-            return [
-                'success' => false,
-                'http_code' => 500,
-                'message' => 'JSON payload gagal dibuat: ' . json_last_error_msg(),
-                'response' => null,
-                'payload' => $payload,
-            ];
-        }
+			'restitusi' => null,
 
-        /*
-         * CURL
-         */
-        $ch = curl_init();
+			'klaim' => [
+				'id_transaksi_bank' => (string) $klaim->id,
 
-        curl_setopt_array($ch, [
-            CURLOPT_URL => $url,
-            CURLOPT_POST => true,
-            CURLOPT_POSTFIELDS => $jsonData,
+				'id_pengajuan' => (string) $klaim->id_pengajuan,
 
-            CURLOPT_HTTPHEADER => [
-                'Content-Type: application/json',
-                'Accept: application/json',
-                'Authorization: Bearer ' . $token,
-                'Content-Length: ' . strlen($jsonData),
-            ],
+				'status_klaim' => (string) $klaim->status_claim,
 
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_CONNECTTIMEOUT => 10,
-            CURLOPT_TIMEOUT => 30,
+				'status_bayar' => (string) $klaim->status_bayar,
 
-            CURLOPT_SSL_VERIFYPEER => false,
-            CURLOPT_SSL_VERIFYHOST => false,
-        ]);
-	
+				'klaim_dibayarkan' => (string) $klaim->jumlah_diajukan,
+
+				'asuransi' => 'alamin',
+
+				'keterangan' => $document
+					? (string) $document->keterangan
+					: '-',
+			],
+
+			'id_transaksi' => (string) $klaim->id_transaksi,
+
+			'status_callback' => '2',
+
+			'nomor_rekening' => (string) $klaim->nomor_rekening,
+
+			'kode_broker' => (string) $klaim->kode_broker,
+
+			'no_akad' => (string) $klaim->no_akad,
+
+			'kode_cabang' => (string) $klaim->kode_cabang,
+		];
+
+		// =========================================================
+		// JSON ENCODE
+		// =========================================================
+		$jsonPayload = json_encode(
+			$payload,
+			JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE
+		);
+
+		if ($jsonPayload === false) {
+
+			return [
+				'success' => false,
+				'http_code' => 0,
+				'curl_errno' => 0,
+				'curl_error' => '',
+				'message' => 'Gagal json_encode payload',
+				'body' => '',
+				'response' => null,
+				'payload' => $payload,
+				'json_error' => json_last_error_msg(),
+			];
+		}
+
+		// =========================================================
+		// LOG REQUEST KE BANK
+		// =========================================================
+		Yii::error(
+			"========== CALLBACK DEBITUR KE BANK ==========\n" .
+			"URL:\n" .
+			$url . "\n\n" .
+			"PAYLOAD:\n" .
+			$jsonPayload . "\n\n" .
+			"TOKEN:\n" .
+			$token . "\n" .
+			"==============================================",
+			'api'
+		);
+
+		// =========================================================
+		// CURL
+		// =========================================================
+		$ch = curl_init();
+
+		curl_setopt_array($ch, [
+			CURLOPT_URL => $url,
+
+			CURLOPT_POST => true,
+
+			CURLOPT_POSTFIELDS => $jsonPayload,
+
+			CURLOPT_HTTPHEADER => [
+				'Content-Type: application/json',
+				'Accept: application/json',
+				'Authorization: Bearer ' . $token,
+				'Content-Length: ' . strlen($jsonPayload),
+			],
+
+			CURLOPT_RETURNTRANSFER => true,
+
+			CURLOPT_HEADER => false,
+
+			CURLOPT_CONNECTTIMEOUT => 10,
+
+			CURLOPT_TIMEOUT => 30,
+
+			CURLOPT_FOLLOWLOCATION => false,
+
+			CURLOPT_SSL_VERIFYPEER => false,
+
+			CURLOPT_SSL_VERIFYHOST => false,
+		]);
+
+		// =========================================================
+		// EKSEKUSI
+		// =========================================================
 		$body = curl_exec($ch);
 
-		$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+		// =========================================================
+		// AMBIL INFORMASI CURL
+		// =========================================================
+		$httpCode = curl_getinfo(
+			$ch,
+			CURLINFO_HTTP_CODE
+		);
+
 		$curlNo = curl_errno($ch);
+
 		$curlErr = curl_error($ch);
+
+		$curlInfo = curl_getinfo($ch);
 
 		curl_close($ch);
 
+		// =========================================================
+		// LOG RESPONSE ASLI BANK
+		// =========================================================
+		Yii::error(
+			"========== RESPONSE ASLI BANK ==========\n" .
+			"HTTP CODE : " . $httpCode . "\n" .
+			"CURL NO   : " . $curlNo . "\n" .
+			"CURL ERROR: " . $curlErr . "\n" .
+			"BODY      : " . $body . "\n" .
+			"CURL INFO : " . json_encode($curlInfo) . "\n" .
+			"========================================",
+			'api'
+		);
+
+		// =========================================================
+		// CURL ERROR
+		// =========================================================
+		if ($body === false || $curlNo !== 0) {
+
+			return [
+				'success' => false,
+
+				'http_code' => $httpCode,
+
+				'curl_errno' => $curlNo,
+
+				'curl_error' => $curlErr,
+
+				'message' => 'Curl gagal menghubungi Bank',
+
+				'body' => $body,
+
+				'response' => null,
+
+				'payload' => $payload,
+
+				'curl_info' => $curlInfo,
+			];
+		}
+
+		// =========================================================
+		// RESPONSE KOSONG
+		// =========================================================
+		if (trim((string) $body) === '') {
+
+			return [
+				'success' => false,
+
+				'http_code' => $httpCode,
+
+				'curl_errno' => $curlNo,
+
+				'curl_error' => $curlErr,
+
+				'message' => 'Bank memberikan response kosong',
+
+				'body' => $body,
+
+				'response' => null,
+
+				'payload' => $payload,
+
+				'curl_info' => $curlInfo,
+			];
+		}
+
+		// =========================================================
+		// JSON DECODE
+		// =========================================================
+		$response = json_decode(
+			$body,
+			true
+		);
+
+		// =========================================================
+		// JSON INVALID
+		// =========================================================
+		if ($response === null && json_last_error() !== JSON_ERROR_NONE) {
+
+			return [
+				'success' => false,
+
+				'http_code' => $httpCode,
+
+				'curl_errno' => $curlNo,
+
+				'curl_error' => $curlErr,
+
+				'message' => 'Response Bank bukan JSON valid',
+
+				'body' => $body,
+
+				'response' => null,
+
+				'payload' => $payload,
+
+				'json_error' => json_last_error_msg(),
+
+				'curl_info' => $curlInfo,
+			];
+		}
+
+		// =========================================================
+		// CARI RESULT
+		//
+		// FORMAT 1:
+		// {
+		//   "Result": {...}
+		// }
+		//
+		// FORMAT 2:
+		// {
+		//   "response": {
+		//      "Result": {...}
+		//   }
+		// }
+		// =========================================================
+		$result = null;
+
+		if (
+			isset($response['Result']) &&
+			is_array($response['Result'])
+		) {
+
+			$result = $response['Result'];
+
+		} elseif (
+			isset($response['response']) &&
+			isset($response['response']['Result']) &&
+			is_array($response['response']['Result'])
+		) {
+
+			$result = $response['response']['Result'];
+		}
+
+		// =========================================================
+		// RESULT TIDAK DITEMUKAN
+		// =========================================================
+		if ($result === null) {
+
+			return [
+				'success' => false,
+
+				'http_code' => $httpCode,
+
+				'curl_errno' => $curlNo,
+
+				'curl_error' => $curlErr,
+
+				'message' => 'Response Bank tidak memiliki Result',
+
+				'body' => $body,
+
+				'response' => $response,
+
+				'payload' => $payload,
+
+				'curl_info' => $curlInfo,
+			];
+		}
+
+		// =========================================================
+		// AMBIL RESULT
+		// =========================================================
+		$kodeResponse = isset($result['kode_response'])
+			? (string) $result['kode_response']
+			: '';
+
+		$statusResponse = isset($result['status'])
+			? (string) $result['status']
+			: '';
+
+		$message = isset($result['message'])
+			? (string) $result['message']
+			: 'Response dari Bank';
+
+		// =========================================================
+		// TENTUKAN SUCCESS
+		// =========================================================
+		$success = (
+			$httpCode >= 200 &&
+			$httpCode < 300 &&
+			$kodeResponse === '00' &&
+			$statusResponse === '200'
+		);
+
+		// =========================================================
+		// LOG HASIL PARSING
+		// =========================================================
+		Yii::error(
+			"========== HASIL PARSING BANK ==========\n" .
+			"HTTP CODE      : " . $httpCode . "\n" .
+			"STATUS         : " . $statusResponse . "\n" .
+			"KODE RESPONSE  : " . $kodeResponse . "\n" .
+			"MESSAGE        : " . $message . "\n" .
+			"SUCCESS        : " . ($success ? 'TRUE' : 'FALSE') . "\n" .
+			"========================================",
+			'api'
+		);
+
+		// =========================================================
+		// RETURN
+		// =========================================================
 		return [
+			'success' => $success,
+
 			'http_code' => $httpCode,
-			'curl_errno' => $curlNo,
-			'curl_error' => $curlErr,
+
+			'kode_response' => $kodeResponse,
+
+			'status' => $statusResponse,
+
+			'message' => $message,
+
+			'response' => $response,
+
 			'body' => $body,
+
+			'payload' => $payload,
+
+			'curl_errno' => $curlNo,
+
+			'curl_error' => $curlErr,
+
+			'curl_info' => $curlInfo,
+
+			'result' => $result,
 		];
-
-        /*
-         * CURL ERROR
-         */
-        if ($curlErrno !== 0) {
-
-            return [
-                'success' => false,
-                'http_code' => $httpCode,
-                'message' => 'CURL ERROR: ' . $curlError,
-                'curl_errno' => $curlErrno,
-                'curl_error' => $curlError,
-                'body' => $body,
-                'response' => null,
-                'payload' => $payload,
-            ];
-        }
-
-        /*
-         * RESPONSE KOSONG
-         */
-        if ($body === false || trim($body) === '') {
-
-            return [
-                'success' => false,
-                'http_code' => $httpCode,
-                'message' => 'Bank mengembalikan response kosong',
-                'body' => $body,
-                'response' => null,
-                'payload' => $payload,
-            ];
-        }
-
-        /*
-         * DECODE JSON
-         */
-        $response = json_decode($body, true);
-
-        if (json_last_error() !== JSON_ERROR_NONE) {
-
-            return [
-                'success' => false,
-                'http_code' => $httpCode,
-                'message' => 'Response Bank bukan JSON: ' . json_last_error_msg(),
-                'body' => $body,
-                'response' => null,
-                'payload' => $payload,
-            ];
-        }
-
-        if (isset($response['Result'])) {
-
-            $result = $response['Result'];
-
-        } elseif (
-            isset($response['response']) &&
-            isset($response['response']['Result'])
-        ) {
-
-            $result = $response['response']['Result'];
-
-        } else {
-
-            return [
-                'success' => false,
-                'http_code' => $httpCode,
-                'message' => 'Bank tidak memberikan response Result',
-                'response' => $response,
-                'body' => $body,
-                'payload' => $payload,
-            ];
-        }
-
-        $kodeResponse = isset($result['kode_response'])
-            ? (string) $result['kode_response']
-            : null;
-
-        $statusResponse = isset($result['status'])
-            ? (string) $result['status']
-            : null;
-
-        $message = isset($result['message'])
-            ? (string) $result['message']
-            : 'Response Bank';
-
-        $success = (
-            $httpCode >= 200 &&
-            $httpCode < 300 &&
-            $kodeResponse === '00' &&
-            $statusResponse === '200'
-        );
-
-        return [
-            'success' => $success,
-
-            'http_code' => $httpCode,
-
-            'kode_response' => $kodeResponse,
-
-            'status' => $statusResponse,
-
-            'message' => $message,
-
-            'response' => $response,
-
-            'body' => $body,
-
-            'payload' => $payload,
-        ];
-
-    } catch (\Throwable $e) {
-
-        Yii::error(
-            'callAPIPostDebitur ERROR: ' .
-            $e->getMessage() .
-            "\nFILE: " . $e->getFile() .
-            "\nLINE: " . $e->getLine() .
-            "\nTRACE:\n" . $e->getTraceAsString(),
-            'api'
-        );
-
-        return [
-            'success' => false,
-            'http_code' => 500,
-            'message' => $e->getMessage(),
-            'response' => null,
-        ];
-    }
-}
+	}
 
 }

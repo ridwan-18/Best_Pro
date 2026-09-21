@@ -745,49 +745,41 @@ class MemberClaimController extends Controller
 
 		try {
 
-			// =====================================================
-			// 1. REQUEST HARUS POST
-			// =====================================================
-			if (!Yii::$app->request->isPost) {
+			$request = Yii::$app->request;
+
+			// =========================================================
+			// 1. HANYA POST
+			// =========================================================
+			if (!$request->isPost) {
 				return [
 					'Result' => [
-						'message' => 'Request harus POST',
-						'kode_response' => '01',
 						'status' => '405',
+						'kode_response' => '05',
+						'message' => 'Method harus POST',
 					],
 				];
 			}
 
+			// =========================================================
+			// 2. AMBIL POST
+			// =========================================================
+			$action = trim((string) $request->post('action', ''));
+			$keterangan = trim((string) $request->post('keterangan', ''));
+			$status_bayar = trim((string) $request->post('status_bayar', ''));
 
-			// =====================================================
-			// 2. AMBIL PARAMETER POST
-			// =====================================================
-			$action = Yii::$app->request->post('action');
+			Yii::info(
+				'APPROVEDOC POST: ' . json_encode([
+					'id_loan' => $id_loan,
+					'action' => $action,
+					'keterangan' => $keterangan,
+					'status_bayar' => $status_bayar,
+				]),
+				'restitusi'
+			);
 
-			$keterangan = Yii::$app->request->post('keterangan');
-			$keterangan = trim((string) $keterangan);
-
-			$status_bayar = Yii::$app->request->post('status_bayar');
-			$status_bayar = trim((string) $status_bayar);
-
-
-			// =====================================================
-			// 3. VALIDASI STATUS BAYAR
-			// =====================================================
-			if (!in_array($status_bayar, ['1', '2'], true)) {
-				return [
-					'Result' => [
-						'message' => 'Status bayar tidak valid',
-						'kode_response' => '04',
-						'status' => '400',
-					],
-				];
-			}
-
-
-			// =====================================================
-			// 4. VALIDASI ACTION
-			// =====================================================
+			// =========================================================
+			// 3. VALIDASI ACTION
+			// =========================================================
 			$allowedAction = [
 				'1',
 				'2',
@@ -796,215 +788,204 @@ class MemberClaimController extends Controller
 				'5',
 				'6',
 				'7',
-				'8',
+				'8'
 			];
 
-			if (!in_array((string) $action, $allowedAction, true)) {
+			if (!in_array($action, $allowedAction, true)) {
 				return [
 					'Result' => [
-						'message' => 'Status claim tidak valid',
-						'kode_response' => '05',
 						'status' => '400',
+						'kode_response' => '02',
+						'message' => 'Action tidak valid',
 					],
 				];
 			}
 
+			// =========================================================
+			// 4. VALIDASI STATUS BAYAR
+			// =========================================================
+			if (!in_array($status_bayar, ['1', '2'], true)) {
+				return [
+					'Result' => [
+						'status' => '400',
+						'kode_response' => '02',
+						'message' => 'Status bayar harus 1 atau 2',
+					],
+				];
+			}
 
-			// =====================================================
+			// =========================================================
 			// 5. VALIDASI KETERANGAN
-			// =====================================================
+			// =========================================================
 			if ($keterangan === '') {
 				return [
 					'Result' => [
-						'message' => 'Keterangan wajib diisi',
-						'kode_response' => '04',
 						'status' => '400',
+						'kode_response' => '02',
+						'message' => 'Keterangan wajib diisi',
 					],
 				];
 			}
 
-
-			// =====================================================
-			// 6. CARI DOKUMEN CLAIM
-			// =====================================================
+			// =========================================================
+			// 6. CARI DOKUMEN CLAIM TERAKHIR
+			// =========================================================
 			$document = map_member_dokumen_medis::find()
 				->where([
 					'id_loan' => $id_loan,
 					'jenis_dokumen' => 'claim',
 				])
 				->orderBy([
-					'id' => SORT_DESC,
+					'id' => SORT_DESC
 				])
 				->one();
 
-
-			if ($document === null) {
+			if (!$document) {
 				return [
 					'Result' => [
-						'message' => 'Document tidak ditemukan',
-						'kode_response' => '02',
 						'status' => '404',
+						'kode_response' => '04',
+						'message' => 'Dokumen claim tidak ditemukan',
 					],
 				];
 			}
 
-
-			// =====================================================
-			// 7. UPDATE STATUS DOKUMEN
-			// =====================================================
-			$document->approve = (string) $action;
+			// =========================================================
+			// 7. UPDATE DOKUMEN
+			// =========================================================
+			$document->approve = $action;
 			$document->keterangan = $keterangan;
-
 
 			if (!$document->save(false)) {
 
 				return [
 					'Result' => [
-						'message' => 'Gagal menyimpan status dokumen',
-						'kode_response' => '03',
 						'status' => '500',
+						'kode_response' => '07',
+						'message' => 'Gagal menyimpan dokumen claim',
 					],
-
 					'debug' => [
-						'errors' => $document->getErrors(),
+						'errors' => $document->errors,
 					],
 				];
 			}
 
-
-			// =====================================================
+			// =========================================================
 			// 8. CARI MEMBER
-			// =====================================================
-			$model = member::findOne([
-				'nomor_akad' => $id_loan,
-			]);
+			// =========================================================
+			$model = Member::find()
+				->where([
+					'nomor_akad' => $id_loan,
+				])
+				->one();
 
-
-			if ($model === null) {
-
-				Yii::error(
-					'Data member tidak ditemukan. no_akad=' . $id_loan,
-					'claim'
-				);
-
+			if (!$model) {
 				return [
 					'Result' => [
-						'message' =>
-							'Data member tidak ditemukan dengan no_akad: ' .
-							$id_loan,
-
-						'kode_response' => '06',
 						'status' => '404',
+						'kode_response' => '04',
+						'message' => 'Member dengan nomor akad ' . $id_loan . ' tidak ditemukan',
 					],
 				];
 			}
 
+			// =========================================================
+			// 9. CARI CLAIM
+			// =========================================================
+			$klaim = MemberClaim::find()
+				->where([
+					'no_akad' => $id_loan,
+				])
+				->orderBy([
+					'id' => SORT_DESC
+				])
+				->one();
 
-			// =====================================================
-			// 9. CARI MEMBER CLAIM
-			// =====================================================
-			$klaim = MemberClaim::findOne([
-				'no_akad' => $id_loan,
-			]);
-
-
-			if ($klaim === null) {
-
-				Yii::error(
-					'Data member claim tidak ditemukan. no_akad=' . $id_loan,
-					'claim'
-				);
-
+			if (!$klaim) {
 				return [
 					'Result' => [
-						'message' =>
-							'Data member claim tidak ditemukan dengan no_akad: ' .
-							$id_loan,
-
-						'kode_response' => '06',
 						'status' => '404',
+						'kode_response' => '04',
+						'message' => 'Data claim tidak ditemukan',
 					],
 				];
 			}
 
-
-			// =====================================================
-			// 10. DEBUG DATA
-			// =====================================================
-			Yii::info(
-				'DATA MEMBER: ' .
-				json_encode($model->attributes),
-				'claim'
-			);
-
-			Yii::info(
-				'DATA CLAIM: ' .
-				json_encode($klaim->attributes),
-				'claim'
-			);
-
-
-			// =====================================================
-			// 11. UPDATE STATUS CLAIM
-			// =====================================================
+			// =========================================================
+			// 10. UPDATE CLAIM
+			// =========================================================
 			$klaim->status_bayar = $status_bayar;
 			$klaim->status_claim = $action;
-
 
 			if (!$klaim->save(false)) {
 
 				return [
 					'Result' => [
-						'message' => 'Gagal menyimpan status claim',
-						'kode_response' => '03',
 						'status' => '500',
+						'kode_response' => '07',
+						'message' => 'Gagal menyimpan status claim',
 					],
-
 					'debug' => [
-						'errors' => $klaim->getErrors(),
+						'errors' => $klaim->errors,
 					],
 				];
 			}
 
-
-			// =====================================================
-			// 12. LOGIN KE BANK
-			// =====================================================
+			// =========================================================
+			// 11. LOGIN KE BANK RIAU
+			// =========================================================
 			$loginResponse = $klaim->callAPIPostMemberLoginRiau();
 
-
 			Yii::info(
-				'LOGIN RESPONSE BANK: ' .
+				'LOGIN BANK RESPONSE: ' .
 				json_encode($loginResponse),
-				'claim'
+				'restitusi'
 			);
 
-
-			if (
-				!is_array($loginResponse) ||
-				empty($loginResponse['token'])
-			) {
+			if (!is_array($loginResponse)) {
 
 				return [
 					'Result' => [
-						'message' => 'Token Bank tidak didapat',
-						'kode_response' => '04',
-						'status' => '401',
+						'status' => '500',
+						'kode_response' => '07',
+						'message' => 'Response login Bank tidak valid',
 					],
-
 					'debug' => [
 						'login_response' => $loginResponse,
 					],
 				];
 			}
 
+			// =========================================================
+			// 12. AMBIL TOKEN
+			// =========================================================
+			$token = '';
 
-			$token = $loginResponse['token'];
+			if (isset($loginResponse['token'])) {
+				$token = trim((string) $loginResponse['token']);
+			}
 
+			if ($token === '' && isset($loginResponse['response']['token'])) {
+				$token = trim((string) $loginResponse['response']['token']);
+			}
 
-			// =====================================================
-			// 13. CALL CALLBACK DEBITUR
-			// =====================================================
+			if ($token === '') {
+
+				return [
+					'Result' => [
+						'status' => '500',
+						'kode_response' => '07',
+						'message' => 'Token login Bank tidak ditemukan',
+					],
+					'debug' => [
+						'login_response' => $loginResponse,
+					],
+				];
+			}
+
+			// =========================================================
+			// 13. CALLBACK KE BANK
+			// =========================================================
 			$apiResponse = $klaim->callAPIPostDebitur(
 				$token,
 				$model,
@@ -1012,41 +993,23 @@ class MemberClaimController extends Controller
 				$klaim
 			);
 
-
-			// =====================================================
-			// 14. DEBUG RESPONSE API BANK
-			// =====================================================
-			Yii::error(
-				"========== RESPONSE CALLBACK DEBITUR ==========\n" .
-				print_r($apiResponse, true) .
-				"\n===============================================",
-				'claim'
-			);
-
-
-			// =====================================================
-			// 15. VALIDASI RESPONSE API
-			// =====================================================
+			// =========================================================
+			// 14. TAMPILKAN RESPONSE CALLBACK JIKA GAGAL
+			// =========================================================
 			if (!is_array($apiResponse)) {
 
 				return [
 					'Result' => [
-						'message' => 'Response API tidak valid',
-						'kode_response' => '07',
 						'status' => '500',
+						'kode_response' => '07',
+						'message' => 'Response callback Bank bukan array',
 					],
-
 					'debug' => [
-						'apiResponse' => $apiResponse,
-						'type' => gettype($apiResponse),
+						'api_response' => $apiResponse,
 					],
 				];
 			}
 
-
-			// =====================================================
-			// 16. JIKA API BANK GAGAL
-			// =====================================================
 			if (
 				!isset($apiResponse['success']) ||
 				$apiResponse['success'] !== true
@@ -1054,105 +1017,96 @@ class MemberClaimController extends Controller
 
 				return [
 					'Result' => [
-						'message' =>
-							$apiResponse['message']
-							?? 'Gagal callback ke Bank',
-
-						'kode_response' =>
-							$apiResponse['kode_response']
-							?? '07',
-
-						'status' =>
-							(string) (
-								$apiResponse['status']
-								?? '500'
-							),
+						'status' => '500',
+						'kode_response' => '07',
+						'message' => 'Gagal callback ke Bank',
 					],
 
+					// =================================================
+					// INI RESPONSE ASLI BANK / CURL
+					// =================================================
 					'debug' => [
-						'http_code' =>
-							$apiResponse['http_code']
-							?? null,
+						'http_code' => isset($apiResponse['http_code'])
+							? $apiResponse['http_code']
+							: null,
 
-						'curl_errno' =>
-							$apiResponse['curl_errno']
-							?? null,
+						'curl_errno' => isset($apiResponse['curl_errno'])
+							? $apiResponse['curl_errno']
+							: null,
 
-						'curl_error' =>
-							$apiResponse['curl_error']
-							?? null,
+						'curl_error' => isset($apiResponse['curl_error'])
+							? $apiResponse['curl_error']
+							: null,
 
-						'body' =>
-							$apiResponse['body']
-							?? null,
+						'message' => isset($apiResponse['message'])
+							? $apiResponse['message']
+							: null,
 
-						'response' =>
-							$apiResponse['response']
-							?? null,
+						'body' => isset($apiResponse['body'])
+							? $apiResponse['body']
+							: null,
+
+						'response' => isset($apiResponse['response'])
+							? $apiResponse['response']
+							: null,
+
+						'json_error' => isset($apiResponse['json_error'])
+							? $apiResponse['json_error']
+							: null,
 					],
 				];
 			}
 
-
-			// =====================================================
-			// 17. API BANK BERHASIL
-			// =====================================================
+			// =========================================================
+			// 15. CALLBACK BERHASIL
+			// =========================================================
 			return [
 				'Result' => [
-					'message' =>
-						$apiResponse['message']
-						?? 'Callback ke Bank berhasil',
+					'status' => isset($apiResponse['status'])
+						? $apiResponse['status']
+						: '200',
 
-					'kode_response' =>
-						$apiResponse['kode_response']
-						?? '00',
+					'kode_response' => isset($apiResponse['kode_response'])
+						? $apiResponse['kode_response']
+						: '00',
 
-					'status' =>
-						(string) (
-							$apiResponse['status']
-							?? '200'
-						),
+					'message' => isset($apiResponse['message'])
+						? $apiResponse['message']
+						: 'Callback ke Bank berhasil',
 				],
 
 				'debug' => [
-					'http_code' =>
-						$apiResponse['http_code']
-						?? null,
+					'http_code' => isset($apiResponse['http_code'])
+						? $apiResponse['http_code']
+						: null,
 
-					'body' =>
-						$apiResponse['body']
-						?? null,
+					'body' => isset($apiResponse['body'])
+						? $apiResponse['body']
+						: null,
 
-					'response' =>
-						$apiResponse['response']
-						?? null,
+					'response' => isset($apiResponse['response'])
+						? $apiResponse['response']
+						: null,
 				],
 			];
 
-
 		} catch (\Throwable $e) {
 
-			// =====================================================
-			// EXCEPTION
-			// =====================================================
 			Yii::error(
-				'Approvedoc Error: ' .
-				$e->getMessage() .
-				"\nFILE: " .
-				$e->getFile() .
-				"\nLINE: " .
-				$e->getLine() .
-				"\nTRACE:\n" .
-				$e->getTraceAsString(),
-				'claim'
+				"ERROR actionApprovedoc\n" .
+				"ID LOAN : " . $id_loan . "\n" .
+				"MESSAGE : " . $e->getMessage() . "\n" .
+				"FILE    : " . $e->getFile() . "\n" .
+				"LINE    : " . $e->getLine() . "\n" .
+				"TRACE   : " . $e->getTraceAsString(),
+				'restitusi'
 			);
-
 
 			return [
 				'Result' => [
-					'message' => $e->getMessage(),
-					'kode_response' => '99',
 					'status' => '500',
+					'kode_response' => '07',
+					'message' => 'ERROR actionApprovedoc: ' . $e->getMessage(),
 				],
 
 				'debug' => [
