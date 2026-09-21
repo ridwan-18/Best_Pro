@@ -904,11 +904,11 @@ class MemberClaimController extends Controller
 			// =====================================================
 			// CARI MEMBER CLAIM BERDASARKAN NOMOR AKAD
 			// =====================================================
-			$claim = MemberClaim::findOne([
+			$klaim = MemberClaim::findOne([
 				'no_akad' => $id_loan,
 			]);
 
-			if ($claim === null) {
+			if ($klaim === null) {
 
 				Yii::error(
 					'Data member claim tidak ditemukan. no_akad=' . $id_loan,
@@ -942,10 +942,10 @@ class MemberClaimController extends Controller
 			// =====================================================
 			// UPDATE STATUS CLAIM
 			// =====================================================
-			$claim->status_bayar = $status_bayar;
-			$claim->status_claim = $action;
+			$klaim->status_bayar = $status_bayar;
+			$klaim->status_claim = $action;
 
-			if (!$claim->save(false)) {
+			if (!$klaim->save(false)) {
 
 				return [
 					'Result' => [
@@ -954,7 +954,7 @@ class MemberClaimController extends Controller
 						'status' => '500',
 					],
 					'debug' => [
-						'errors' => $claim->getErrors(),
+						'errors' => $klaim->getErrors(),
 					],
 				];
 			}
@@ -963,7 +963,7 @@ class MemberClaimController extends Controller
 			// =====================================================
 			// LOGIN KE BANK
 			// =====================================================
-			$loginResponse = $claim->callAPIPostMemberLoginRiau();
+			$loginResponse = $klaim->callAPIPostMemberLoginRiau();
 
 			if (empty($loginResponse['token'])) {
 
@@ -989,82 +989,42 @@ class MemberClaimController extends Controller
 				$token,
 				$model,
 				$document,
-				$claim
+				$klaim
 			);
 
+			if (!is_array($apiResponse)) {
+    return [
+        'Result' => [
+            'message' => 'Response API tidak valid',
+            'kode_response' => '07',
+            'status' => '500',
+        ],
+    ];
+}
 
-			// =====================================================
-			// DEBUG
-			// =====================================================
-	return [
+if (!$apiResponse['success']) {
+
+    return [
+        'Result' => [
+            'message' => $apiResponse['message'] ?? 'Gagal callback ke Bank',
+            'kode_response' => $apiResponse['kode_response'] ?? '07',
+            'status' => (string) ($apiResponse['status'] ?? '500'),
+        ],
+
+        'debug' => [
+            'http_code' => $apiResponse['http_code'] ?? null,
+            'body' => $apiResponse['body'] ?? null,
+        ],
+    ];
+}
+
+return [
     'Result' => [
-        'message' => 'DEBUG HASIL CALL API DEBITUR',
-        'kode_response' => '07',
-        'status' => '500',
-    ],
-    'debug' => [
-        'type' => gettype($apiResponse),
-        'apiResponse' => $apiResponse,
-
-        'http_code' => is_array($apiResponse)
-            ? ($apiResponse['http_code'] ?? null)
-            : null,
-
-        'body' => is_array($apiResponse)
-            ? ($apiResponse['body'] ?? null)
-            : null,
-
-        'response' => is_array($apiResponse)
-            ? ($apiResponse['response'] ?? null)
-            : null,
-
-        'message' => is_array($apiResponse)
-            ? ($apiResponse['message'] ?? null)
-            : null,
-
-        'json' => json_encode(
-            $apiResponse,
-            JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE
-        ),
+        'message' => $apiResponse['message'] ?? 'Success',
+        'kode_response' => $apiResponse['kode_response'] ?? '00',
+        'status' => $apiResponse['status'] ?? '200',
     ],
 ];
-
-			// =====================================================
-			// RESPONSE DARI BANK
-			// =====================================================
-			// if (isset($apiResponse['response']['Result'])) {
-
-				// $result = $apiResponse['response']['Result'];
-
-				// return [
-					// 'Result' => [
-						// 'message' =>
-							// $result['message'] ?? 'Response Bank',
-
-						// 'kode_response' =>
-							// $result['kode_response'] ?? '00',
-
-						// 'status' =>
-							// $result['status'] ?? '500',
-					// ],
-
-					// 'debug' => [
-						// 'payload' =>
-							// $apiResponse['payload'] ?? null,
-
-						// 'http_code' =>
-							// $apiResponse['http_code'] ?? null,
-
-						// 'body' =>
-							// $apiResponse['body'] ?? null,
-					// ],
-				// ];
-			// }
-
-
-			// =====================================================
-			// BANK TIDAK MEMBERIKAN RESULT
-			// =====================================================
 			return [
 				'Result' => [
 					'message' => 'Bank tidak memberikan response Result',
