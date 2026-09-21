@@ -4934,7 +4934,7 @@ if (file_exists($zipPath)) {
 				}
 		
 			$check_member = MemberClaim::findOne([
-				'nomor_akad' => $body['no_akad']
+				'no_akad' => $body['no_akad']
 			]);
 
 			$transaction = Yii::$app->db->beginTransaction();
@@ -5108,7 +5108,7 @@ if (file_exists($zipPath)) {
 				$countDokumen =
 					\app\models\map_member_dokumen_medis::find()
 						->where([
-							'id_loan' => $body['id_pengajuan'],
+							'id_loan' => $body['no_akad'];,
 							'jenis_dokumen' => 'claim',
 						])
 						->count();
@@ -5186,11 +5186,9 @@ if (file_exists($zipPath)) {
 				$dokumenMedis =
 					new \app\models\map_member_dokumen_medis();
 
-				$dokumenMedis->id_loan =
-					$body['id_pengajuan'];
+				$dokumenMedis->id_loan =$body['no_akad'];
 
-				$dokumenMedis->kode_dokumen =
-					$codeDoc;
+				$dokumenMedis->kode_dokumen =$codeDoc;
 
 				if (
 					!empty($sftpResult['success']) &&
