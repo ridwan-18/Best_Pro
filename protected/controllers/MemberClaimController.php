@@ -745,7 +745,9 @@ class MemberClaimController extends Controller
 
 		try {
 
-		
+			// =====================================================
+			// 1. REQUEST HARUS POST
+			// =====================================================
 			if (!Yii::$app->request->isPost) {
 				return [
 					'Result' => [
@@ -756,14 +758,22 @@ class MemberClaimController extends Controller
 				];
 			}
 
+
+			// =====================================================
+			// 2. AMBIL PARAMETER POST
+			// =====================================================
 			$action = Yii::$app->request->post('action');
+
 			$keterangan = Yii::$app->request->post('keterangan');
 			$keterangan = trim((string) $keterangan);
-			
-						
+
 			$status_bayar = Yii::$app->request->post('status_bayar');
 			$status_bayar = trim((string) $status_bayar);
 
+
+			// =====================================================
+			// 3. VALIDASI STATUS BAYAR
+			// =====================================================
 			if (!in_array($status_bayar, ['1', '2'], true)) {
 				return [
 					'Result' => [
@@ -774,29 +784,36 @@ class MemberClaimController extends Controller
 				];
 			}
 
+
+			// =====================================================
+			// 4. VALIDASI ACTION
+			// =====================================================
 			$allowedAction = [
-							'1',
-							'2',
-							'3',
-							'4',
-							'5',
-							'6',
-							'7',
-							'8',
-						];
+				'1',
+				'2',
+				'3',
+				'4',
+				'5',
+				'6',
+				'7',
+				'8',
+			];
 
 			if (!in_array((string) $action, $allowedAction, true)) {
-			return [
-				'Result' => [
-					'message' => 'Status claim tidak valid',
-					'kode_response' => '05',
-					'status' => '400',
-				],
-			];
-		}
+				return [
+					'Result' => [
+						'message' => 'Status claim tidak valid',
+						'kode_response' => '05',
+						'status' => '400',
+					],
+				];
+			}
 
 
-			if (empty($keterangan)) {
+			// =====================================================
+			// 5. VALIDASI KETERANGAN
+			// =====================================================
+			if ($keterangan === '') {
 				return [
 					'Result' => [
 						'message' => 'Keterangan wajib diisi',
@@ -805,14 +822,21 @@ class MemberClaimController extends Controller
 					],
 				];
 			}
-			
+
+
+			// =====================================================
+			// 6. CARI DOKUMEN CLAIM
+			// =====================================================
 			$document = map_member_dokumen_medis::find()
-			->where([
-				'id_loan' => $id_loan,
-				'jenis_dokumen' => 'claim',
-			])
-			->orderBy(['id' => SORT_DESC])
-			->one();	
+				->where([
+					'id_loan' => $id_loan,
+					'jenis_dokumen' => 'claim',
+				])
+				->orderBy([
+					'id' => SORT_DESC,
+				])
+				->one();
+
 
 			if ($document === null) {
 				return [
@@ -823,45 +847,14 @@ class MemberClaimController extends Controller
 					],
 				];
 			}
-				switch ((string) $action) 
-				{
 
-					case '1':
-						$document->approve = '1'; // Klaim  Register
-						break;
 
-					case '2':
-						$document->approve = '2'; // Klaim  Proses
-						break;
-
-					case '3':
-						$document->approve = '3'; // Klaim  Diterima
-						break;
-
-					case '4':
-						$document->approve = '4'; // Klaim  Ditolak
-						break;
-
-					case '5':
-						$document->approve = '5'; // Klaim  Dibayar
-						break;
-
-					case '6':
-						$document->approve = '6'; // Klaim  kelengkapan
-						break;
-						
-					case '7':
-						$document->approve = '7'; // Klaim  kelengkapan
-						break;
-						
-					case '8':
-						$document->approve = '8'; // Klaim  kelengkapan
-						break;		
-					}
-			
-
+			// =====================================================
+			// 7. UPDATE STATUS DOKUMEN
+			// =====================================================
+			$document->approve = (string) $action;
 			$document->keterangan = $keterangan;
-			// $document->status_bayar = $status_bayar;
+
 
 			if (!$document->save(false)) {
 
@@ -871,18 +864,21 @@ class MemberClaimController extends Controller
 						'kode_response' => '03',
 						'status' => '500',
 					],
+
 					'debug' => [
 						'errors' => $document->getErrors(),
 					],
 				];
 			}
 
+
 			// =====================================================
-// CARI MEMBER BERDASARKAN NOMOR AKAD
-// =====================================================
+			// 8. CARI MEMBER
+			// =====================================================
 			$model = member::findOne([
 				'nomor_akad' => $id_loan,
 			]);
+
 
 			if ($model === null) {
 
@@ -893,7 +889,10 @@ class MemberClaimController extends Controller
 
 				return [
 					'Result' => [
-						'message' => 'Data member tidak ditemukan dengan no_akad: ' . $id_loan,
+						'message' =>
+							'Data member tidak ditemukan dengan no_akad: ' .
+							$id_loan,
+
 						'kode_response' => '06',
 						'status' => '404',
 					],
@@ -902,11 +901,12 @@ class MemberClaimController extends Controller
 
 
 			// =====================================================
-			// CARI MEMBER CLAIM BERDASARKAN NOMOR AKAD
+			// 9. CARI MEMBER CLAIM
 			// =====================================================
 			$klaim = MemberClaim::findOne([
 				'no_akad' => $id_loan,
 			]);
+
 
 			if ($klaim === null) {
 
@@ -917,7 +917,10 @@ class MemberClaimController extends Controller
 
 				return [
 					'Result' => [
-						'message' => 'Data member claim tidak ditemukan dengan no_akad: ' . $id_loan,
+						'message' =>
+							'Data member claim tidak ditemukan dengan no_akad: ' .
+							$id_loan,
+
 						'kode_response' => '06',
 						'status' => '404',
 					],
@@ -926,24 +929,27 @@ class MemberClaimController extends Controller
 
 
 			// =====================================================
-			// DEBUG DATA
+			// 10. DEBUG DATA
 			// =====================================================
 			Yii::info(
-				'DATA MEMBER: ' . json_encode($model->attributes),
+				'DATA MEMBER: ' .
+				json_encode($model->attributes),
 				'claim'
 			);
 
 			Yii::info(
-				'DATA CLAIM: ' . json_encode($claim->attributes),
+				'DATA CLAIM: ' .
+				json_encode($klaim->attributes),
 				'claim'
 			);
 
 
 			// =====================================================
-			// UPDATE STATUS CLAIM
+			// 11. UPDATE STATUS CLAIM
 			// =====================================================
 			$klaim->status_bayar = $status_bayar;
 			$klaim->status_claim = $action;
+
 
 			if (!$klaim->save(false)) {
 
@@ -953,6 +959,7 @@ class MemberClaimController extends Controller
 						'kode_response' => '03',
 						'status' => '500',
 					],
+
 					'debug' => [
 						'errors' => $klaim->getErrors(),
 					],
@@ -961,11 +968,22 @@ class MemberClaimController extends Controller
 
 
 			// =====================================================
-			// LOGIN KE BANK
+			// 12. LOGIN KE BANK
 			// =====================================================
 			$loginResponse = $klaim->callAPIPostMemberLoginRiau();
 
-			if (empty($loginResponse['token'])) {
+
+			Yii::info(
+				'LOGIN RESPONSE BANK: ' .
+				json_encode($loginResponse),
+				'claim'
+			);
+
+
+			if (
+				!is_array($loginResponse) ||
+				empty($loginResponse['token'])
+			) {
 
 				return [
 					'Result' => [
@@ -973,17 +991,19 @@ class MemberClaimController extends Controller
 						'kode_response' => '04',
 						'status' => '401',
 					],
+
 					'debug' => [
 						'login_response' => $loginResponse,
 					],
 				];
 			}
 
+
 			$token = $loginResponse['token'];
 
 
 			// =====================================================
-			// CALL CALLBACK DEBITUR
+			// 13. CALL CALLBACK DEBITUR
 			// =====================================================
 			$apiResponse = $klaim->callAPIPostDebitur(
 				$token,
@@ -992,66 +1012,152 @@ class MemberClaimController extends Controller
 				$klaim
 			);
 
+
+			// =====================================================
+			// 14. DEBUG RESPONSE API BANK
+			// =====================================================
+			Yii::error(
+				"========== RESPONSE CALLBACK DEBITUR ==========\n" .
+				print_r($apiResponse, true) .
+				"\n===============================================",
+				'claim'
+			);
+
+
+			// =====================================================
+			// 15. VALIDASI RESPONSE API
+			// =====================================================
 			if (!is_array($apiResponse)) {
-    return [
-        'Result' => [
-            'message' => 'Response API tidak valid',
-            'kode_response' => '07',
-            'status' => '500',
-        ],
-    ];
-}
 
-if (!$apiResponse['success']) {
+				return [
+					'Result' => [
+						'message' => 'Response API tidak valid',
+						'kode_response' => '07',
+						'status' => '500',
+					],
 
-    return [
-        'Result' => [
-            'message' => $apiResponse['message'] ?? 'Gagal callback ke Bank',
-            'kode_response' => $apiResponse['kode_response'] ?? '07',
-            'status' => (string) ($apiResponse['status'] ?? '500'),
-        ],
+					'debug' => [
+						'apiResponse' => $apiResponse,
+						'type' => gettype($apiResponse),
+					],
+				];
+			}
 
-        'debug' => [
-            'http_code' => $apiResponse['http_code'] ?? null,
-            'body' => $apiResponse['body'] ?? null,
-        ],
-    ];
-}
 
-return [
-    'Result' => [
-        'message' => $apiResponse['message'] ?? 'Success',
-        'kode_response' => $apiResponse['kode_response'] ?? '00',
-        'status' => $apiResponse['status'] ?? '200',
-    ],
-];
+			// =====================================================
+			// 16. JIKA API BANK GAGAL
+			// =====================================================
+			if (
+				!isset($apiResponse['success']) ||
+				$apiResponse['success'] !== true
+			) {
+
+				return [
+					'Result' => [
+						'message' =>
+							$apiResponse['message']
+							?? 'Gagal callback ke Bank',
+
+						'kode_response' =>
+							$apiResponse['kode_response']
+							?? '07',
+
+						'status' =>
+							(string) (
+								$apiResponse['status']
+								?? '500'
+							),
+					],
+
+					'debug' => [
+						'http_code' =>
+							$apiResponse['http_code']
+							?? null,
+
+						'curl_errno' =>
+							$apiResponse['curl_errno']
+							?? null,
+
+						'curl_error' =>
+							$apiResponse['curl_error']
+							?? null,
+
+						'body' =>
+							$apiResponse['body']
+							?? null,
+
+						'response' =>
+							$apiResponse['response']
+							?? null,
+					],
+				];
+			}
+
+
+			// =====================================================
+			// 17. API BANK BERHASIL
+			// =====================================================
 			return [
 				'Result' => [
-					'message' => 'Bank tidak memberikan response Result',
-					'kode_response' => '07',
-					'status' => '500',
+					'message' =>
+						$apiResponse['message']
+						?? 'Callback ke Bank berhasil',
+
+					'kode_response' =>
+						$apiResponse['kode_response']
+						?? '00',
+
+					'status' =>
+						(string) (
+							$apiResponse['status']
+							?? '200'
+						),
 				],
 
 				'debug' => [
-					'api_response' => $apiResponse,
+					'http_code' =>
+						$apiResponse['http_code']
+						?? null,
+
+					'body' =>
+						$apiResponse['body']
+						?? null,
+
+					'response' =>
+						$apiResponse['response']
+						?? null,
 				],
 			];
 
+
 		} catch (\Throwable $e) {
 
+			// =====================================================
+			// EXCEPTION
+			// =====================================================
 			Yii::error(
 				'Approvedoc Error: ' .
 				$e->getMessage() .
-				"\n" .
+				"\nFILE: " .
+				$e->getFile() .
+				"\nLINE: " .
+				$e->getLine() .
+				"\nTRACE:\n" .
 				$e->getTraceAsString(),
 				'claim'
 			);
+
 
 			return [
 				'Result' => [
 					'message' => $e->getMessage(),
 					'kode_response' => '99',
 					'status' => '500',
+				],
+
+				'debug' => [
+					'file' => $e->getFile(),
+					'line' => $e->getLine(),
 				],
 			];
 		}
