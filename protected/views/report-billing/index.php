@@ -115,6 +115,7 @@ $this->title = 'Member - ' . Yii::$app->name;
                                         <td><?= $model['partner']; ?></td>
                                         <td><?= $model['batch_no']; ?></td>
                                         <td><?= $model['total_member']; ?></td>
+										 <?= number_format((float)$model->total_gross_premium, 0, ',', '.'); ?>
 										 <td><?= number_format($model->total_gross_premium); ?></td>
 										 <td><?= number_format($model->total_extra_premium); ?></td>
 										 <td><?= number_format($model->total_discount_premium); ?></td>
