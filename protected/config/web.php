@@ -30,28 +30,20 @@ $config = [
         'errorHandler' => [
             'errorAction' => 'site/error',
         ],
-        // 'mailer' => [
-            // 'class' => 'yii\swiftmailer\Mailer',
-            // // send all mails to a file by default. You have to set
-            // // 'useFileTransport' to false and configure transport
-            // // for the mailer to send real emails.
-            // 'useFileTransport' => true,
-        // ],
-		
-		
-		 'mailer' => [
-        'class' => 'yii\swiftmailer\Mailer',
-        'viewPath' => '@app/mail',
-        'useFileTransport' => false,
-        'transport' => [
-            'class' => 'Swift_SmtpTransport',
-        'host' => 'smtp.office365.com',
+    'mailer' => [
+    'class' => 'yii\swiftmailer\Mailer',
+    'viewPath' => '@app/mail',
+    'useFileTransport' => false,
+
+    'transport' => [
+        'class' => 'Swift_SmtpTransport',
+        'host' => 'smtp.gmail.com',
         'username' => 'administrator@bestpro-id.com',
-        'password' => 'ITbestpro01',
+        'password' => 'edqecyiooyeosvhg',
         'port' => 587,
         'encryption' => 'tls',
-				],
-			],
+    ],
+],
 		
         'log' => [
             'traceLevel' => YII_DEBUG ? 3 : 0,
