@@ -1479,7 +1479,7 @@ class MemberController extends Controller
 			])
 			->orderBy(['member_no' => SORT_DESC])
 			->one();
-		
+		var_dump($existingMemberDesc);
 		$existingMemberTotal = $existingMemberDesc->member_no;
 		
 		if ($batch->policy_no == '1032212000464') {
