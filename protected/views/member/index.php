@@ -86,12 +86,12 @@ $this->title = 'Member - ' . Yii::$app->name;
                                 <th>Policy No</th>
                                 <th>Policy Holder</th>
                                 <th>Batch No</th>
+                                <th>Total Member</th>
+                                <th>Status</th>
 								<th>Print Invoice</th>
                                 <th>Created At</th>
                                 <th width="1">Action</th>
-								   <th>Total Member</th>
 								 <th>Upload Invoice</th>
-								 		
                             </tr>
                         </thead>
                         <tbody>
