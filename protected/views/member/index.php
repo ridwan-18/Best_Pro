@@ -87,9 +87,8 @@ $this->title = 'Member - ' . Yii::$app->name;
                                 <th>Policy Holder</th>
                                 <th>Batch No</th>
                                 <th>Total Member</th>
-                                <th>Status</th>
-								<?php if ($user==1) { ?>
-								<th>Print Invoice</th>
+                              <?php if ((int)$user->id === 1) { ?>
+									<th>Print Invoice</th>
 								<?php } ?>
                                 <th>Created At</th>
                                 <th width="1">Action</th>
