@@ -7,46 +7,57 @@ use yii\web\Controller;
 use app\models\User;
 use app\models\ReportBilling;
 use app\models\Member;
+use app\models\Batch;
+use app\models\Partner;
 
 class ReportBillingController extends Controller
 {
-    public function actionIndex()
-    {
-        if (
-            Yii::$app->user->isGuest
-            || !User::findIdentityByAccessToken(Yii::$app->user->identity->access_token)
-        ) {
-            return $this->goHome();
-        }
+   public function actionIndex()
+	{
+		if (
+			Yii::$app->user->isGuest
+			|| !User::findIdentityByAccessToken(Yii::$app->user->identity->access_token)
+		) {
+			return $this->goHome();
+		}
 
-        $wheres = [];
-        if (Yii::$app->request->get('invoice_no') != '') {
-            $wheres['invoice_no'] = Yii::$app->request->get('invoice_no');
-        }
-        if (Yii::$app->request->get('reg_no') != '') {
-            $wheres['reg_no'] = Yii::$app->request->get('reg_no');
-        }
-        if (Yii::$app->request->get('status') != '') {
-            $wheres[Member::tableName() . '.status'] = Yii::$app->request->get('status');
-        }
-        if (Yii::$app->request->get('member_status') != '') {
-            $wheres[Member::tableName() . '.member_status'] = Yii::$app->request->get('member_status');
-        }
+		$params = [
+			'policy_no' => Yii::$app->request->get('policy_no'),
+			'batch_no' => Yii::$app->request->get('batch_no'),
+			'status' => Yii::$app->request->get('status'),
+		];
 
-        $models = [];
-        if (!empty($wheres)) {
-            $totalModel = ReportBilling::countAll($wheres);
-            $models = ReportBilling::getAll($wheres, $totalModel);
-        }
+		$totalModel = Batch::countAll($params);
 
-        $renderParams = [
-            'models' => $models,
-            'statuses' => Member::statuses(),
-            'memberStatuses' => Member::memberStatuses(),
-        ];
+		$pagination = new Pagination([
+			'totalCount' => $totalModel,
+			'pageSize' => Batch::PAGE_SIZE,
+			'pageSizeParam' => false,
+		]);
 
-        return $this->render('index', $renderParams);
-    }
+		$params = array_merge($params, [
+			'offset' => $pagination->offset,
+			'limit' => $pagination->limit,
+			'sort' => SORT_DESC,
+		]);
+
+		 $models = Batch::getAll($params);
+		
+		 // var_dump($models);
+		
+		$members = Member::getAll([
+			'policy_no' => $models->policy_no,
+			'batch_no' => $models->batch_no,
+		]);
+		
+		 // var_dump($members);
+		
+		return $this->render('index', [
+			'models' => $models,
+			'pagination' => $pagination,
+			'members' => $members,
+		]);
+	}
 
     public function actionExport()
     {
