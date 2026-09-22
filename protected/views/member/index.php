@@ -88,7 +88,9 @@ $this->title = 'Member - ' . Yii::$app->name;
                                 <th>Batch No</th>
                                 <th>Total Member</th>
                                 <th>Status</th>
+								<?php if ($user==1) { ?>
 								<th>Print Invoice</th>
+								<?php } ?>
                                 <th>Created At</th>
                                 <th width="1">Action</th>
 								 <th>Upload Invoice</th>
