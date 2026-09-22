@@ -93,7 +93,7 @@ $this->title = 'Member - ' . Yii::$app->name;
                                 <th width="1">Action</th>
 								
 								
-								<?php if ((int)$user->id === 1) { ?>
+								<?php if ((int)$user->id == 1) { ?>
 								 <th>Upload Invoice</th>
 								 <?php } ?>
 								 
