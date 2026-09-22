@@ -7,7 +7,7 @@ use app\models\Batch;
 use app\models\Member;
 use app\models\Utils;
 use yii\helpers\ArrayHelper;
-use yii\helpers\Html;
+
 
 $statuses = Batch::statuses();
 
