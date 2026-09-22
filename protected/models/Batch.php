@@ -356,4 +356,247 @@ class Batch extends \yii\db\ActiveRecord
             ->one();
         return str_pad(($batch != null) ? (int)$batch->batch_no + 1 : 1, 6, '0', STR_PAD_LEFT);
     }
+	
+	
+	public static function getAllProd($params = [])
+	{
+		$tableBatch   = self::tableName();
+		$tableUser    = User::tableName();
+		$tablePolicy  = Policy::tableName();
+		$tablePartner = Partner::tableName();
+
+		$identity = Yii::$app->user->identity;
+
+		$query = self::find()
+			->select([
+				$tableBatch . '.id',
+				$tableBatch . '.policy_no',
+				$tableBatch . '.batch_no',
+				$tableBatch . '.total_member',
+				$tableBatch . '.status',
+				$tableBatch . '.created_at',
+				$tableBatch . '.created_by',
+				$tableBatch . '.files',
+
+				/*
+				 * Ambil nama partner berdasarkan policy_no
+				 */
+				'(' .
+					'SELECT ' . $tablePartner . '.name
+					 FROM ' . $tablePolicy . '
+					 INNER JOIN ' . $tablePartner . '
+						ON ' . $tablePolicy . '.partner_id = ' .
+						   $tablePartner . '.id
+					 WHERE ' . $tablePolicy . '.policy_no = ' .
+						   $tableBatch . '.policy_no
+					 LIMIT 1
+				) AS partner',
+			])
+			->asArray();
+
+
+		/*
+		 * ==========================================================
+		 * ROLE ACCESS
+		 * ==========================================================
+		 */
+
+		/*
+		 * ==========================================================
+		 * SUPER ADMIN
+		 * ROLE = 1
+		 * ==========================================================
+		 *
+		 * Bisa melihat seluruh batch.
+		 */
+		if ($identity->role == User::ROLE_SUPERADMIN) {
+
+			// Tidak ada filter
+
+
+		/*
+		 * ==========================================================
+		 * PUSAT
+		 * ROLE = 6
+		 * ==========================================================
+		 *
+		 * Pusat melihat seluruh batch yang dibuat oleh user
+		 * dengan partner_id yang sama.
+		 */
+		} elseif ($identity->role == User::ROLE_PUSAT) {
+
+			$query->innerJoin(
+				$tableUser,
+				$tableUser . '.id = ' .
+				$tableBatch . '.created_by'
+			);
+
+			$query->andWhere([
+				$tableUser . '.partner_id' => $identity->partner_id
+			]);
+
+
+		/*
+		 * ==========================================================
+		 * CABANG / UW
+		 * ROLE = 2
+		 * ==========================================================
+		 *
+		 * Cabang hanya melihat batch yang dibuat oleh dirinya sendiri.
+		 *
+		 * PENTING:
+		 * Jangan menggunakan partner_id di sini.
+		 */
+		} elseif ($identity->role == User::ROLE_UW) {
+
+			$query->andWhere([
+				$tableBatch . '.created_by' => $identity->id
+			]);
+
+
+		/*
+		 * ==========================================================
+		 * ROLE TIDAK DIKENAL
+		 * ==========================================================
+		 *
+		 * Untuk keamanan, jangan tampilkan data.
+		 */
+		} else {
+
+			$query->andWhere('1 = 0');
+		}
+
+
+		/*
+		 * ==========================================================
+		 * FILTER POLICY
+		 * ==========================================================
+		 */
+
+		if (
+			isset($params['policy_no']) &&
+			$params['policy_no'] !== null &&
+			$params['policy_no'] !== ''
+		) {
+			$query->andWhere([
+				$tableBatch . '.policy_no' => $params['policy_no']
+			]);
+		}
+
+
+		/*
+		 * ==========================================================
+		 * FILTER BATCH
+		 * ==========================================================
+		 */
+
+		if (
+			isset($params['batch_no']) &&
+			$params['batch_no'] !== null &&
+			$params['batch_no'] !== ''
+		) {
+			$query->andWhere([
+				$tableBatch . '.batch_no' => $params['batch_no']
+			]);
+		}
+
+
+		/*
+		 * ==========================================================
+		 * FILTER STATUS
+		 * ==========================================================
+		 */
+
+		if (
+			isset($params['status']) &&
+			$params['status'] !== null &&
+			$params['status'] !== ''
+		) {
+			$query->andWhere([
+				$tableBatch . '.status' => $params['status']
+			]);
+		}
+
+
+		/*
+		 * ==========================================================
+		 * PAGINATION
+		 * ==========================================================
+		 */
+
+		if (
+			isset($params['offset']) &&
+			$params['offset'] !== null &&
+			$params['offset'] !== ''
+		) {
+			$query->offset((int) $params['offset']);
+		}
+
+		if (
+			isset($params['limit']) &&
+			$params['limit'] !== null &&
+			$params['limit'] !== ''
+		) {
+			$query->limit((int) $params['limit']);
+		}
+
+
+		/*
+		 * ==========================================================
+		 * GROUP
+		 * ==========================================================
+		 */
+
+		$query->groupBy([
+			$tableBatch . '.policy_no',
+			$tableBatch . '.batch_no'
+		]);
+
+
+		/*
+		 * ==========================================================
+		 * SORT
+		 * ==========================================================
+		 */
+
+		$sort = !empty($params['sort'])
+			? $params['sort']
+			: SORT_DESC;
+
+		$query->orderBy([
+			$tableBatch . '.id' => $sort
+		]);
+
+
+		/*
+		 * ==========================================================
+		 * RETURN
+		 * ==========================================================
+		 */
+
+		return $query->all();
+	}
+	
+	public static function countAllProd($params = [])
+    {
+        $query = self::find();
+		
+		if (!Yii::$app->user->isGuest) {
+			if (Yii::$app->user->identity->role == User::ROLE_UW) {
+				$query->andWhere(['=', self::tableName() . '.created_by', Yii::$app->user->identity->id]);
+			}
+		}
+
+        if (isset($params['policy_no']) && $params['policy_no'] != null) {
+            $query->andFilterWhere(['=', self::tableName() . '.policy_no', $params['policy_no']]);
+        }
+
+        if (isset($params['batch_no']) && $params['batch_no'] != null) {
+            $query->andFilterWhere(['=', self::tableName() . '.batch_no', $params['batch_no']]);
+        }
+
+        $query->groupBy(['policy_no', 'batch_no']);
+
+        return $query->count();
+    }
 }

@@ -28,7 +28,7 @@ class ReportBillingController extends Controller
 			'status' => Yii::$app->request->get('status'),
 		];
 
-		$totalModel = Batch::countAll($params);
+		$totalModel = Batch::countAllProd($params);
 
 		$pagination = new Pagination([
 			'totalCount' => $totalModel,
@@ -42,7 +42,7 @@ class ReportBillingController extends Controller
 			'sort' => SORT_DESC,
 		]);
 
-		 $models = Batch::getAll($params);
+		 $models = Batch::getAllProd($params);
 		
 		 // var_dump($models);
 		
