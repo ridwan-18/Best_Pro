@@ -485,7 +485,7 @@ $this->title = 'View Member - ' . Yii::$app->name;
 												
 												 <td>
 												 
-												  <?php if ($member['medical_code']!='GOA') { ?>
+												  <?php if ($member['created_by']!='1') { ?>
 												 
 												
 												<?= Html::beginForm(['member/upload-existing'], 'post', [$member['id'] => 'member-upload-form', 'enctype' => 'multipart/form-data']) ?>

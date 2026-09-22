@@ -91,6 +91,7 @@ $this->title = 'Member - ' . Yii::$app->name;
 								<th>Print Invoice</th>
                                 <th>Created At</th>
                                 <th width="1">Action</th>
+								 <th>Upload Invoice</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -150,6 +151,29 @@ $this->title = 'Member - ' . Yii::$app->name;
                                                 ); ?>
                                             </div>
                                         </td>
+										 <td>
+												 
+												  <?php if ($member['medical_code']!='GOA') { ?>
+												 
+												
+												<?= Html::beginForm(['member/upload-existing'], 'post', [$member['id'] => 'member-upload-form', 'enctype' => 'multipart/form-data']) ?>
+												<?= Html::input('hidden', 'id', $member['id'], [
+                                                                'id' => 'id',
+                                                                'required' => 'required',
+                                                            ]) ?>
+												<?= Html::input('hidden', 'batch_id', $batch->id) ?>
+														
+															<?= Html::input('file', 'files_medis', null, ['class' => 'form-control', 'required' => true]) ?>
+												
+												
+													
+														<?= Html::submitButton('<i class="fa fa-upload"></i> Upload', ['class' => 'btn btn-primary waves-effect waves-light', 'id' => 'upload-btn']) ?>
+												
+												<?= Html::endForm() ?>
+											
+											<?php } ?>
+												 </td>
+										
                                     </tr>
                             <?php
                                     $i++;
