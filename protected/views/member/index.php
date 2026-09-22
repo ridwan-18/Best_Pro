@@ -90,9 +90,8 @@ $this->title = 'Member - ' . Yii::$app->name;
                                 <th>Created At</th>
                                 <th width="1">Action</th>
 								   <th>Total Member</th>
-                              <?php if ((int)$user->id === 1) { ?>
 								 <th>Upload Invoice</th>
-								 		<?php } ?>
+								 		
                             </tr>
                         </thead>
                         <tbody>
