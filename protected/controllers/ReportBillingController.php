@@ -9,6 +9,7 @@ use app\models\ReportBilling;
 use app\models\Member;
 use app\models\Batch;
 use app\models\Partner;
+use yii\data\Pagination;
 
 class ReportBillingController extends Controller
 {
