@@ -377,6 +377,10 @@ class Batch extends \yii\db\ActiveRecord
 				$tableBatch . '.created_at',
 				$tableBatch . '.created_by',
 				$tableBatch . '.files',
+				$tableBatch . '.total_gross_premium',
+				$tableBatch . '.total_discount_premium',
+				$tableBatch . '.total_extra_premium',
+				$tableBatch . '.total_nett_premium',
 
 				/*
 				 * Ambil nama partner berdasarkan policy_no

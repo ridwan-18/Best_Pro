@@ -87,6 +87,10 @@ $this->title = 'Member - ' . Yii::$app->name;
                                 <th>Policy Holder</th>
                                 <th>Batch No</th>
                                 <th>Total Member</th>
+								<th>Premi Gross</th>
+								<th>Extra Premi</th>
+								<th>Discount Premi</th>
+								<th>Net Premi</th>
                                 <th>Status</th>
 								<th>Print Invoice</th>
                                 <th>Created At</th>
@@ -108,6 +112,10 @@ $this->title = 'Member - ' . Yii::$app->name;
                                         <td><?= $model['partner']; ?></td>
                                         <td><?= $model['batch_no']; ?></td>
                                         <td><?= $model['total_member']; ?></td>
+										 <td><?= $model['total_gross_premium']; ?></td>
+										  <td><?= $model['total_extra_premium']; ?></td>
+										   <td><?= $model['total_discount_premium']; ?></td>
+										    <td><?= $model['total_nett_premium']; ?></td>
                                         <td><?= $model['status']; ?></td>
 										<td>
 											<?php if (!empty($model['files'])) : ?>
