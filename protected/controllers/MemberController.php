@@ -1473,13 +1473,14 @@ class MemberController extends Controller
 			->all();
 
 			
-		$existingMemberTotal = Member::find()
+		$existingMemberDesc = Member::find()
 		   ->where([
 			'policy_no' => $batch->policy_no,
 			])
 			->orderBy(['member_no' => SORT_DESC])
 			->one();
 		
+		$existingMemberTotal = $existingMemberDesc->member_no;
 		
 		if ($batch->policy_no == '1032212000464') {
 			$runningNo = $existingMemberTotal + 2;
