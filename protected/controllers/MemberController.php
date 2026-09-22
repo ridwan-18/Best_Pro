@@ -1491,8 +1491,8 @@ class MemberController extends Controller
 			
 			$id= $member->id;
 			// $url = 'http://localhost/BestPro/member/print?id=$id';
-			$url = "http://localhost/BestPro/member/print?id=$id";
-			var_dump($url);
+			// $url = "http://localhost/BestPro/member/print?id=$id";
+			// var_dump($url);
 			
 			$stncDate = Member::getStnc($member->start_date, $tc->retroactive);
 
@@ -1500,7 +1500,7 @@ class MemberController extends Controller
 			$member->status = Member::STATUS_INFORCE;
 			$member->stnc_date = $stncDate;
 			$member->member_status = Member::MEMBER_STATUS_INFORCE;
-			$member->e_certifikat=$url;
+			// $member->e_certifikat=$url;
 			$member->save(false);
 			$totalAccepted++;
 			$totalUp += $member->sum_insured;
