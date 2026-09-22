@@ -466,7 +466,6 @@ $this->title = 'View Member - ' . Yii::$app->name;
                                                 <td>
                                                     <?php
                                                     if ($member['acc_status'] != '') :
-													
                                                     ?>
                                                         <a href="<?= Url::base() . '/member/accumulation/?id=' . $member['id']; ?>" onclick="window.open(this.href,'newwindow','width=800,height=800'); return false;" class="btn btn-warning" data-toggle="tooltip" data-placement="top" title="" data-original-title="View Accumulation">
                                                             <?= $member['acc_status']; ?>
@@ -486,7 +485,7 @@ $this->title = 'View Member - ' . Yii::$app->name;
 												
 												 <td>
 												 
-												  <?php if ($user==1)  { ?>
+												  <?php if ($member['medical_code']!='GOA') { ?>
 												 
 												
 												<?= Html::beginForm(['member/upload-existing'], 'post', [$member['id'] => 'member-upload-form', 'enctype' => 'multipart/form-data']) ?>

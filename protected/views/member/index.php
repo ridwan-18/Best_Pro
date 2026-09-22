@@ -153,7 +153,7 @@ $this->title = 'Member - ' . Yii::$app->name;
                                         </td>
 										 <td>
 												 
-												  <?php if ($member['medical_code']!='GOA') { ?>
+												  <?php if ($user==1) { ?>
 												 
 												
 												<?= Html::beginForm(['member/upload-existing'], 'post', [$member['id'] => 'member-upload-form', 'enctype' => 'multipart/form-data']) ?>

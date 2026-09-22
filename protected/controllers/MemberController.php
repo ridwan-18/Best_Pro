@@ -69,6 +69,8 @@ class MemberController extends Controller
 		) {
 			return $this->goHome();
 		}
+		
+		$user= Yii::$app->user->identity->id;
 
 		$params = [
 			'policy_no' => Yii::$app->request->get('policy_no'),
@@ -105,6 +107,8 @@ class MemberController extends Controller
 			'models' => $models,
 			'pagination' => $pagination,
 			'members' => $members,
+			'user' => $user,
+			
 		]);
 	}
 
