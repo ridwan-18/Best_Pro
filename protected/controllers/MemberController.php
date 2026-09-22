@@ -1489,7 +1489,7 @@ class MemberController extends Controller
 		}
 		foreach ($members as $member) {
 			
-			$id= $member->id;
+			// $id= $member->id;
 			// $url = 'http://localhost/BestPro/member/print?id=$id';
 			// $url = "http://localhost/BestPro/member/print?id=$id";
 			// var_dump($url);
@@ -1532,91 +1532,91 @@ class MemberController extends Controller
 			return $this->redirect(['view', 'id' => $id]);
 		}
 
-		$newestId = 1;
-		$billing = Billing::find()->orderBy(['id' => SORT_DESC])->one();
-		if ($billing != null) {
-			$newestId = $billing->id + 1;
-		}
+		// $newestId = 1;
+		// $billing = Billing::find()->orderBy(['id' => SORT_DESC])->one();
+		// if ($billing != null) {
+			// $newestId = $billing->id + 1;
+		// }
 
-		$billingCount = Billing::find()->where([
-			'policy_no' => $batch->policy_no,
-			'YEAR(invoice_date)' => date("Y")
-		])->count();
+		// $billingCount = Billing::find()->where([
+			// 'policy_no' => $batch->policy_no,
+			// 'YEAR(invoice_date)' => date("Y")
+		// ])->count();
 
-		$administrationCost = $tc->administration_cost;
-		$policyCost = $tc->policy_cost;
-		$memberCardCost = $tc->member_card_cost;
-		$certificateCost = $tc->certificate_cost;
-		$stampCost = $tc->stamp_cost;
-		$existingBilling = Billing::find()->where([
-			'policy_no' => $batch->policy_no
-		])->one();
-		if ($existingBilling != null) {
-			$administrationCost = 0;
-			$policyCost = 0;
-			$memberCardCost = 0;
-			$certificateCost = 0;
-			$stampCost = 0;
-		}
+		// $administrationCost = $tc->administration_cost;
+		// $policyCost = $tc->policy_cost;
+		// $memberCardCost = $tc->member_card_cost;
+		// $certificateCost = $tc->certificate_cost;
+		// $stampCost = $tc->stamp_cost;
+		// $existingBilling = Billing::find()->where([
+			// 'policy_no' => $batch->policy_no
+		// ])->one();
+		// if ($existingBilling != null) {
+			// $administrationCost = 0;
+			// $policyCost = 0;
+			// $memberCardCost = 0;
+			// $certificateCost = 0;
+			// $stampCost = 0;
+		// }
 
-		$regNoParams = [
-			'id' => $newestId,
-			'policy_no' => $batch->policy_no,
-			'month' => date("n")
-		];
+		// $regNoParams = [
+			// 'id' => $newestId,
+			// 'policy_no' => $batch->policy_no,
+			// 'month' => date("n")
+		// ];
 
-		$invoiceNoParams = [
-			'id' => $billingCount + 1,
-			'policy_no' => $batch->policy_no,
-			'month' => date("n")
-		];
+		// $invoiceNoParams = [
+			// 'id' => $billingCount + 1,
+			// 'policy_no' => $batch->policy_no,
+			// 'month' => date("n")
+		// ];
 
-		$billing = new Billing();
+		// $billing = new Billing();
 		
-		// $billing->created_by = Yii::$app->user->identity->id;
-		$billing->created_by = $batch->created_by;
-		$billing->policy_no = $batch->policy_no;
-		$billing->batch_no = $batch->batch_no;
-		$billing->reg_no = Billing::generateRegNo($regNoParams);
-		$billing->invoice_no = Billing::generateInvoiceNo($invoiceNoParams);
-		$billing->invoice_date = date("Y-m-d");
-		$billing->due_date = Billing::getDueDate($tc->grace_period);
-		$billing->accept_date = date("Y-m-d");
-		$billing->total_member = $batch->total_member;
-		$billing->gross_premium = $batch->total_gross_premium;
-		$billing->extra_premium = $batch->total_extra_premium;
-		$billing->discount = $batch->total_gross_premium * $commission->discount / 100;
-		$billing->nett_premium = $batch->total_nett_premium;
-		$billing->handling_fee = $batch->total_gross_premium * $commission->handling_fee / 100;
-		if (
-			$batch->policy_no == '1032301000471'
-			|| $batch->policy_no == '1032211000456'
-		) {
-			$billing->pph = $billing->handling_fee * $commission->pph / 100;
-		} else {
-			$billing->pph = ($billing->discount * $commission->pph / 100) + ($billing->handling_fee * $commission->pph / 100);
-		}
-		$billing->ppn = ($billing->discount * $commission->ppn / 100) + ($billing->handling_fee * $commission->ppn / 100);
-		$billing->admin_cost = $administrationCost;
-		$billing->policy_cost = $policyCost;
-		$billing->member_card_cost = $memberCardCost;
-		$billing->certificate_cost = $certificateCost;
-		$billing->stamp_cost = $stampCost;
-		$billing->total_billing = $billing->gross_premium -
-			$billing->discount -
-			$billing->handling_fee +
-			$billing->pph -
-			$billing->ppn +
-			$billing->admin_cost +
-			$billing->policy_cost +
-			$billing->member_card_cost +
-			$billing->certificate_cost +
-			$billing->stamp_cost;
-		$billing->status = Billing::STATUS_UNVERIFIED;
-		if (!$billing->save(false)) {
-			Yii::$app->session->setFlash('error', "Error while saving billing");
-			return $this->redirect(['view', 'id' => $id]);
-		}
+		// // $billing->created_by = Yii::$app->user->identity->id;
+		// $billing->created_by = $batch->created_by;
+		// $billing->policy_no = $batch->policy_no;
+		// $billing->batch_no = $batch->batch_no;
+		// $billing->reg_no = Billing::generateRegNo($regNoParams);
+		// $billing->invoice_no = Billing::generateInvoiceNo($invoiceNoParams);
+		// $billing->invoice_date = date("Y-m-d");
+		// $billing->due_date = Billing::getDueDate($tc->grace_period);
+		// $billing->accept_date = date("Y-m-d");
+		// $billing->total_member = $batch->total_member;
+		// $billing->gross_premium = $batch->total_gross_premium;
+		// $billing->extra_premium = $batch->total_extra_premium;
+		// $billing->discount = $batch->total_gross_premium * $commission->discount / 100;
+		// $billing->nett_premium = $batch->total_nett_premium;
+		// $billing->handling_fee = $batch->total_gross_premium * $commission->handling_fee / 100;
+		// if (
+			// $batch->policy_no == '1032301000471'
+			// || $batch->policy_no == '1032211000456'
+		// ) {
+			// $billing->pph = $billing->handling_fee * $commission->pph / 100;
+		// } else {
+			// $billing->pph = ($billing->discount * $commission->pph / 100) + ($billing->handling_fee * $commission->pph / 100);
+		// }
+		// $billing->ppn = ($billing->discount * $commission->ppn / 100) + ($billing->handling_fee * $commission->ppn / 100);
+		// $billing->admin_cost = $administrationCost;
+		// $billing->policy_cost = $policyCost;
+		// $billing->member_card_cost = $memberCardCost;
+		// $billing->certificate_cost = $certificateCost;
+		// $billing->stamp_cost = $stampCost;
+		// $billing->total_billing = $billing->gross_premium -
+			// $billing->discount -
+			// $billing->handling_fee +
+			// $billing->pph -
+			// $billing->ppn +
+			// $billing->admin_cost +
+			// $billing->policy_cost +
+			// $billing->member_card_cost +
+			// $billing->certificate_cost +
+			// $billing->stamp_cost;
+		// $billing->status = Billing::STATUS_UNVERIFIED;
+		// if (!$billing->save(false)) {
+			// Yii::$app->session->setFlash('error', "Error while saving billing");
+			// return $this->redirect(['view', 'id' => $id]);
+		// }
 
 		Yii::$app->session->setFlash('success', "Successfully Approved");
 		return $this->redirect(['view', 'id' => $id]);
