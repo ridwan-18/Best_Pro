@@ -1471,15 +1471,16 @@ class MemberController extends Controller
 				'member_status' => Member::MEMBER_STATUS_INFORCE
 			])
 			->all();
-			
+
 			
 		$existingMemberTotal = Member::find()
-			->where([
-				'and',
-				['policy_no' => $batch->policy_no],
-				['!=', 'member_no', '']
+		   ->where([
+			'policy_no' => $batch->policy_no,
 			])
-			->count();
+			->orderBy(['member_no' => SORT_DESC])
+			->one();
+		
+		
 		if ($batch->policy_no == '1032212000464') {
 			$runningNo = $existingMemberTotal + 2;
 		} else if ($batch->policy_no == '1032210000446') {
