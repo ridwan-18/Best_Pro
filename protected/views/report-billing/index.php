@@ -67,7 +67,7 @@ $this->title = 'Member - ' . Yii::$app->name;
     </div>
     <div class="row mb-4">
         <div class="col-md-6">
-            <h2 class="p-0 m-0">Member</h2>
+            <h2 class="p-0 m-0">Billing Summary</h2>
         </div>
         <div class="col-md-6 text-right">
             <?= Html::a('<i class="fa fa-upload"></i> Upload', ['create'], ['class' => 'btn btn-primary waves-effect waves-light']); ?>

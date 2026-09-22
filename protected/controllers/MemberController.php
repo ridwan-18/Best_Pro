@@ -717,7 +717,8 @@ class MemberController extends Controller
 
 				$stncDate = Member::getStnc($startDate, $quotationTc->retroactive);
 				$totalPremium = $sumInsured * $quotationRate->rate / 1000;
-				$premiUmum = $sumInsured * $quotationRateUmum->rate / 1000;
+				// $premiUmum = $sumInsured * $quotationRateUmum->rate / 1000;
+				$premiUmum = 0;
 				$grossPremium = $totalPremium;
 				$basicPremium = $totalPremium;
 				$discount = $totalPremium * $quotationCommission->discount / 100;
