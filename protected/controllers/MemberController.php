@@ -1480,21 +1480,34 @@ class MemberController extends Controller
 			->orderBy(['member_no' => SORT_DESC])
 			->one();
 		// var_dump($existingMemberTotal);
-		$existingMemberTotal = $existingMemberDesc->member_no;
-		var_dump($existingMemberTotal);
+		if ($existingMemberDesc) {
+
+		$memberNo = $existingMemberDesc->member_no;
+
+		// Contoh:
+		// 103-26090005054-686
+
+		$parts = explode('-', $memberNo);
+
+		// $parts[1] = 26090005054
+		$middle = $parts[1];
+
+		// Buang 4 digit tanggal (ym = 2609)
+		$existingMemberTotal = (int)substr($middle, 4);
+
+		} else {
+			$existingMemberTotal = 0;
+		}
+
+
 		if ($batch->policy_no == '1032212000464') {
 			$runningNo = $existingMemberTotal + 2;
-		} else if ($batch->policy_no == '1032210000446') {
+		} elseif ($batch->policy_no == '1032210000446') {
 			$runningNo = $existingMemberTotal + 3;
 		} else {
 			$runningNo = $existingMemberTotal + 1;
 		}
 		foreach ($members as $member) {
-			
-			// $id= $member->id;
-			// $url = 'http://localhost/BestPro/member/print?id=$id';
-			// $url = "http://localhost/BestPro/member/print?id=$id";
-			// var_dump($url);
 			
 			$stncDate = Member::getStnc($member->start_date, $tc->retroactive);
 
