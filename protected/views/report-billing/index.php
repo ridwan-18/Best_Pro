@@ -116,10 +116,10 @@ $this->title = 'Member - ' . Yii::$app->name;
                                         <td><?= $model['partner']; ?></td>
                                         <td><?= $model['batch_no']; ?></td>
                                         <td><?= $model['total_member']; ?></td>
-										 <td><?= \number_format((float)$model['total_gross_premium'], 0, ',', '.'); ?></td>
-										 <td><?= number_format($model->total_extra_premium); ?></td>
-										 <td><?= number_format($model->total_discount_premium); ?></td>
-										  <td><?= number_format($model->total_nett_premium); ?></td>
+										<td><?= \number_format((float)$model['total_gross_premium'], 0, ',', '.'); ?></td>
+										<td><?= \number_format((float)$model['total_extra_premium'], 0, ',', '.'); ?></td>
+										<td><?= \number_format((float)$model['total_discount_premium'], 0, ',', '.'); ?></td>
+										<td><?= \number_format((float)$model['total_nett_premium'], 0, ',', '.'); ?></td>
                                         <td><?= $model['status']; ?></td>
 										<td>
 											<?php if (!empty($model['files'])) : ?>
