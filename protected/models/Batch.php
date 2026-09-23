@@ -199,7 +199,7 @@ elseif ($identity->role == User::ROLE_PUSAT) {
 		 *
 		 * Untuk keamanan, jangan tampilkan data.
 		 */
-		} else {
+		else {
 
 			$query->andWhere('1 = 0');
 		}
