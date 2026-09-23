@@ -107,6 +107,9 @@ class Batch extends \yii\db\ActiveRecord
 				$tableBatch . '.created_at',
 				$tableBatch . '.created_by',
 				$tableBatch . '.files',
+				
+				$tableUser . '.id AS user_id',
+				$tableUser . '.name AS name',
 
 				/*
 				 * Ambil nama partner berdasarkan policy_no
@@ -122,6 +125,10 @@ class Batch extends \yii\db\ActiveRecord
 					 LIMIT 1
 				) AS partner',
 			])
+			 ->leftJoin(
+				$tableUser,
+				$tableBatch . '.created_by = ' . $tableUser . '.id'
+			)
 			->asArray();
 
 

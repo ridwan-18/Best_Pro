@@ -94,12 +94,6 @@ class MemberController extends Controller
 		]);
 
 		 $models = Batch::getAll($params);
-		 
-		 $userId = user::findOne([
-			'id' => $models->created_by
-		]);
-		
-		 // var_dump($models);
 		
 		$members = Member::getAll([
 			'policy_no' => $models->policy_no,
@@ -112,7 +106,7 @@ class MemberController extends Controller
 			'models' => $models,
 			'pagination' => $pagination,
 			'members' => $members,
-			'userId' => $userId,
+			'user' => $user,
 			
 		]);
 	}
