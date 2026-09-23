@@ -107,7 +107,6 @@ class Batch extends \yii\db\ActiveRecord
 				$tableBatch . '.created_at',
 				$tableBatch . '.created_by',
 				$tableBatch . '.files',
-				$tableUser . '.name',
 
 				/*
 				 * Ambil nama partner berdasarkan policy_no
