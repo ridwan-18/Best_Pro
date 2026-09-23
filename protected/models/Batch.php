@@ -95,8 +95,7 @@ $tableUser    = User::tableName();
 $tablePolicy  = Policy::tableName();
 $tablePartner = Partner::tableName();
 
-$identity  = Yii::$app->user->identity;
-$partnerId = $identity->partner_id;
+$identity = Yii::$app->user->identity;
 
 $query = self::find()
     ->select([
@@ -119,15 +118,12 @@ $query = self::find()
                  ON pol.partner_id = p.id
              WHERE pol.policy_no = ' . $tableBatch . '.policy_no
              LIMIT 1
-        ) AS partner',
+            ) AS partner',
     ])
     ->innerJoin(
         $tableUser . ' u',
         'u.id = ' . $tableBatch . '.created_by'
     )
-    ->where([
-        'u.partner_id' => $partnerId
-    ])
     ->groupBy([
         $tableBatch . '.policy_no',
         $tableBatch . '.batch_no'
@@ -137,46 +133,51 @@ $query = self::find()
     ])
     ->asArray();
 
-		/*
-		 * ==========================================================
-		 * ROLE ACCESS
-		 * ==========================================================
-		 */
 
-		/*
-		 * ==========================================================
-		 * SUPER ADMIN
-		 * ROLE = 1
-		 * ==========================================================
-		 *
-		 * Bisa melihat seluruh batch.
-		 */
-		if ($identity->role == User::ROLE_SUPERADMIN) {
+/*
+ * ==========================================================
+ * ROLE ACCESS
+ * ==========================================================
+ */
 
-			// Tidak ada filter
+/*
+ * SUPER ADMIN
+ * ROLE = 1
+ *
+ * Bisa melihat seluruh batch.
+ */
+if ($identity->role == User::ROLE_SUPERADMIN) {
+
+    // Tidak ada filter partner
 
 
-		/*
-		 * ==========================================================
-		 * PUSAT
-		 * ROLE = 6
-		 * ==========================================================
-		 *
-		 * Pusat melihat seluruh batch yang dibuat oleh user
-		 * dengan partner_id yang sama.
-		 */
-		} elseif ($identity->role == User::ROLE_PUSAT) {
+/*
+ * PUSAT
+ * ROLE = 6
+ *
+ * Hanya melihat batch yang dibuat oleh user
+ * dengan partner_id yang sama.
+ */
+} elseif ($identity->role == User::ROLE_PUSAT) {
 
-			$query->innerJoin(
-				$tableUser,
-				$tableUser . '.id = ' .
-				$tableBatch . '.created_by'
-			);
+    $query->andWhere([
+        'u.partner_id' => $identity->partner_id
+    ]);
 
-			$query->andWhere([
-				$tableUser . '.partner_id' => $identity->partner_id
-			]);
 
+/*
+ * CABANG / UW
+ * ROLE = 2
+ *
+ * Hanya melihat batch yang dibuat oleh user
+ * dengan partner_id yang sama.
+ */
+} elseif ($identity->role == User::ROLE_UW) {
+
+    $query->andWhere([
+        'u.partner_id' => $identity->partner_id
+    ]);
+}
 
 		/*
 		 * ==========================================================
