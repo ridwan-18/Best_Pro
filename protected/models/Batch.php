@@ -96,41 +96,44 @@ class Batch extends \yii\db\ActiveRecord
 		$tablePartner = Partner::tableName();
 
 		$identity = Yii::$app->user->identity;
+$query = self::find()
+    ->select([
+        $tableBatch . '.id',
+        $tableBatch . '.policy_no',
+        $tableBatch . '.batch_no',
+        $tableBatch . '.total_member',
+        $tableBatch . '.status',
+        $tableBatch . '.created_at',
+        $tableBatch . '.created_by',
+        $tableBatch . '.files',
 
-		$query = self::find()
-			->select([
-				$tableBatch . '.id',
-				$tableBatch . '.policy_no',
-				$tableBatch . '.batch_no',
-				$tableBatch . '.total_member',
-				$tableBatch . '.status',
-				$tableBatch . '.created_at',
-				$tableBatch . '.created_by',
-				$tableBatch . '.files',
-				
-				$tableUser . '.id AS user_id',
-				$tableUser . '.name AS name',
+        $tableUser . '.id AS user_id',
+        $tableUser . '.name AS name',
 
-				/*
-				 * Ambil nama partner berdasarkan policy_no
-				 */
-				'(' .
-					'SELECT ' . $tablePartner . '.name
-					 FROM ' . $tablePolicy . '
-					 INNER JOIN ' . $tablePartner . '
-						ON ' . $tablePolicy . '.partner_id = ' .
-						   $tablePartner . '.id
-					 WHERE ' . $tablePolicy . '.policy_no = ' .
-						   $tableBatch . '.policy_no
-					 LIMIT 1
-				) AS partner',
-			])
-			 ->leftJoin(
-				$tableUser,
-				$tableBatch . '.created_by = ' . $tableUser . '.id'
-			)
-			->asArray();
-
+        '(' .
+            'SELECT ' . $tablePartner . '.name
+             FROM ' . $tablePolicy . '
+             INNER JOIN ' . $tablePartner . '
+                ON ' . $tablePolicy . '.partner_id = ' . $tablePartner . '.id
+             WHERE ' . $tablePolicy . '.policy_no = ' . $tableBatch . '.policy_no
+             LIMIT 1
+            ) AS partner',
+    ])
+    ->innerJoin(
+        $tableUser,
+        $tableBatch . '.created_by = ' . $tableUser . '.id'
+    )
+    ->where([
+        $tableUser . '.partner_id' => $partnerId
+    ])
+    ->groupBy([
+        $tableBatch . '.policy_no',
+        $tableBatch . '.batch_no'
+    ])
+    ->orderBy([
+        $tableBatch . '.id' => SORT_DESC
+    ])
+    ->asArray();
 
 		/*
 		 * ==========================================================
