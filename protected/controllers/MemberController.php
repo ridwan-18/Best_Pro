@@ -1922,7 +1922,7 @@ class MemberController extends Controller
 		/**
 		 * Konversi tanggal Excel
 		 */
-		private function convertExcelDate($value)
+	private function convertExcelDate($value)
 		{
 			if ($value === null || trim($value) === '') {
 				return null;
@@ -1966,7 +1966,7 @@ class MemberController extends Controller
 			}
 
 			return null;
-		}
+	}
 		
 		
 
@@ -2051,168 +2051,53 @@ class MemberController extends Controller
 
 		$file = UploadedFile::getInstanceByName('files_medis');
 
-
-		if ($file === null) {
-
-			Yii::$app->session->setFlash(
-				'error',
-				'File invoice belum dipilih.'
-			);
-
-			return $this->redirect(['index']);
-		}
-
-
-		// ============================================================
-		// CEK ERROR UPLOAD
-		// ============================================================
-
-		if ($file->error !== UPLOAD_ERR_OK) {
-
-			Yii::$app->session->setFlash(
-				'error',
-				'File gagal diupload. Error code: ' . $file->error
-			);
-
-			return $this->redirect(['index']);
-		}
-
-
-		// ============================================================
-		// VALIDASI EXTENSION
-		// ============================================================
-
-		$allowedExtensions = [
-			'pdf',
-			'jpg',
-			'jpeg',
-			'png'
-		];
-
-		$extension = strtolower($file->extension);
-
-
-		if (!in_array($extension, $allowedExtensions, true)) {
-
-			Yii::$app->session->setFlash(
-				'error',
-				'Format file tidak diperbolehkan. Gunakan PDF, JPG, JPEG atau PNG.'
-			);
-
-			return $this->redirect(['index']);
-		}
-
-
-		// ============================================================
-		// FOLDER PENYIMPANAN
-		// ============================================================
-
 		$uploadDir = Yii::getAlias('@webroot/images/');
 
-
-		// Buat folder jika belum ada
 		if (!is_dir($uploadDir)) {
-
-			if (!mkdir($uploadDir, 0777, true)) {
-
-				Yii::$app->session->setFlash(
-					'error',
-					'Folder images tidak dapat dibuat.'
-				);
-
-				return $this->redirect(['index']);
-			}
+			mkdir($uploadDir, 0777, true);
 		}
-
-
-		// ============================================================
-		// CEK PERMISSION FOLDER
-		// ============================================================
-
-		if (!is_writable($uploadDir)) {
-
-			Yii::$app->session->setFlash(
-				'error',
-				'Folder images tidak memiliki permission write.'
-			);
-
-			return $this->redirect(['index']);
-		}
-
-
-		// ============================================================
-		// BUAT NAMA FILE BARU
-		// ============================================================
 
 		$fileName =
 			'invoice_' .
 			$batch->id .
 			'_' .
 			date('YmdHis') .
-			'_' .
-			Yii::$app->security->generateRandomString(8) .
 			'.' .
-			$extension;
-
-
-		// ============================================================
-		// PATH FILE
-		// ============================================================
+			strtolower($file->extension);
 
 		$filePath = $uploadDir . $fileName;
 
-
-		// ============================================================
-		// UPLOAD FILE
-		// ============================================================
-
 		if (!$file->saveAs($filePath)) {
-
 			Yii::$app->session->setFlash(
 				'error',
-				'Gagal menyimpan file invoice ke server.'
+				'Gagal menyimpan file.'
 			);
 
 			return $this->redirect(['index']);
 		}
 
-
-		// ============================================================
-		// SIMPAN NAMA FILE KE TABLE BATCH
-		// ============================================================
-
 		$batch->files = $fileName;
-
 
 		if (!$batch->save(false)) {
 
-			// Jika database gagal, hapus file
 			if (file_exists($filePath)) {
 				unlink($filePath);
 			}
 
 			Yii::$app->session->setFlash(
 				'error',
-				'File berhasil diupload tetapi gagal menyimpan ke database.'
+				'Gagal menyimpan nama file ke database.'
 			);
 
 			return $this->redirect(['index']);
 		}
-
-
-		// ============================================================
-		// BERHASIL
-		// ============================================================
 
 		Yii::$app->session->setFlash(
 			'success',
 			'Invoice berhasil diupload.'
 		);
 
-
-		return $this->redirect([
-			'index'
-		]);
+		return $this->redirect(['index']);
 	}
 
 

@@ -159,7 +159,7 @@ $this->title = 'Member - ' . Yii::$app->name;
                                         </td>
 										
 										 
-										<td>
+										  <td>
 
 											<?php if ((int)$user === 1) { ?>
 
@@ -168,18 +168,13 @@ $this->title = 'Member - ' . Yii::$app->name;
 													'post',
 													[
 														'enctype' => 'multipart/form-data',
-														'id' => 'member-upload-form'
+														'id' => 'member-upload-form-' . $model['id']
 													]
 												) ?>
 
 												<?= Html::hiddenInput(
-													'id',
-													$member['id']
-												) ?>
-
-												<?= Html::hiddenInput(
 													'batch_id',
-													$model->id
+													$model['id']
 												) ?>
 
 												<?= Html::fileInput(
@@ -187,18 +182,14 @@ $this->title = 'Member - ' . Yii::$app->name;
 													null,
 													[
 														'class' => 'form-control',
-														'required' => true,
-														'accept' => '.pdf,.jpg,.jpeg,.png'
+														'required' => true
 													]
 												) ?>
-
-												<br>
 
 												<?= Html::submitButton(
 													'<i class="fa fa-upload"></i> Upload',
 													[
-														'class' => 'btn btn-primary waves-effect waves-light',
-														'id' => 'upload-btn'
+														'class' => 'btn btn-primary'
 													]
 												) ?>
 
@@ -207,6 +198,8 @@ $this->title = 'Member - ' . Yii::$app->name;
 											<?php } ?>
 
 										</td>
+
+									<?php } ?>
 
 
 										
