@@ -146,23 +146,16 @@ $query = self::find()
  *
  * Bisa melihat seluruh batch.
  */
-if ($identity->role == User::ROLE_SUPERADMIN) {
+if ($identity->role == User::ROLE_SUPERADMIN) 
+{
 
-    // Tidak ada filter partner
-
-
-/*
- * PUSAT
- * ROLE = 6
- *
- * Hanya melihat batch yang dibuat oleh user
- * dengan partner_id yang sama.
- */
-} elseif ($identity->role == User::ROLE_PUSAT) {
+} 
+elseif ($identity->role == User::ROLE_PUSAT) {
 
     $query->andWhere([
         'u.partner_id' => $identity->partner_id
     ]);
+}
 
 
 /*
@@ -172,7 +165,8 @@ if ($identity->role == User::ROLE_SUPERADMIN) {
  * Hanya melihat batch yang dibuat oleh user
  * dengan partner_id yang sama.
  */
-} elseif ($identity->role == User::ROLE_UW) {
+ elseif ($identity->role == User::ROLE_UW)
+ {
 
     $query->andWhere([
         'u.partner_id' => $identity->partner_id
@@ -190,11 +184,12 @@ if ($identity->role == User::ROLE_SUPERADMIN) {
 		 * PENTING:
 		 * Jangan menggunakan partner_id di sini.
 		 */
-		} elseif ($identity->role == User::ROLE_UW) {
+		elseif ($identity->role == User::ROLE_UW) {
 
 			$query->andWhere([
 				$tableBatch . '.created_by' => $identity->id
 			]);
+		}
 
 
 		/*
