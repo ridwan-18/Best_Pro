@@ -85,6 +85,7 @@ $this->title = 'Member - ' . Yii::$app->name;
                                 <th width="1">#</th>
                                 <th>Policy No</th>
                                 <th>Policy Holder</th>
+								<th>Branch Name</th>
                                 <th>Batch No</th>
                                 <th>Total Member</th>
                                 <th>Status</th>
@@ -113,6 +114,7 @@ $this->title = 'Member - ' . Yii::$app->name;
                                         <td><?= $i; ?></td>
                                         <td><?= $model['policy_no']; ?></td>
                                         <td><?= $model['partner']; ?></td>
+										<td><?= $user['name']; ?></td>
                                         <td><?= $model['batch_no']; ?></td>
                                         <td><?= $model['total_member']; ?></td>
                                         <td><?= $model['status']; ?></td>
