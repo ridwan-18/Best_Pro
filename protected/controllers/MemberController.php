@@ -1974,10 +1974,6 @@ class MemberController extends Controller
 	
 	public function actionUploadInvoice()
 	{
-		// ============================================================
-		// CEK LOGIN
-		// ============================================================
-
 		if (
 			Yii::$app->user->isGuest ||
 			!User::findIdentityByAccessToken(
@@ -1987,13 +1983,7 @@ class MemberController extends Controller
 			return $this->goHome();
 		}
 
-
-		// ============================================================
-		// HARUS POST
-		// ============================================================
-
 		if (!Yii::$app->request->isPost) {
-
 			Yii::$app->session->setFlash(
 				'error',
 				'Request harus menggunakan POST.'
@@ -2002,17 +1992,11 @@ class MemberController extends Controller
 			return $this->redirect(['index']);
 		}
 
-
 		// ============================================================
-		// AMBIL BATCH ID
+		// AMBIL BATCH ID DARI FORM
 		// ============================================================
 
 		$batchId = Yii::$app->request->post('batch_id');
-
-
-		// ============================================================
-		// DEBUG JIKA BATCH ID KOSONG
-		// ============================================================
 
 		if (empty($batchId)) {
 
@@ -2024,15 +2008,13 @@ class MemberController extends Controller
 			return $this->redirect(['index']);
 		}
 
-
 		// ============================================================
-		// CARI DATA BATCH
+		// CARI BATCH
 		// ============================================================
 
 		$batch = Batch::findOne([
 			'id' => $batchId
 		]);
-
 
 		if ($batch === null) {
 
@@ -2044,53 +2026,160 @@ class MemberController extends Controller
 			return $this->redirect(['index']);
 		}
 
-
 		// ============================================================
 		// AMBIL FILE
 		// ============================================================
 
 		$file = UploadedFile::getInstanceByName('files_medis');
 
-		$uploadDir = Yii::getAlias('@webroot/images/');
+		if ($file === null) {
 
-		if (!is_dir($uploadDir)) {
-			mkdir($uploadDir, 0777, true);
-		}
-
-		$fileName =
-			'invoice_' .
-			$batch->id .
-			'_' .
-			date('YmdHis') .
-			'.' .
-			strtolower($file->extension);
-
-		$filePath = $uploadDir . $fileName;
-
-		if (!$file->saveAs($filePath)) {
 			Yii::$app->session->setFlash(
 				'error',
-				'Gagal menyimpan file.'
+				'File invoice belum dipilih.'
 			);
 
 			return $this->redirect(['index']);
 		}
 
-		$batch->files = $fileName;
+		// ============================================================
+		// CEK ERROR UPLOAD
+		// ============================================================
+
+		if ($file->error !== UPLOAD_ERR_OK) {
+
+			Yii::$app->session->setFlash(
+				'error',
+				'File gagal diupload. Error code: ' . $file->error
+			);
+
+			return $this->redirect(['index']);
+		}
+
+		// ============================================================
+		// VALIDASI EXTENSION
+		// ============================================================
+
+		$allowedExtensions = [
+			'pdf',
+			'jpg',
+			'jpeg',
+			'png'
+		];
+
+		$extension = strtolower($file->extension);
+
+		if (!in_array($extension, $allowedExtensions, true)) {
+
+			Yii::$app->session->setFlash(
+				'error',
+				'Format file tidak diperbolehkan.'
+			);
+
+			return $this->redirect(['index']);
+		}
+
+		// ============================================================
+		// FOLDER PENYIMPANAN
+		// ============================================================
+
+		$uploadDir = Yii::getAlias('@webroot/images/');
+
+		if (!is_dir($uploadDir)) {
+
+			if (!mkdir($uploadDir, 0777, true)) {
+
+				Yii::$app->session->setFlash(
+					'error',
+					'Folder images tidak dapat dibuat.'
+				);
+
+				return $this->redirect(['index']);
+			}
+		}
+
+		// ============================================================
+		// NAMA FILE ASLI
+		// ============================================================
+
+		$fileName = $file->name;
+
+		// Bersihkan nama file
+		$fileName = preg_replace(
+			'/[^A-Za-z0-9_\-.]/',
+			'_',
+			$fileName
+		);
+
+		// ============================================================
+		// PATH FILE SERVER
+		// ============================================================
+
+		$filePath = $uploadDir . $fileName;
+
+		// ============================================================
+		// JIKA FILE SUDAH ADA
+		// TAMBAHKAN TIMESTAMP
+		// ============================================================
+
+		if (file_exists($filePath)) {
+
+			$fileName =
+				pathinfo($fileName, PATHINFO_FILENAME) .
+				'_' .
+				date('YmdHis') .
+				'.' .
+				$extension;
+
+			$filePath = $uploadDir . $fileName;
+		}
+
+		// ============================================================
+		// SIMPAN FILE KE SERVER
+		// ============================================================
+
+		if (!$file->saveAs($filePath)) {
+
+			Yii::$app->session->setFlash(
+				'error',
+				'Gagal menyimpan file invoice ke server.'
+			);
+
+			return $this->redirect(['index']);
+		}
+
+		// ============================================================
+		// URL FILE
+		// ============================================================
+
+		$fileUrl =
+			'https://devweb.bestpro-id.com/images/' .
+			$fileName;
+
+		// ============================================================
+		// SIMPAN URL KE DATABASE
+		// ============================================================
+
+		$batch->files = $fileUrl;
 
 		if (!$batch->save(false)) {
 
+			// Kalau database gagal, hapus file
 			if (file_exists($filePath)) {
 				unlink($filePath);
 			}
 
 			Yii::$app->session->setFlash(
 				'error',
-				'Gagal menyimpan nama file ke database.'
+				'File berhasil diupload tetapi gagal menyimpan URL ke database.'
 			);
 
 			return $this->redirect(['index']);
 		}
+
+		// ============================================================
+		// SUCCESS
+		// ============================================================
 
 		Yii::$app->session->setFlash(
 			'success',
@@ -2099,8 +2188,6 @@ class MemberController extends Controller
 
 		return $this->redirect(['index']);
 	}
-
-
 
 
 }
