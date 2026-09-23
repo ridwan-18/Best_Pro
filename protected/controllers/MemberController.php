@@ -71,6 +71,7 @@ class MemberController extends Controller
 		}
 		
 		$user= Yii::$app->user->identity->id;
+		// var_dump($user);
 
 		$params = [
 			'policy_no' => Yii::$app->request->get('policy_no'),
