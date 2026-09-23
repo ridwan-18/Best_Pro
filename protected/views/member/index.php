@@ -199,7 +199,7 @@ $this->title = 'Member - ' . Yii::$app->name;
 
 										</td>
 
-									<?php } ?>
+									
 
 
 										
