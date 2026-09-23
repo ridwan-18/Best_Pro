@@ -91,65 +91,41 @@ class Batch extends \yii\db\ActiveRecord
 	public static function getAll($params = [])
 	{
 		$tableBatch   = self::tableName();
-$tableUser    = User::tableName();
-$tablePolicy  = Policy::tableName();
-$tablePartner = Partner::tableName();
+	$tableUser    = User::tableName();
+	$tablePolicy  = Policy::tableName();
+	$tablePartner = Partner::tableName();
 
-$identity  = Yii::$app->user->identity;
-$partnerId = $identity->partner_id;
+	$query = self::find()
+		->select([
+			$tableBatch . '.id',
+			$tableBatch . '.policy_no',
+			$tableBatch . '.batch_no',
+			$tableBatch . '.total_member',
+			$tableBatch . '.status',
+			$tableBatch . '.created_at',
+			$tableBatch . '.created_by',
+			$tableBatch . '.files',
 
-$query = self::find()
-    ->select([
-        $tableBatch . '.id',
-        $tableBatch . '.policy_no',
-        $tableBatch . '.batch_no',
-        $tableBatch . '.total_member',
-        $tableBatch . '.status',
-        $tableBatch . '.created_at',
-        $tableBatch . '.created_by',
-        $tableBatch . '.files',
+			$tableUser . '.id AS user_id',
+			$tableUser . '.name AS name',
 
-        /*
-         * Ambil user_id
-         */
-        $tableBatch . '.created_by AS user_id',
-
-        /*
-         * Ambil nama user berdasarkan created_by
-         */
-        '(SELECT u.name
-          FROM ' . $tableUser . ' u
-          WHERE u.id = ' . $tableBatch . '.created_by
-          LIMIT 1
-        ) AS name',
-
-        /*
-         * Ambil nama partner berdasarkan policy_no
-         */
-        '(SELECT p.name
-          FROM ' . $tablePolicy . ' pol
-          INNER JOIN ' . $tablePartner . ' p
-              ON pol.partner_id = p.id
-          WHERE pol.policy_no = ' . $tableBatch . '.policy_no
-          LIMIT 1
-        ) AS partner',
-    ])
-    ->where([
-        'EXISTS',
-        (new \yii\db\Query())
-            ->select('1')
-            ->from($tableUser . ' u')
-            ->where('u.id = ' . $tableBatch . '.created_by')
-            ->andWhere(['u.partner_id' => $partnerId])
-    ])
-    ->groupBy([
-        $tableBatch . '.policy_no',
-        $tableBatch . '.batch_no'
-    ])
-    ->orderBy([
-        $tableBatch . '.id' => SORT_DESC
-    ])
-    ->asArray();
+			'(' .
+				'SELECT ' . $tablePartner . '.name
+				 FROM ' . $tablePolicy . '
+				 INNER JOIN ' . $tablePartner . '
+					ON ' . $tablePolicy . '.partner_id = ' . $tablePartner . '.id
+				 WHERE ' . $tablePolicy . '.policy_no = ' . $tableBatch . '.policy_no
+				 LIMIT 1
+				) AS partner',
+		])
+		->groupBy([
+			$tableBatch . '.policy_no',
+			$tableBatch . '.batch_no'
+		])
+		->orderBy([
+			$tableBatch . '.id' => SORT_DESC
+		])
+		->asArray();
 
 		/*
 		 * ==========================================================
