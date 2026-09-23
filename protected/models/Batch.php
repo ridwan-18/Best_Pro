@@ -165,13 +165,6 @@ elseif ($identity->role == User::ROLE_PUSAT) {
  * Hanya melihat batch yang dibuat oleh user
  * dengan partner_id yang sama.
  */
- elseif ($identity->role == User::ROLE_UW)
- {
-
-    $query->andWhere([
-        'u.partner_id' => $identity->partner_id
-    ]);
-}
 
 		/*
 		 * ==========================================================
