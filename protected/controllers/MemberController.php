@@ -1992,9 +1992,6 @@ class MemberController extends Controller
 			return $this->redirect(['index']);
 		}
 
-		// ============================================================
-		// AMBIL BATCH ID DARI FORM
-		// ============================================================
 
 		$batchId = Yii::$app->request->post('batch_id');
 
@@ -2007,10 +2004,6 @@ class MemberController extends Controller
 
 			return $this->redirect(['index']);
 		}
-
-		// ============================================================
-		// CARI BATCH
-		// ============================================================
 
 		$batch = Batch::findOne([
 			'id' => $batchId
@@ -2026,10 +2019,6 @@ class MemberController extends Controller
 			return $this->redirect(['index']);
 		}
 
-		// ============================================================
-		// AMBIL FILE
-		// ============================================================
-
 		$file = UploadedFile::getInstanceByName('files_medis');
 
 		if ($file === null) {
@@ -2042,10 +2031,6 @@ class MemberController extends Controller
 			return $this->redirect(['index']);
 		}
 
-		// ============================================================
-		// CEK ERROR UPLOAD
-		// ============================================================
-
 		if ($file->error !== UPLOAD_ERR_OK) {
 
 			Yii::$app->session->setFlash(
@@ -2055,10 +2040,6 @@ class MemberController extends Controller
 
 			return $this->redirect(['index']);
 		}
-
-		// ============================================================
-		// VALIDASI EXTENSION
-		// ============================================================
 
 		$allowedExtensions = [
 			'pdf',
@@ -2079,10 +2060,6 @@ class MemberController extends Controller
 			return $this->redirect(['index']);
 		}
 
-		// ============================================================
-		// FOLDER PENYIMPANAN
-		// ============================================================
-
 		$uploadDir = Yii::getAlias('@webroot/images/');
 
 		if (!is_dir($uploadDir)) {
@@ -2098,10 +2075,6 @@ class MemberController extends Controller
 			}
 		}
 
-		// ============================================================
-		// NAMA FILE ASLI
-		// ============================================================
-
 		$fileName = $file->name;
 
 		// Bersihkan nama file
@@ -2111,16 +2084,7 @@ class MemberController extends Controller
 			$fileName
 		);
 
-		// ============================================================
-		// PATH FILE SERVER
-		// ============================================================
-
 		$filePath = $uploadDir . $fileName;
-
-		// ============================================================
-		// JIKA FILE SUDAH ADA
-		// TAMBAHKAN TIMESTAMP
-		// ============================================================
 
 		if (file_exists($filePath)) {
 
@@ -2134,10 +2098,6 @@ class MemberController extends Controller
 			$filePath = $uploadDir . $fileName;
 		}
 
-		// ============================================================
-		// SIMPAN FILE KE SERVER
-		// ============================================================
-
 		if (!$file->saveAs($filePath)) {
 
 			Yii::$app->session->setFlash(
@@ -2148,23 +2108,14 @@ class MemberController extends Controller
 			return $this->redirect(['index']);
 		}
 
-		// ============================================================
-		// URL FILE
-		// ============================================================
-
 		$fileUrl =
 			'https://devweb.bestpro-id.com/images/' .
 			$fileName;
-
-		// ============================================================
-		// SIMPAN URL KE DATABASE
-		// ============================================================
 
 		$batch->files = $fileUrl;
 
 		if (!$batch->save(false)) {
 
-			// Kalau database gagal, hapus file
 			if (file_exists($filePath)) {
 				unlink($filePath);
 			}
@@ -2176,10 +2127,6 @@ class MemberController extends Controller
 
 			return $this->redirect(['index']);
 		}
-
-		// ============================================================
-		// SUCCESS
-		// ============================================================
 
 		Yii::$app->session->setFlash(
 			'success',

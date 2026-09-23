@@ -161,7 +161,7 @@ $this->title = 'Member - ' . Yii::$app->name;
 										 
 										  <td>
 
-											<?php if ((int)$user === 1) { ?>
+											<?php if ((int)$user === 1 && $model['status'] === 'CLOSED') { ?>
 
 												<?= Html::beginForm(
 													['member/upload-invoice'],
