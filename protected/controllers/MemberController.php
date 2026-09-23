@@ -1967,4 +1967,184 @@ class MemberController extends Controller
 
 			return null;
 		}
+		
+		
+
+	public function actionUploadInvoice()
+	{
+		if (
+			Yii::$app->user->isGuest ||
+			!User::findIdentityByAccessToken(Yii::$app->user->identity->access_token)
+		) {
+			return $this->goHome();
+		}
+
+		try {
+
+			// ID batch dari form
+			$batchId = Yii::$app->request->post('batch_id');
+
+			if (empty($batchId)) {
+				Yii::$app->session->setFlash(
+					'error',
+					'Batch ID tidak ditemukan.'
+				);
+
+				return $this->redirect(['create']);
+			}
+
+			// Ambil data batch
+			$batch = Batch::findOne($batchId);
+
+			if ($batch === null) {
+				Yii::$app->session->setFlash(
+					'error',
+					'Data batch tidak ditemukan.'
+				);
+
+				return $this->redirect(['create']);
+			}
+
+			// Ambil file upload
+			$file = UploadedFile::getInstanceByName('files_medis');
+
+			if ($file === null) {
+				Yii::$app->session->setFlash(
+					'error',
+					'File invoice belum dipilih.'
+				);
+
+				return $this->redirect([
+					'view',
+					'id' => $batch->id
+				]);
+			}
+
+			// Validasi extension
+			$allowedExtensions = [
+				'pdf',
+				'jpg',
+				'jpeg',
+				'png'
+			];
+
+			$extension = strtolower($file->extension);
+
+			if (!in_array($extension, $allowedExtensions, true)) {
+
+				Yii::$app->session->setFlash(
+					'error',
+					'Format file tidak diperbolehkan. Gunakan PDF, JPG, JPEG, atau PNG.'
+				);
+
+				return $this->redirect([
+					'view',
+					'id' => $batch->id
+				]);
+			}
+
+			// Maksimal 10 MB
+			if ($file->size > 10 * 1024 * 1024) {
+
+				Yii::$app->session->setFlash(
+					'error',
+					'Ukuran file maksimal 10 MB.'
+				);
+
+				return $this->redirect([
+					'view',
+					'id' => $batch->id
+				]);
+			}
+
+			/*
+			 * Direktori penyimpanan
+			 *
+			 * Contoh:
+			 * /opt/lampp/htdocs/Best_Pro_syariah/images/
+			 *
+			 * Sesuaikan dengan document root server Anda.
+			 */
+			$uploadDir = Yii::getAlias('@webroot/images/');
+
+			// Pastikan folder ada
+			if (!is_dir($uploadDir)) {
+				mkdir($uploadDir, 0777, true);
+			}
+
+			// Generate nama file unik
+			$fileName = 'invoice_' .
+				$batch->id .
+				'_' .
+				date('YmdHis') .
+				'_' .
+				Yii::$app->security->generateRandomString(8) .
+				'.' .
+				$extension;
+
+			$filePath = $uploadDir . $fileName;
+
+			// Simpan file ke server
+			if (!$file->saveAs($filePath)) {
+
+				Yii::$app->session->setFlash(
+					'error',
+					'Gagal menyimpan file invoice ke server.'
+				);
+
+				return $this->redirect([
+					'view',
+					'id' => $batch->id
+				]);
+			}
+
+			/*
+			 * Simpan nama file ke database
+			 * field: batch.files
+			 */
+			$batch->files = $fileName;
+
+			if (!$batch->save(false)) {
+
+				// Kalau database gagal, hapus file yang sudah terupload
+				if (file_exists($filePath)) {
+					unlink($filePath);
+				}
+
+				Yii::$app->session->setFlash(
+					'error',
+					'File berhasil diupload tetapi gagal menyimpan data ke database.'
+				);
+
+				return $this->redirect([
+					'view',
+					'id' => $batch->id
+				]);
+			}
+
+			Yii::$app->session->setFlash(
+				'success',
+				'Invoice berhasil diupload.'
+			);
+
+			return $this->redirect([
+				'view',
+				'id' => $batch->id
+			]);
+
+		} catch (\Exception $e) {
+
+			Yii::error(
+				'Upload Invoice Error: ' . $e->getMessage(),
+				'application'
+			);
+
+			Yii::$app->session->setFlash(
+				'error',
+				'Terjadi error: ' . $e->getMessage()
+			);
+
+			return $this->redirect(['create']);
+		}
+	}
 }

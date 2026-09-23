@@ -157,28 +157,39 @@ $this->title = 'Member - ' . Yii::$app->name;
                                                 ); ?>
                                             </div>
                                         </td>
+										
 										 <td>
-												 
-												  <?php if ($user==1) { ?>
-												 
-												
-												<?= Html::beginForm(['member/upload-existing'], 'post', [$member['id'] => 'member-upload-form', 'enctype' => 'multipart/form-data']) ?>
-												<?= Html::input('hidden', 'id', $member['id'], [
-                                                                'id' => 'id',
-                                                                'required' => 'required',
-                                                            ]) ?>
-												<?= Html::input('hidden', 'batch_id', $batch->id) ?>
-														
-															<?= Html::input('file', 'files_medis', null, ['class' => 'form-control', 'required' => true]) ?>
-												
-												
-													
-														<?= Html::submitButton('<i class="fa fa-upload"></i> Upload', ['class' => 'btn btn-primary waves-effect waves-light', 'id' => 'upload-btn']) ?>
-												
+											<?php if ((int)$user === 1) { ?>
+
+												<?= Html::beginForm(
+													['member/upload-invoice'],
+													'post',
+													['enctype' => 'multipart/form-data']
+												) ?>
+
+												<?= Html::hiddenInput('id', $member['id']) ?>
+
+												<?= Html::hiddenInput('batch_id', $models->id) ?>
+
+												<?= Html::fileInput('files_medis', null, [
+													'class' => 'form-control',
+													'required' => true
+												]) ?>
+
+												<br>
+
+												<?= Html::submitButton(
+													'<i class="fa fa-upload"></i> Upload',
+													[
+														'class' => 'btn btn-primary waves-effect waves-light',
+														'id' => 'upload-btn'
+													]
+												) ?>
+
 												<?= Html::endForm() ?>
-											
+
 											<?php } ?>
-												 </td>
+										</td>
 										
                                     </tr>
                             <?php
