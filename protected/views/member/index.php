@@ -158,23 +158,39 @@ $this->title = 'Member - ' . Yii::$app->name;
                                             </div>
                                         </td>
 										
-										 <td>
+										 
+										<td>
+
 											<?php if ((int)$user === 1) { ?>
 
 												<?= Html::beginForm(
 													['member/upload-invoice'],
 													'post',
-													['enctype' => 'multipart/form-data']
+													[
+														'enctype' => 'multipart/form-data',
+														'id' => 'member-upload-form'
+													]
 												) ?>
 
-												<?= Html::hiddenInput('id', $member['id']) ?>
+												<?= Html::hiddenInput(
+													'id',
+													$member['id']
+												) ?>
 
-												<?= Html::hiddenInput('batch_id', $models->id) ?>
+												<?= Html::hiddenInput(
+													'batch_id',
+													$models->id
+												) ?>
 
-												<?= Html::fileInput('files_medis', null, [
-													'class' => 'form-control',
-													'required' => true
-												]) ?>
+												<?= Html::fileInput(
+													'files_medis',
+													null,
+													[
+														'class' => 'form-control',
+														'required' => true,
+														'accept' => '.pdf,.jpg,.jpeg,.png'
+													]
+												) ?>
 
 												<br>
 
@@ -189,7 +205,10 @@ $this->title = 'Member - ' . Yii::$app->name;
 												<?= Html::endForm() ?>
 
 											<?php } ?>
+
 										</td>
+
+
 										
                                     </tr>
                             <?php

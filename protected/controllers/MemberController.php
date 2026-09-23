@@ -1970,181 +1970,443 @@ class MemberController extends Controller
 		
 		
 
-	public function actionUploadInvoice()
-	{
-		if (
-			Yii::$app->user->isGuest ||
-			!User::findIdentityByAccessToken(Yii::$app->user->identity->access_token)
-		) {
-			return $this->goHome();
-		}
+	
+		public function actionUploadInvoice()
+		{
+			/*
+			 * ============================================================
+			 * CEK USER LOGIN
+			 * ============================================================
+			 */
+			if (
+				Yii::$app->user->isGuest ||
+				!User::findIdentityByAccessToken(
+					Yii::$app->user->identity->access_token
+				)
+			) {
+				return $this->goHome();
+			}
 
-		try {
 
-			// ID batch dari form
-			$batchId = Yii::$app->request->post('batch_id');
+			/*
+			 * ============================================================
+			 * HANYA BOLEH POST
+			 * ============================================================
+			 */
+			if (!Yii::$app->request->isPost) {
 
-			if (empty($batchId)) {
 				Yii::$app->session->setFlash(
 					'error',
-					'Batch ID tidak ditemukan.'
+					'Request harus menggunakan POST.'
 				);
 
 				return $this->redirect(['create']);
 			}
 
-			// Ambil data batch
-			$batch = Batch::findOne($batchId);
 
-			if ($batch === null) {
-				Yii::$app->session->setFlash(
-					'error',
-					'Data batch tidak ditemukan.'
-				);
+			try {
 
-				return $this->redirect(['create']);
-			}
+				/*
+				 * ========================================================
+				 * AMBIL DATA DARI FORM
+				 * ========================================================
+				 */
 
-			// Ambil file upload
-			$file = UploadedFile::getInstanceByName('files_medis');
+				$memberId = Yii::$app->request->post('id');
 
-			if ($file === null) {
-				Yii::$app->session->setFlash(
-					'error',
-					'File invoice belum dipilih.'
-				);
+				$batchId = Yii::$app->request->post('batch_id');
 
-				return $this->redirect([
-					'view',
-					'id' => $batch->id
-				]);
-			}
 
-			// Validasi extension
-			$allowedExtensions = [
-				'pdf',
-				'jpg',
-				'jpeg',
-				'png'
-			];
+				/*
+				 * ========================================================
+				 * VALIDASI BATCH ID
+				 * ========================================================
+				 */
 
-			$extension = strtolower($file->extension);
+				if (empty($batchId)) {
 
-			if (!in_array($extension, $allowedExtensions, true)) {
+					Yii::$app->session->setFlash(
+						'error',
+						'Batch ID tidak ditemukan.'
+					);
 
-				Yii::$app->session->setFlash(
-					'error',
-					'Format file tidak diperbolehkan. Gunakan PDF, JPG, JPEG, atau PNG.'
-				);
-
-				return $this->redirect([
-					'view',
-					'id' => $batch->id
-				]);
-			}
-
-			// Maksimal 10 MB
-			if ($file->size > 10 * 1024 * 1024) {
-
-				Yii::$app->session->setFlash(
-					'error',
-					'Ukuran file maksimal 10 MB.'
-				);
-
-				return $this->redirect([
-					'view',
-					'id' => $batch->id
-				]);
-			}
-
-			/*
-			 * Direktori penyimpanan
-			 *
-			 * Contoh:
-			 * /opt/lampp/htdocs/Best_Pro_syariah/images/
-			 *
-			 * Sesuaikan dengan document root server Anda.
-			 */
-			$uploadDir = Yii::getAlias('@webroot/images/');
-
-			// Pastikan folder ada
-			if (!is_dir($uploadDir)) {
-				mkdir($uploadDir, 0777, true);
-			}
-
-			// Generate nama file unik
-			$fileName = 'invoice_' .
-				$batch->id .
-				'_' .
-				date('YmdHis') .
-				'_' .
-				Yii::$app->security->generateRandomString(8) .
-				'.' .
-				$extension;
-
-			$filePath = $uploadDir . $fileName;
-
-			// Simpan file ke server
-			if (!$file->saveAs($filePath)) {
-
-				Yii::$app->session->setFlash(
-					'error',
-					'Gagal menyimpan file invoice ke server.'
-				);
-
-				return $this->redirect([
-					'view',
-					'id' => $batch->id
-				]);
-			}
-
-			/*
-			 * Simpan nama file ke database
-			 * field: batch.files
-			 */
-			$batch->files = $fileName;
-
-			if (!$batch->save(false)) {
-
-				// Kalau database gagal, hapus file yang sudah terupload
-				if (file_exists($filePath)) {
-					unlink($filePath);
+					return $this->redirect(['create']);
 				}
 
-				Yii::$app->session->setFlash(
-					'error',
-					'File berhasil diupload tetapi gagal menyimpan data ke database.'
+
+				/*
+				 * ========================================================
+				 * CARI DATA BATCH
+				 * ========================================================
+				 */
+
+				$batch = Batch::findOne($batchId);
+
+
+				if ($batch === null) {
+
+					Yii::$app->session->setFlash(
+						'error',
+						'Data batch tidak ditemukan.'
+					);
+
+					return $this->redirect(['create']);
+				}
+
+
+				/*
+				 * ========================================================
+				 * AMBIL FILE UPLOAD
+				 *
+				 * JANGAN:
+				 *
+				 * $model->file_upload = ...
+				 *
+				 * karena attribute tersebut tidak diperlukan.
+				 * ========================================================
+				 */
+
+				$file = UploadedFile::getInstanceByName(
+					'files_medis'
 				);
+
+
+				/*
+				 * ========================================================
+				 * CEK FILE
+				 * ========================================================
+				 */
+
+				if ($file === null) {
+
+					Yii::$app->session->setFlash(
+						'error',
+						'File invoice belum dipilih.'
+					);
+
+					return $this->redirect([
+						'view',
+						'id' => $batch->id
+					]);
+				}
+
+
+				/*
+				 * ========================================================
+				 * CEK ERROR UPLOAD PHP
+				 * ========================================================
+				 */
+
+				if ($file->error !== UPLOAD_ERR_OK) {
+
+					Yii::error(
+						'Upload invoice error code: ' . $file->error,
+						'invoice'
+					);
+
+					Yii::$app->session->setFlash(
+						'error',
+						'File gagal diupload. Error code: ' . $file->error
+					);
+
+					return $this->redirect([
+						'view',
+						'id' => $batch->id
+					]);
+				}
+
+
+				/*
+				 * ========================================================
+				 * VALIDASI EXTENSION
+				 * ========================================================
+				 */
+
+				$allowedExtensions = [
+					'pdf',
+					'jpg',
+					'jpeg',
+					'png'
+				];
+
+				$extension = strtolower(
+					$file->extension
+				);
+
+
+				if (!in_array(
+					$extension,
+					$allowedExtensions,
+					true
+				)) {
+
+					Yii::$app->session->setFlash(
+						'error',
+						'Format file tidak diperbolehkan. ' .
+						'Gunakan PDF, JPG, JPEG, atau PNG.'
+					);
+
+					return $this->redirect([
+						'view',
+						'id' => $batch->id
+					]);
+				}
+
+
+				/*
+				 * ========================================================
+				 * VALIDASI UKURAN FILE
+				 *
+				 * Maksimal 10 MB
+				 * ========================================================
+				 */
+
+				$maxSize = 10 * 1024 * 1024;
+
+				if ($file->size > $maxSize) {
+
+					Yii::$app->session->setFlash(
+						'error',
+						'Ukuran file maksimal 10 MB.'
+					);
+
+					return $this->redirect([
+						'view',
+						'id' => $batch->id
+					]);
+				}
+
+
+				/*
+				 * ========================================================
+				 * DIREKTORI UPLOAD
+				 *
+				 * Hasil:
+				 *
+				 * /images/nama_file.pdf
+				 *
+				 * URL:
+				 *
+				 * https://devweb.bestpro-id.com/images/nama_file.pdf
+				 * ========================================================
+				 */
+
+				$uploadDir = Yii::getAlias(
+					'@webroot/images/'
+				);
+
+
+				/*
+				 * ========================================================
+				 * BUAT FOLDER JIKA BELUM ADA
+				 * ========================================================
+				 */
+
+				if (!is_dir($uploadDir)) {
+
+					if (!mkdir(
+						$uploadDir,
+						0777,
+						true
+					)) {
+
+						Yii::error(
+							'Gagal membuat directory: ' . $uploadDir,
+							'invoice'
+						);
+
+						Yii::$app->session->setFlash(
+							'error',
+							'Folder upload tidak dapat dibuat.'
+						);
+
+						return $this->redirect([
+							'view',
+							'id' => $batch->id
+						]);
+					}
+				}
+
+
+				/*
+				 * ========================================================
+				 * CEK FOLDER BISA DITULIS
+				 * ========================================================
+				 */
+
+				if (!is_writable($uploadDir)) {
+
+					Yii::error(
+						'Directory tidak writable: ' . $uploadDir,
+						'invoice'
+					);
+
+					Yii::$app->session->setFlash(
+						'error',
+						'Folder images tidak memiliki permission write.'
+					);
+
+					return $this->redirect([
+						'view',
+						'id' => $batch->id
+					]);
+				}
+
+
+				/*
+				 * ========================================================
+				 * GENERATE NAMA FILE
+				 *
+				 * Contoh:
+				 *
+				 * invoice_123_20260923143020_a8Kd92.pdf
+				 * ========================================================
+				 */
+
+				$fileName =
+					'invoice_' .
+					$batch->id .
+					'_' .
+					date('YmdHis') .
+					'_' .
+					Yii::$app->security->generateRandomString(8) .
+					'.' .
+					$extension;
+
+
+				/*
+				 * ========================================================
+				 * PATH FILE FISIK
+				 * ========================================================
+				 */
+
+				$filePath = $uploadDir . $fileName;
+
+
+				/*
+				 * ========================================================
+				 * SIMPAN FILE
+				 * ========================================================
+				 */
+
+				if (!$file->saveAs($filePath)) {
+
+					Yii::error(
+						'Gagal save file: ' . $filePath,
+						'invoice'
+					);
+
+					Yii::$app->session->setFlash(
+						'error',
+						'Gagal menyimpan file invoice ke server.'
+					);
+
+					return $this->redirect([
+						'view',
+						'id' => $batch->id
+					]);
+				}
+
+
+				/*
+				 * ========================================================
+				 * SIMPAN NAMA FILE KE DATABASE
+				 *
+				 * TABLE:
+				 * batch
+				 *
+				 * FIELD:
+				 * files
+				 * ========================================================
+				 */
+
+				$batch->files = $fileName;
+
+
+				/*
+				 * ========================================================
+				 * SIMPAN DATABASE
+				 * ========================================================
+				 */
+
+				if (!$batch->save(false)) {
+
+					/*
+					 * Jika database gagal,
+					 * hapus file yang sudah terupload
+					 */
+					if (file_exists($filePath)) {
+
+						unlink($filePath);
+					}
+
+
+					Yii::error(
+						'Gagal save database batch ID: ' . $batch->id,
+						'invoice'
+					);
+
+					Yii::$app->session->setFlash(
+						'error',
+						'File berhasil diupload tetapi gagal menyimpan ke database.'
+					);
+
+					return $this->redirect([
+						'view',
+						'id' => $batch->id
+					]);
+				}
+
+
+				/*
+				 * ========================================================
+				 * SUCCESS
+				 * ========================================================
+				 */
+
+				Yii::$app->session->setFlash(
+					'success',
+					'Invoice berhasil diupload.'
+				);
+
 
 				return $this->redirect([
 					'view',
 					'id' => $batch->id
 				]);
+
+
+			} catch (\Exception $e) {
+
+				/*
+				 * ========================================================
+				 * ERROR
+				 * ========================================================
+				 */
+
+				Yii::error(
+					'Upload Invoice Exception: ' .
+					$e->getMessage() .
+					' | File: ' .
+					$e->getFile() .
+					' | Line: ' .
+					$e->getLine(),
+					'invoice'
+				);
+
+
+				Yii::$app->session->setFlash(
+					'error',
+					'Terjadi error saat upload invoice: ' .
+					$e->getMessage()
+				);
+
+
+				return $this->redirect([
+					'create'
+				]);
 			}
-
-			Yii::$app->session->setFlash(
-				'success',
-				'Invoice berhasil diupload.'
-			);
-
-			return $this->redirect([
-				'view',
-				'id' => $batch->id
-			]);
-
-		} catch (\Exception $e) {
-
-			Yii::error(
-				'Upload Invoice Error: ' . $e->getMessage(),
-				'application'
-			);
-
-			Yii::$app->session->setFlash(
-				'error',
-				'Terjadi error: ' . $e->getMessage()
-			);
-
-			return $this->redirect(['create']);
 		}
-	}
+
+
 }
