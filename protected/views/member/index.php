@@ -179,7 +179,7 @@ $this->title = 'Member - ' . Yii::$app->name;
 
 												<?= Html::hiddenInput(
 													'batch_id',
-													$models->id
+													$batch->id
 												) ?>
 
 												<?= Html::fileInput(
