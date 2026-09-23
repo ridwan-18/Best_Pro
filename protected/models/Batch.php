@@ -96,6 +96,8 @@ class Batch extends \yii\db\ActiveRecord
 		$tablePartner = Partner::tableName();
 
 		$identity = Yii::$app->user->identity;
+$partnerId = $identity->partner_id;
+
 $query = self::find()
     ->select([
         $tableBatch . '.id',
