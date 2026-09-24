@@ -429,8 +429,7 @@ elseif ($identity->role == User::ROLE_PUSAT) {
 		elseif ($identity->role == User::ROLE_BISNIS) 
 		{
 
-			$query->andWhere($tableUser . '.role = :role', [
-				':role' => 7
+			$query->andWhere($tableBatch . '.bisnis_id' => 1
 			]);
 
 		}
