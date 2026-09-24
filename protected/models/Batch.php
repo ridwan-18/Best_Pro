@@ -432,6 +432,7 @@ elseif ($identity->role == User::ROLE_PUSAT) {
 				$tableBatch . '.bisnis_id' => 1
 			]);
 		}
+		
 
 		
 		else 
@@ -541,6 +542,10 @@ elseif ($identity->role == User::ROLE_PUSAT) {
 		 * RETURN
 		 * ==========================================================
 		 */
+		 var_dump($identity->role);
+		var_dump(User::ROLE_BISNIS);
+		var_dump($query->createCommand()->getRawSql());
+		exit;
 
 		return $query->all();
 	}
