@@ -223,6 +223,53 @@ use app\models\User;
                 endif;
 				
 				
+				if (Yii::$app->user->identity->role == User::ROLE_BISNIS) :
+                ?>
+				<!-- 
+                    <li>
+                        <a href="javascript: void(0);"><i class="fa fa-cogs"></i> <span> Master </span> <span class="menu-arrow"></span></a>
+                        <ul class="nav-second-level" aria-expanded="false">
+                            <li><a href="<?= Url::base() . '/agent'; ?>">Agent</a></li>
+                            <li><a href="<?= Url::base() . '/employee-class'; ?>">Employee Class</a></li>
+                            <li><a href="<?= Url::base() . '/medical'; ?>">Medical</a></li>
+                        </ul>
+                    </li>
+					-->
+					
+					
+					<!-- 
+                    <li>
+                        <a href="<?= Url::base() . '/quotation'; ?>">
+                            <i class="fa fa-quote-right"></i> <span> Quotation </span>
+                        </a>
+                    </li>
+					-->
+                    <li>
+                        <a href="javascript: void(0);"><i class="fa fa-files-o"></i> <span> New Business </span> <span class="menu-arrow"></span></a>
+                        <ul class="nav-second-level" aria-expanded="false">
+							<!--   -->
+							<!-- <li><a href="<?= Url::base() . '/view-member'; ?>">View Member</a></li>  -->
+							<!-- batas update edo 14-08-2023  -->
+                            <!--  <li><a href="<?= Url::base() . '/policy'; ?>">Policy</a></li>   -->
+                            <li><a href="<?= Url::base() . '/member'; ?>">Member</a></li>
+                           <!-- <li><a href="<?= Url::base() . '/billing'; ?>">Blling</a></li> -->
+                        </ul>
+                    </li>
+		
+					
+					
+                    <li>
+                        <a href="javascript: void(0);"><i class="fa fa-book"></i> <span> Report </span> <span class="menu-arrow"></span></a>
+                        <ul class="nav-second-level" aria-expanded="false">
+                              <!--  <li><a href="<?= Url::base() . '/report-billing'; ?>">Billing</a></li>  -->
+							<li><a href="<?= Url::base() . '/data-produksi'; ?>">Data produksi</a></li>
+						
+                        </ul>
+                    </li>					
+                <?php
+                endif;
+				
+				
 				
 				
 				
