@@ -1121,54 +1121,98 @@ class MemberClaimController extends Controller
 		}
 	}
 	
-	private function SaveFileKlaim()
+	public function actionFileKlaim($id)
 	{
-		// $folder = Yii::getAlias('@webroot/uploads/incoming');
-		
+		if (!Yii::$app->request->isPost) {
+			return $this->redirect(['index']);
+		}
+
+		$model = MemberClaim::findOne($id);
+
+		if (!$model) {
+			Yii::$app->session->setFlash(
+				'error',
+				'Klaim ID tidak ditemukan.'
+			);
+
+			return $this->redirect(['index']);
+		}
+
+		// Ambil file invoice
+		$file = \yii\web\UploadedFile::getInstanceByName('invoice');
+
+		if (!$file) {
+			Yii::$app->session->setFlash(
+				'error',
+				'File invoice belum dipilih.'
+			);
+
+			return $this->redirect(['index']);
+		}
+
+		// Validasi PDF
+		if (strtolower($file->extension) !== 'pdf') {
+			Yii::$app->session->setFlash(
+				'error',
+				'File invoice harus berupa PDF.'
+			);
+
+			return $this->redirect(['index']);
+		}
+
+		// Folder temporary
 		$folder = sys_get_temp_dir();
 
 		if (!is_dir($folder)) {
 			throw new \RuntimeException(
-				'Folder incoming tidak ditemukan: ' . $folder
+				'Folder temporary tidak ditemukan: ' . $folder
 			);
 		}
 
 		if (!is_writable($folder)) {
 			throw new \RuntimeException(
-				'Folder incoming tidak writable: ' . $folder
+				'Folder temporary tidak writable: ' . $folder
 			);
 		}
-		
-		$norek   = $member->nomor_rekening;
-		$noAkad  = $member->nomor_akad;
+
+		/*
+		 * Nama file
+		 */
+		$norek   = $model->nomor_rekening;
+		$noAkad  = $model->nomor_akad;
 		$codeDoc = '008';
 		$benefit = 2;
-		
+
 		$fileName =
-		$norek . '_' .
-		$noAkad . '_' .
-		$codeDoc . '_' .
-		$benefit . '.pdf';
-		
-		$pdfFileName = $fileName;
-		
-		$pdfPath =$folder . DIRECTORY_SEPARATOR . $pdfFileName;
-		
+			$norek . '_' .
+			$noAkad . '_' .
+			$codeDoc . '_' .
+			$benefit . '.pdf';
+
 		$zipFileName =
 			$norek . '_' .
 			$noAkad . '_' .
 			$codeDoc . '_' .
 			$benefit . '.zip';
 
-		$zipPath =
-		$folder . DIRECTORY_SEPARATOR . $zipFileName;
-		
+		$localPath = $folder . DIRECTORY_SEPARATOR . $fileName;
+		$zipPath   = $folder . DIRECTORY_SEPARATOR . $zipFileName;
 
-		$pdf->Output(
-			'F',
-			$pdfPath
-		);
-		
+		/*
+		 * Simpan PDF sementara
+		 */
+		if (!$file->saveAs($localPath)) {
+			Yii::$app->session->setFlash(
+				'error',
+				'Gagal menyimpan file sementara.'
+			);
+
+			return $this->redirect(['index']);
+		}
+
+		/*
+		 * Buat ZIP
+		 */
 		$zip = new \ZipArchive();
 
 		if ($zip->open(
@@ -1176,39 +1220,58 @@ class MemberClaimController extends Controller
 			\ZipArchive::CREATE | \ZipArchive::OVERWRITE
 		) !== true) {
 
+			if (file_exists($localPath)) {
+				unlink($localPath);
+			}
+
 			throw new \Exception(
 				'Gagal membuat file ZIP: ' . $zipPath
 			);
 		}
-		
-		if (!$zip->addFile(
-			$pdfPath,
-			$pdfFileName
-		)) {
 
-			$zip->close();
+		/*
+		 * Masukkan PDF ke dalam ZIP
+		 *
+		 * Nama file di dalam ZIP tetap:
+		 * norek_noakad_008_2.pdf
+		 */
+		$zip->addFile(
+			$localPath,
+			$fileName
+		);
 
-			throw new \Exception(
-				'Gagal memasukkan PDF ke dalam ZIP'
-			);
-		}
-
-		
 		$zip->close();
 
+		/*
+		 * Pastikan ZIP berhasil dibuat
+		 */
 		if (!file_exists($zipPath)) {
 
+			if (file_exists($localPath)) {
+				unlink($localPath);
+			}
+
 			throw new \Exception(
-				'File ZIP tidak berhasil dibuat'
+				'File ZIP gagal dibuat.'
 			);
 		}
 
-
-
-		// $autoload = 'C:\xampp7.4\htdocs\BestPro_syariah\protected\sftp-lib\vendor\autoload.php';
-			$autoload = Yii::getAlias('@webroot/protected/sftp-lib/vendor/autoload.php');
+		/*
+		 * Load phpseclib
+		 */
+		$autoload = Yii::getAlias(
+			'@webroot/protected/sftp-lib/vendor/autoload.php'
+		);
 
 		if (!file_exists($autoload)) {
+
+			if (file_exists($localPath)) {
+				unlink($localPath);
+			}
+
+			if (file_exists($zipPath)) {
+				unlink($zipPath);
+			}
 
 			throw new \Exception(
 				'Autoload phpseclib tidak ditemukan: ' . $autoload
@@ -1219,20 +1282,28 @@ class MemberClaimController extends Controller
 
 		if (!class_exists('\phpseclib3\Net\SFTP')) {
 
+			if (file_exists($localPath)) {
+				unlink($localPath);
+			}
+
+			if (file_exists($zipPath)) {
+				unlink($zipPath);
+			}
+
 			throw new \Exception(
 				'Class phpseclib3\\Net\\SFTP tidak tersedia'
 			);
 		}
 
-		$sftpHost = 'web.bestpro-id.com';
-		$sftpPort = 22;
-
+		/*
+		 * SFTP
+		 */
+		$sftpHost     = 'web.bestpro-id.com';
+		$sftpPort     = 22;
 		$sftpUsername = 'bank_riau';
 		$sftpPassword = 'Thunderbolt5';
 
-		$sftpIncomingPath =
-			'/sftp/bank_riau/incoming';
-
+		$sftpIncomingPath = '/sftp/bank_riau/incoming';
 
 		$sftp = new \phpseclib3\Net\SFTP(
 			$sftpHost,
@@ -1240,19 +1311,41 @@ class MemberClaimController extends Controller
 			10
 		);
 
+		/*
+		 * Login
+		 */
 		if (!$sftp->login(
 			$sftpUsername,
 			$sftpPassword
 		)) {
+
+			if (file_exists($localPath)) {
+				unlink($localPath);
+			}
+
+			if (file_exists($zipPath)) {
+				unlink($zipPath);
+			}
 
 			throw new \Exception(
 				'Gagal authentication SFTP'
 			);
 		}
 
-		if (!$sftp->is_dir(
-			$sftpIncomingPath
-		)) {
+		/*
+		 * Cek folder incoming
+		 */
+		if (!$sftp->is_dir($sftpIncomingPath)) {
+
+			$sftp->disconnect();
+
+			if (file_exists($localPath)) {
+				unlink($localPath);
+			}
+
+			if (file_exists($zipPath)) {
+				unlink($zipPath);
+			}
 
 			throw new \Exception(
 				'Folder SFTP incoming tidak ditemukan: ' .
@@ -1260,14 +1353,17 @@ class MemberClaimController extends Controller
 			);
 		}
 
-
+		/*
+		 * Path ZIP di SFTP
+		 */
 		$sftpFilePath =
 			$sftpIncomingPath .
 			'/' .
 			$zipFileName;
 
-
-
+		/*
+		 * Upload ZIP
+		 */
 		$uploadResult = $sftp->put(
 			$sftpFilePath,
 			$zipPath,
@@ -1278,95 +1374,61 @@ class MemberClaimController extends Controller
 
 			$sftp->disconnect();
 
+			if (file_exists($localPath)) {
+				unlink($localPath);
+			}
+
+			if (file_exists($zipPath)) {
+				unlink($zipPath);
+			}
+
 			throw new \Exception(
 				'Gagal upload ZIP ke SFTP: ' .
 				$sftpFilePath
 			);
 		}
 
-		$remoteFileSize =
-			$sftp->filesize(
-				$sftpFilePath
-			);
-
+		/*
+		 * Cek ukuran file di SFTP
+		 */
+		$remoteFileSize = $sftp->filesize(
+			$sftpFilePath
+		);
 
 		$sftp->disconnect();
 
-		if (file_exists($pdfPath)) {
-    unlink($pdfPath);
-}
+		/*
+		 * Hapus file temporary
+		 */
+		if (file_exists($localPath)) {
+			unlink($localPath);
+		}
 
-if (file_exists($zipPath)) {
-    unlink($zipPath);
-}
+		if (file_exists($zipPath)) {
+			unlink($zipPath);
+		}
 
-		return [
+		/*
+		 * Simpan path ZIP ke database
+		 */
+		$model->files = $sftpFilePath;
 
-			/*
-			 * File ZIP
-			 */
-			'file_name' =>
-				$zipFileName,
+		if (!$model->save(false)) {
 
-			/*
-			 * File lokal
-			 */
-			'file_path' =>
-				$zipPath,
+			Yii::$app->session->setFlash(
+				'error',
+				'File berhasil diupload ke SFTP, tetapi gagal menyimpan data invoice.'
+			);
 
-			/*
-			 * URL lokal
-			 */
-			'file_url' =>
-				Yii::$app->request->hostInfo .
-				Yii::$app->request->baseUrl .
-				'/uploads/incoming/' .
-				$zipFileName,
+			return $this->redirect(['index']);
+		}
 
-			/*
-			 * SFTP
-			 */
-			'sftp' => [
+		Yii::$app->session->setFlash(
+			'success',
+			'Invoice berhasil dibuat menjadi ZIP dan diupload ke SFTP.'
+		);
 
-				'success' => true,
-
-				'host' =>
-					$sftpHost,
-
-				'port' =>
-					$sftpPort,
-
-				'username' =>
-					$sftpUsername,
-
-				'folder' =>
-					$sftpIncomingPath,
-
-				'file_path' =>
-					$sftpFilePath,
-
-				'file_name' =>
-					$zipFileName,
-
-				'size' =>
-					$remoteFileSize
-			]
-		];
-
-		return [
-			'file_name' => $zipFileName,
-
-			'sftp' => [
-				'success' => true,
-				'host' => $sftpHost,
-				'port' => $sftpPort,
-				'username' => $sftpUsername,
-				'folder' => $sftpIncomingPath,
-				'file_path' => $sftpFilePath,
-				'file_name' => $zipFileName,
-				'size' => $remoteFileSize,
-			],
-		];
+		return $this->redirect(['index']);
 	}
 	
 }

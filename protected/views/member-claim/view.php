@@ -837,6 +837,44 @@ $val = function ($value) {
 									]
 								); ?>
 								</td>
+								
+								 <td>
+
+												<?= Html::beginForm(
+												['member-claim/file-klaim', 'id' => $model['id']],
+												'post',
+												[
+													'enctype' => 'multipart/form-data',
+													'id' => 'member-upload-form-' . $model['id']
+												]
+											) ?>
+
+											<?= Html::hiddenInput(
+												'id',
+												$model['id']
+											) ?>
+
+											<?= Html::fileInput(
+												'invoice',
+												null,
+												[
+													'class' => 'form-control',
+													'required' => true
+												]
+											) ?>
+
+											<?= Html::submitButton(
+												'<i class="fa fa-upload"></i> Upload',
+												[
+													'class' => 'btn btn-primary'
+												]
+											) ?>
+
+											<?= Html::endForm() ?>
+
+										</td>
+								
+								
 
                             </tr>
 
