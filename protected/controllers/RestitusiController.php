@@ -2057,8 +2057,8 @@ class RestitusiController  extends Controller
 			 *
 			 * Bisa diganti sesuai format yang dibutuhkan.
 			 */
-			$norek   = $member->nomor_rekening;
-		$noAkad  = $member->nomor_akad;
+			$norek   = $restitusi->nomor_rekening;
+		$noAkad  = $restitusi->nomor_akad;
 		$codeDoc = '008';
 		$benefit = 2;
 		
@@ -2243,7 +2243,7 @@ class RestitusiController  extends Controller
 			 *
 			 * SESUAIKAN nama field dengan tabel Batch.
 			 */
-			$batch->invoice =
+			$restitusi->files =
 				$sftpFilePath;
 
 			if (!$batch->save(false)) {
