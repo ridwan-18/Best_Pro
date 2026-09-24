@@ -428,9 +428,16 @@ elseif ($identity->role == User::ROLE_PUSAT) {
 			
 		elseif ($identity->role == User::ROLE_BISNIS) 
 		{
-			  $query->andWhere([
-				$tableBatch . '.bisnis_id' => 1
-			]);
+			  var_dump([
+					'user_id' => $identity->id,
+					'role_user' => $identity->role,
+					'ROLE_BISNIS' => User::ROLE_BISNIS,
+					'tableBatch' => $tableBatch,
+				]);
+				
+				$query->andWhere([
+					$tableBatch . '.bisnis_id' => 1
+				]);
 		}
 		
 
@@ -453,12 +460,6 @@ elseif ($identity->role == User::ROLE_PUSAT) {
 		}
 
 
-		/*
-		 * ==========================================================
-		 * FILTER BATCH
-		 * ==========================================================
-		 */
-
 		if (
 			isset($params['batch_no']) &&
 			$params['batch_no'] !== null &&
@@ -470,11 +471,6 @@ elseif ($identity->role == User::ROLE_PUSAT) {
 		}
 
 
-		/*
-		 * ==========================================================
-		 * FILTER STATUS
-		 * ==========================================================
-		 */
 
 		if (
 			isset($params['status']) &&
@@ -486,12 +482,6 @@ elseif ($identity->role == User::ROLE_PUSAT) {
 			]);
 		}
 
-
-		/*
-		 * ==========================================================
-		 * PAGINATION
-		 * ==========================================================
-		 */
 
 		if (
 			isset($params['offset']) &&
@@ -509,12 +499,6 @@ elseif ($identity->role == User::ROLE_PUSAT) {
 			$query->limit((int) $params['limit']);
 		}
 
-
-		/*
-		 * ==========================================================
-		 * GROUP
-		 * ==========================================================
-		 */
 
 		$query->groupBy([
 			$tableBatch . '.policy_no',
@@ -536,16 +520,6 @@ elseif ($identity->role == User::ROLE_PUSAT) {
 			$tableBatch . '.id' => $sort
 		]);
 
-
-		/*
-		 * ==========================================================
-		 * RETURN
-		 * ==========================================================
-		 */
-		 var_dump($identity->role);
-		var_dump(User::ROLE_BISNIS);
-		var_dump($query->createCommand()->getRawSql());
-		exit;
 
 		return $query->all();
 	}
