@@ -1179,7 +1179,7 @@ class MemberClaimController extends Controller
 		 * Nama file
 		 */
 		$norek   = $model->nomor_rekening;
-		$noAkad  = $model->nomor_akad;
+		$noAkad  = $model->no_akad;
 		$codeDoc = '007';
 		$benefit = 2;
 
