@@ -2246,7 +2246,7 @@ class RestitusiController  extends Controller
 			$restitusi->files =
 				$sftpFilePath;
 
-			if (!$batch->save(false)) {
+			if (!$restitusi->save(false)) {
 
 				Yii::$app->session->setFlash(
 					'error',
