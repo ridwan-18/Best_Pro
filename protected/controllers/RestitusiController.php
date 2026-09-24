@@ -1995,6 +1995,8 @@ class RestitusiController  extends Controller
 		if (Yii::$app->request->isPost) {
 
 			  $restitusi = Restitusi::findOne($id);
+			  
+			  var_dump($restitusi);
 
 			if (!$retitusi) {
 				Yii::$app->session->setFlash(
