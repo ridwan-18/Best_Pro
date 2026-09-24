@@ -228,8 +228,6 @@ use app\models\User;
                     <li>
                         <a href="javascript: void(0);"><i class="fa fa-book"></i> <span> Report </span> <span class="menu-arrow"></span></a>
                         <ul class="nav-second-level" aria-expanded="false">
-                              <!--  <li><a href="<?= Url::base() . '/report-billing'; ?>">Billing</a></li>  -->
-							<li><a href="<?= Url::base() . '/data-produksi'; ?>">Data produksi</a></li>
 							   <li><a href="<?= Url::base() . '/report-billing'; ?>">Billing</a></li
 						
                         </ul>
