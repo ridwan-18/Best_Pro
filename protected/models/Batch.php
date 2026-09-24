@@ -399,36 +399,12 @@ elseif ($identity->role == User::ROLE_PUSAT) {
 			])
 			->asArray();
 
+		if ($identity->role == User::ROLE_SUPERADMIN)
+		{
 
-		/*
-		 * ==========================================================
-		 * ROLE ACCESS
-		 * ==========================================================
-		 */
-
-		/*
-		 * ==========================================================
-		 * SUPER ADMIN
-		 * ROLE = 1
-		 * ==========================================================
-		 *
-		 * Bisa melihat seluruh batch.
-		 */
-		if ($identity->role == User::ROLE_SUPERADMIN) {
-
-			// Tidak ada filter
-
-
-		/*
-		 * ==========================================================
-		 * PUSAT
-		 * ROLE = 6
-		 * ==========================================================
-		 *
-		 * Pusat melihat seluruh batch yang dibuat oleh user
-		 * dengan partner_id yang sama.
-		 */
-		} elseif ($identity->role == User::ROLE_PUSAT) {
+		} 
+		elseif ($identity->role == User::ROLE_PUSAT) 
+		{
 
 			$query->innerJoin(
 				$tableUser,
@@ -439,28 +415,19 @@ elseif ($identity->role == User::ROLE_PUSAT) {
 			$query->andWhere([
 				$tableUser . '.partner_id' => $identity->partner_id
 			]);
-
-
-		/*
-		 * ==========================================================
-		 * CABANG / UW
-		 * ROLE = 2
-		 * ==========================================================
-		 *
-		 * Cabang hanya melihat batch yang dibuat oleh dirinya sendiri.
-		 *
-		 * PENTING:
-		 * Jangan menggunakan partner_id di sini.
-		 */
 		} 
-		elseif ($identity->role == User::ROLE_UW) {
+
+		
+		elseif ($identity->role == User::ROLE_UW) 
+		{
 
 			$query->andWhere([
 				$tableBatch . '.created_by' => $identity->id
 			]);
 		}
 			
-		elseif ($identity->role == User::ROLE_BISNIS) {
+		elseif ($identity->role == User::ROLE_BISNIS) 
+		{
 
 			$query->andWhere($tableUser . '.role = :role', [
 				':role' => 7
@@ -468,25 +435,13 @@ elseif ($identity->role == User::ROLE_PUSAT) {
 
 		}
 
-
-		/*
-		 * ==========================================================
-		 * ROLE TIDAK DIKENAL
-		 * ==========================================================
-		 *
-		 * Untuk keamanan, jangan tampilkan data.
-		 */
-		} else {
+		
+		else 
+		{
 
 			$query->andWhere('1 = 0');
 		}
 
-
-		/*
-		 * ==========================================================
-		 * FILTER POLICY
-		 * ==========================================================
-		 */
 
 		if (
 			isset($params['policy_no']) &&
