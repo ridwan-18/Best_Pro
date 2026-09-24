@@ -367,6 +367,16 @@ elseif ($identity->role == User::ROLE_PUSAT) {
 		$tablePartner = Partner::tableName();
 
 		$identity = Yii::$app->user->identity;
+		
+var_dump([
+    'user_id' => $identity->id,
+    'role_user' => $identity->role,
+    'ROLE_SUPERADMIN' => User::ROLE_SUPERADMIN,
+    'ROLE_PUSAT' => User::ROLE_PUSAT,
+    'ROLE_UW' => User::ROLE_UW,
+    'ROLE_BISNIS' => User::ROLE_BISNIS,
+]);
+exit;
 
 		$query = self::find()
 			->select([
