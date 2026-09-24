@@ -458,6 +458,7 @@ elseif ($identity->role == User::ROLE_PUSAT) {
 			$query->andWhere([
 				$tableBatch . '.created_by' => $identity->id
 			]);
+		}
 			
 		elseif ($identity->role == User::ROLE_BISNIS) {
 
