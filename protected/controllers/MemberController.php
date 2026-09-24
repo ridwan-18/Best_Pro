@@ -617,6 +617,8 @@ class MemberController extends Controller
 			Yii::$app->session->setFlash('error', "Quotation Product not found");
 			return $this->redirect(['create']);
 		}
+		
+		$binisId = User::findOne(['patner_id' => $policyNo->patner_id]);
 
 		$currentDate = new \DateTime();
 		$createdAt = $currentDate->format('Y-m-d H:i:s');
@@ -947,6 +949,7 @@ class MemberController extends Controller
 		$batch->status = Batch::STATUS_OPEN;
 		$batch->created_at = $createdAt;
 		$batch->created_by = $createdBy;
+		$batch->bisnis_id = $binisId->bisnis_id ?? null;
 		if (!$batch->save(false)) {
 			Yii::$app->session->setFlash('error', "Error while saving Batch");
 			return $this->redirect(['create']);
