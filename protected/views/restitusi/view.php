@@ -648,6 +648,7 @@ $this->title = 'View Member - ' . Yii::$app->name;
 							<td>Keterangan</td>
                             <td>Status Restitusi</td>
 							 <td>Status Bayar</td>
+							 <td>Upload Bukti  Bayar</td>
                         </tr>
                     </thead>
 
@@ -744,6 +745,44 @@ $this->title = 'View Member - ' . Yii::$app->name;
 									]
 								); ?>
 								</td>
+								
+								 <td>
+
+												<?= Html::beginForm(
+													['restitusi/file-restitusi'],
+													'post',
+													[
+														'enctype' => 'multipart/form-data',
+														'id' => 'member-upload-form-' . $member['id']
+													]
+												) ?>
+
+												<?= Html::hiddenInput(
+													'batch_id',
+													$member['id']
+												) ?>
+
+												<?= Html::fileInput(
+													'files_medis',
+													null,
+													[
+														'class' => 'form-control',
+														'required' => true
+													]
+												) ?>
+
+												<?= Html::submitButton(
+													'<i class="fa fa-upload"></i> Upload',
+													[
+														'class' => 'btn btn-primary'
+													]
+												) ?>
+
+												<?= Html::endForm() ?>
+
+										</td>
+								
+								
 
                             </tr>
 

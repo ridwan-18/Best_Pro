@@ -994,8 +994,8 @@ class MemberClaimController extends Controller
 			);
 			
 			return [
-    'api_response' => $apiResponse,
-];
+			'api_response' => $apiResponse,
+		];
 
 			// =========================================================
 			// 14. TAMPILKAN RESPONSE CALLBACK JIKA GAGAL
@@ -1119,6 +1119,254 @@ class MemberClaimController extends Controller
 				],
 			];
 		}
+	}
+	
+	private function SaveFileKlaim()
+	{
+		// $folder = Yii::getAlias('@webroot/uploads/incoming');
+		
+		$folder = sys_get_temp_dir();
+
+		if (!is_dir($folder)) {
+			throw new \RuntimeException(
+				'Folder incoming tidak ditemukan: ' . $folder
+			);
+		}
+
+		if (!is_writable($folder)) {
+			throw new \RuntimeException(
+				'Folder incoming tidak writable: ' . $folder
+			);
+		}
+		
+		$norek   = $member->nomor_rekening;
+		$noAkad  = $member->nomor_akad;
+		$codeDoc = '008';
+		$benefit = 2;
+		
+		$fileName =
+		$norek . '_' .
+		$noAkad . '_' .
+		$codeDoc . '_' .
+		$benefit . '.pdf';
+		
+		$pdfFileName = $fileName;
+		
+		$pdfPath =$folder . DIRECTORY_SEPARATOR . $pdfFileName;
+		
+		$zipFileName =
+			$norek . '_' .
+			$noAkad . '_' .
+			$codeDoc . '_' .
+			$benefit . '.zip';
+
+		$zipPath =
+		$folder . DIRECTORY_SEPARATOR . $zipFileName;
+		
+
+		$pdf->Output(
+			'F',
+			$pdfPath
+		);
+		
+		$zip = new \ZipArchive();
+
+		if ($zip->open(
+			$zipPath,
+			\ZipArchive::CREATE | \ZipArchive::OVERWRITE
+		) !== true) {
+
+			throw new \Exception(
+				'Gagal membuat file ZIP: ' . $zipPath
+			);
+		}
+		
+		if (!$zip->addFile(
+			$pdfPath,
+			$pdfFileName
+		)) {
+
+			$zip->close();
+
+			throw new \Exception(
+				'Gagal memasukkan PDF ke dalam ZIP'
+			);
+		}
+
+		
+		$zip->close();
+
+		if (!file_exists($zipPath)) {
+
+			throw new \Exception(
+				'File ZIP tidak berhasil dibuat'
+			);
+		}
+
+
+
+		// $autoload = 'C:\xampp7.4\htdocs\BestPro_syariah\protected\sftp-lib\vendor\autoload.php';
+			$autoload = Yii::getAlias('@webroot/protected/sftp-lib/vendor/autoload.php');
+
+		if (!file_exists($autoload)) {
+
+			throw new \Exception(
+				'Autoload phpseclib tidak ditemukan: ' . $autoload
+			);
+		}
+
+		require_once $autoload;
+
+		if (!class_exists('\phpseclib3\Net\SFTP')) {
+
+			throw new \Exception(
+				'Class phpseclib3\\Net\\SFTP tidak tersedia'
+			);
+		}
+
+		$sftpHost = 'web.bestpro-id.com';
+		$sftpPort = 22;
+
+		$sftpUsername = 'bank_riau';
+		$sftpPassword = 'Thunderbolt5';
+
+		$sftpIncomingPath =
+			'/sftp/bank_riau/incoming';
+
+
+		$sftp = new \phpseclib3\Net\SFTP(
+			$sftpHost,
+			$sftpPort,
+			10
+		);
+
+		if (!$sftp->login(
+			$sftpUsername,
+			$sftpPassword
+		)) {
+
+			throw new \Exception(
+				'Gagal authentication SFTP'
+			);
+		}
+
+		if (!$sftp->is_dir(
+			$sftpIncomingPath
+		)) {
+
+			throw new \Exception(
+				'Folder SFTP incoming tidak ditemukan: ' .
+				$sftpIncomingPath
+			);
+		}
+
+
+		$sftpFilePath =
+			$sftpIncomingPath .
+			'/' .
+			$zipFileName;
+
+
+
+		$uploadResult = $sftp->put(
+			$sftpFilePath,
+			$zipPath,
+			\phpseclib3\Net\SFTP::SOURCE_LOCAL_FILE
+		);
+
+		if (!$uploadResult) {
+
+			$sftp->disconnect();
+
+			throw new \Exception(
+				'Gagal upload ZIP ke SFTP: ' .
+				$sftpFilePath
+			);
+		}
+
+		$remoteFileSize =
+			$sftp->filesize(
+				$sftpFilePath
+			);
+
+
+		$sftp->disconnect();
+
+		if (file_exists($pdfPath)) {
+    unlink($pdfPath);
+}
+
+if (file_exists($zipPath)) {
+    unlink($zipPath);
+}
+
+		return [
+
+			/*
+			 * File ZIP
+			 */
+			'file_name' =>
+				$zipFileName,
+
+			/*
+			 * File lokal
+			 */
+			'file_path' =>
+				$zipPath,
+
+			/*
+			 * URL lokal
+			 */
+			'file_url' =>
+				Yii::$app->request->hostInfo .
+				Yii::$app->request->baseUrl .
+				'/uploads/incoming/' .
+				$zipFileName,
+
+			/*
+			 * SFTP
+			 */
+			'sftp' => [
+
+				'success' => true,
+
+				'host' =>
+					$sftpHost,
+
+				'port' =>
+					$sftpPort,
+
+				'username' =>
+					$sftpUsername,
+
+				'folder' =>
+					$sftpIncomingPath,
+
+				'file_path' =>
+					$sftpFilePath,
+
+				'file_name' =>
+					$zipFileName,
+
+				'size' =>
+					$remoteFileSize
+			]
+		];
+
+		return [
+			'file_name' => $zipFileName,
+
+			'sftp' => [
+				'success' => true,
+				'host' => $sftpHost,
+				'port' => $sftpPort,
+				'username' => $sftpUsername,
+				'folder' => $sftpIncomingPath,
+				'file_path' => $sftpFilePath,
+				'file_name' => $zipFileName,
+				'size' => $remoteFileSize,
+			],
+		];
 	}
 	
 }

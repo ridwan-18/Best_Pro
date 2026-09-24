@@ -3,6 +3,8 @@
 namespace app\controllers;
 
 use Yii;
+use phpseclib3\Net\SFTP;
+use app\components\SftpBankService;
 use app\models\User;
 use app\models\Batch;
 use app\models\Member;
@@ -33,6 +35,7 @@ use yii\helpers\Url;
 use app\models\BatchByPeserta;
 use app\models\map_member_dokumen_medis;
 use app\models\Restitusi;
+
 /**
  * MemberController implements the CRUD actions for BatchByPeserta model.
  */
@@ -1984,6 +1987,270 @@ class RestitusiController  extends Controller
 			];
 		}
 	}
+	
+
+	public function actionFileRestitusi()
+	{
+		if (Yii::$app->request->isPost) {
+
+			$member = Yii::$app->request->post('id');
+
+			if (!$member) {
+				Yii::$app->session->setFlash(
+					'error',
+					'Restitusi ID tidak ditemukan.'
+				);
+
+				return $this->redirect(['index']);
+			}
+
+
+			$file = \yii\web\UploadedFile::getInstanceByName('invoice');
+
+			if (!$file) {
+				Yii::$app->session->setFlash(
+					'error',
+					'File invoice belum dipilih.'
+				);
+
+				return $this->redirect(['index']);
+			}
+
+			if (strtolower($file->extension) !== 'pdf') {
+				Yii::$app->session->setFlash(
+					'error',
+					'File invoice harus berupa PDF.'
+				);
+
+				return $this->redirect(['index']);
+			}
+
+			/*
+			 * =========================================================
+			 * TEMPORARY FOLDER
+			 * =========================================================
+			 */
+			$folder = sys_get_temp_dir();
+
+			if (!is_dir($folder)) {
+				throw new \RuntimeException(
+					'Folder temporary tidak ditemukan: ' . $folder
+				);
+			}
+
+			if (!is_writable($folder)) {
+				throw new \RuntimeException(
+					'Folder temporary tidak writable: ' . $folder
+				);
+			}
+
+			/*
+			 * =========================================================
+			 * NAMA FILE
+			 * =========================================================
+			 *
+			 * Contoh:
+			 * invoice_57.pdf
+			 *
+			 * Bisa diganti sesuai format yang dibutuhkan.
+			 */
+			$fileName = 'invoice_' . $batch->id . '.pdf';
+
+			$localPath =
+				$folder .
+				DIRECTORY_SEPARATOR .
+				$fileName;
+
+			/*
+			 * =========================================================
+			 * SIMPAN FILE SEMENTARA
+			 * =========================================================
+			 */
+			if (!$file->saveAs($localPath)) {
+
+				Yii::$app->session->setFlash(
+					'error',
+					'Gagal menyimpan file sementara.'
+				);
+
+				return $this->redirect(['index']);
+			}
+
+			/*
+			 * =========================================================
+			 * SFTP CONFIG
+			 * =========================================================
+			 */
+			$autoload =
+				Yii::getAlias(
+					'@webroot/protected/sftp-lib/vendor/autoload.php'
+				);
+
+			if (!file_exists($autoload)) {
+
+				if (file_exists($localPath)) {
+					unlink($localPath);
+				}
+
+				throw new \Exception(
+					'Autoload phpseclib tidak ditemukan: ' . $autoload
+				);
+			}
+
+			require_once $autoload;
+
+			if (!class_exists('\phpseclib3\Net\SFTP')) {
+
+				if (file_exists($localPath)) {
+					unlink($localPath);
+				}
+
+				throw new \Exception(
+					'Class phpseclib3\\Net\\SFTP tidak tersedia'
+				);
+			}
+
+			$sftpHost = 'web.bestpro-id.com';
+			$sftpPort = 22;
+
+			$sftpUsername = 'bank_riau';
+			$sftpPassword = 'Thunderbolt5';
+
+			$sftpIncomingPath =
+				'/sftp/bank_riau/incoming';
+
+			/*
+			 * =========================================================
+			 * CONNECT SFTP
+			 * =========================================================
+			 */
+			$sftp = new \phpseclib3\Net\SFTP(
+				$sftpHost,
+				$sftpPort,
+				10
+			);
+
+			if (!$sftp->login(
+				$sftpUsername,
+				$sftpPassword
+			)) {
+
+				if (file_exists($localPath)) {
+					unlink($localPath);
+				}
+
+				throw new \Exception(
+					'Gagal authentication SFTP'
+				);
+			}
+
+			/*
+			 * =========================================================
+			 * CEK FOLDER
+			 * =========================================================
+			 */
+			if (!$sftp->is_dir($sftpIncomingPath)) {
+
+				$sftp->disconnect();
+
+				if (file_exists($localPath)) {
+					unlink($localPath);
+				}
+
+				throw new \Exception(
+					'Folder SFTP incoming tidak ditemukan: ' .
+					$sftpIncomingPath
+				);
+			}
+
+			/*
+			 * =========================================================
+			 * REMOTE FILE
+			 * =========================================================
+			 */
+			$sftpFilePath =
+				$sftpIncomingPath .
+				'/' .
+				$fileName;
+
+			/*
+			 * =========================================================
+			 * UPLOAD KE SFTP
+			 * =========================================================
+			 */
+			$uploadResult = $sftp->put(
+				$sftpFilePath,
+				$localPath,
+				\phpseclib3\Net\SFTP::SOURCE_LOCAL_FILE
+			);
+
+			if (!$uploadResult) {
+
+				$sftp->disconnect();
+
+				if (file_exists($localPath)) {
+					unlink($localPath);
+				}
+
+				throw new \Exception(
+					'Gagal upload invoice ke SFTP: ' .
+					$sftpFilePath
+				);
+			}
+
+			/*
+			 * =========================================================
+			 * CEK FILE DI SFTP
+			 * =========================================================
+			 */
+			$remoteFileSize =
+				$sftp->filesize(
+					$sftpFilePath
+				);
+
+			$sftp->disconnect();
+
+			/*
+			 * =========================================================
+			 * HAPUS FILE TEMPORARY
+			 * =========================================================
+			 */
+			if (file_exists($localPath)) {
+				unlink($localPath);
+			}
+
+			/*
+			 * =========================================================
+			 * SIMPAN PATH SFTP KE DATABASE
+			 * =========================================================
+			 *
+			 * SESUAIKAN nama field dengan tabel Batch.
+			 */
+			$batch->invoice =
+				$sftpFilePath;
+
+			if (!$batch->save(false)) {
+
+				Yii::$app->session->setFlash(
+					'error',
+					'File berhasil diupload ke SFTP, tetapi gagal menyimpan data invoice.'
+				);
+
+				return $this->redirect(['index']);
+			}
+
+			Yii::$app->session->setFlash(
+				'success',
+				'Invoice berhasil diupload ke SFTP.'
+			);
+
+			return $this->redirect(['index']);
+		}
+
+		return $this->redirect(['index']);
+	}
+
+
 
 
 
