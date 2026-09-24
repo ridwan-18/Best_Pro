@@ -1990,282 +1990,317 @@ class RestitusiController  extends Controller
 	}
 	
 
+	
 	public function actionFileRestitusi($id)
 	{
-		if (Yii::$app->request->isPost) {
+		if (!Yii::$app->request->isPost) {
+			return $this->redirect(['index']);
+		}
 
-			  $restitusi = Restitusi::findOne($id);
-			  
-			
+		$restitusi = Restitusi::findOne($id);
 
-			if (!$restitusi) {
-				Yii::$app->session->setFlash(
-					'error',
-					'Restitusi ID tidak ditemukan.'
-				);
-
-				return $this->redirect(['index']);
-			}
-
-
-			$file = \yii\web\UploadedFile::getInstanceByName('invoice');
-
-			if (!$file) {
-				Yii::$app->session->setFlash(
-					'error',
-					'File invoice belum dipilih.'
-				);
-
-				return $this->redirect(['index']);
-			}
-
-			if (strtolower($file->extension) !== 'pdf') {
-				Yii::$app->session->setFlash(
-					'error',
-					'File invoice harus berupa PDF.'
-				);
-
-				return $this->redirect(['index']);
-			}
-
-			/*
-			 * =========================================================
-			 * TEMPORARY FOLDER
-			 * =========================================================
-			 */
-			$folder = sys_get_temp_dir();
-
-			if (!is_dir($folder)) {
-				throw new \RuntimeException(
-					'Folder temporary tidak ditemukan: ' . $folder
-				);
-			}
-
-			if (!is_writable($folder)) {
-				throw new \RuntimeException(
-					'Folder temporary tidak writable: ' . $folder
-				);
-			}
-
-			/*
-			 * =========================================================
-			 * NAMA FILE
-			 * =========================================================
-			 *
-			 * Contoh:
-			 * invoice_57.pdf
-			 *
-			 * Bisa diganti sesuai format yang dibutuhkan.
-			 */
-			$norek   = $restitusi->nomor_rekening;
-		$noAkad  = $restitusi->nomor_akad;
-		$codeDoc = '008';
-		$benefit = 2;
-		
-		$fileName =
-		$norek . '_' .
-		$noAkad . '_' .
-		$codeDoc . '_' .
-		$benefit . '.pdf';
-		
-		$pdfFileName = $fileName; 
-			// $fileName = 'invoice_' . $batch->id . '.pdf';
-
-			// $localPath =
-				// $folder .
-				// DIRECTORY_SEPARATOR .
-				// $fileName;
-				
-			$localPath =$folder . DIRECTORY_SEPARATOR . $pdfFileName;	
-
-			/*
-			 * =========================================================
-			 * SIMPAN FILE SEMENTARA
-			 * =========================================================
-			 */
-			if (!$file->saveAs($localPath)) {
-
-				Yii::$app->session->setFlash(
-					'error',
-					'Gagal menyimpan file sementara.'
-				);
-
-				return $this->redirect(['index']);
-			}
-
-			/*
-			 * =========================================================
-			 * SFTP CONFIG
-			 * =========================================================
-			 */
-			$autoload =
-				Yii::getAlias(
-					'@webroot/protected/sftp-lib/vendor/autoload.php'
-				);
-
-			if (!file_exists($autoload)) {
-
-				if (file_exists($localPath)) {
-					unlink($localPath);
-				}
-
-				throw new \Exception(
-					'Autoload phpseclib tidak ditemukan: ' . $autoload
-				);
-			}
-
-			require_once $autoload;
-
-			if (!class_exists('\phpseclib3\Net\SFTP')) {
-
-				if (file_exists($localPath)) {
-					unlink($localPath);
-				}
-
-				throw new \Exception(
-					'Class phpseclib3\\Net\\SFTP tidak tersedia'
-				);
-			}
-
-			$sftpHost = 'web.bestpro-id.com';
-			$sftpPort = 22;
-
-			$sftpUsername = 'bank_riau';
-			$sftpPassword = 'Thunderbolt5';
-
-			$sftpIncomingPath =
-				'/sftp/bank_riau/incoming';
-
-			/*
-			 * =========================================================
-			 * CONNECT SFTP
-			 * =========================================================
-			 */
-			$sftp = new \phpseclib3\Net\SFTP(
-				$sftpHost,
-				$sftpPort,
-				10
-			);
-
-			if (!$sftp->login(
-				$sftpUsername,
-				$sftpPassword
-			)) {
-
-				if (file_exists($localPath)) {
-					unlink($localPath);
-				}
-
-				throw new \Exception(
-					'Gagal authentication SFTP'
-				);
-			}
-
-			/*
-			 * =========================================================
-			 * CEK FOLDER
-			 * =========================================================
-			 */
-			if (!$sftp->is_dir($sftpIncomingPath)) {
-
-				$sftp->disconnect();
-
-				if (file_exists($localPath)) {
-					unlink($localPath);
-				}
-
-				throw new \Exception(
-					'Folder SFTP incoming tidak ditemukan: ' .
-					$sftpIncomingPath
-				);
-			}
-
-			/*
-			 * =========================================================
-			 * REMOTE FILE
-			 * =========================================================
-			 */
-			$sftpFilePath =
-				$sftpIncomingPath .
-				'/' .
-				$fileName;
-
-			/*
-			 * =========================================================
-			 * UPLOAD KE SFTP
-			 * =========================================================
-			 */
-			$uploadResult = $sftp->put(
-				$sftpFilePath,
-				$localPath,
-				\phpseclib3\Net\SFTP::SOURCE_LOCAL_FILE
-			);
-
-			if (!$uploadResult) {
-
-				$sftp->disconnect();
-
-				if (file_exists($localPath)) {
-					unlink($localPath);
-				}
-
-				throw new \Exception(
-					'Gagal upload invoice ke SFTP: ' .
-					$sftpFilePath
-				);
-			}
-
-			/*
-			 * =========================================================
-			 * CEK FILE DI SFTP
-			 * =========================================================
-			 */
-			$remoteFileSize =
-				$sftp->filesize(
-					$sftpFilePath
-				);
-
-			$sftp->disconnect();
-
-			/*
-			 * =========================================================
-			 * HAPUS FILE TEMPORARY
-			 * =========================================================
-			 */
-			if (file_exists($localPath)) {
-				unlink($localPath);
-			}
-
-			/*
-			 * =========================================================
-			 * SIMPAN PATH SFTP KE DATABASE
-			 * =========================================================
-			 *
-			 * SESUAIKAN nama field dengan tabel Batch.
-			 */
-			$restitusi->files =
-				$sftpFilePath;
-
-			if (!$restitusi->save(false)) {
-
-				Yii::$app->session->setFlash(
-					'error',
-					'File berhasil diupload ke SFTP, tetapi gagal menyimpan data invoice.'
-				);
-
-				return $this->redirect(['index']);
-			}
-
+		if (!$restitusi) {
 			Yii::$app->session->setFlash(
-				'success',
-				'Invoice berhasil diupload ke SFTP.'
+				'error',
+				'Restitusi ID tidak ditemukan.'
 			);
 
 			return $this->redirect(['index']);
 		}
 
+		// Ambil file invoice
+		$file = \yii\web\UploadedFile::getInstanceByName('invoice');
+
+		if (!$file) {
+			Yii::$app->session->setFlash(
+				'error',
+				'File invoice belum dipilih.'
+			);
+
+			return $this->redirect(['index']);
+		}
+
+		// Validasi PDF
+		if (strtolower($file->extension) !== 'pdf') {
+			Yii::$app->session->setFlash(
+				'error',
+				'File invoice harus berupa PDF.'
+			);
+
+			return $this->redirect(['index']);
+		}
+
+		// Folder temporary
+		$folder = sys_get_temp_dir();
+
+		if (!is_dir($folder)) {
+			throw new \RuntimeException(
+				'Folder temporary tidak ditemukan: ' . $folder
+			);
+		}
+
+		if (!is_writable($folder)) {
+			throw new \RuntimeException(
+				'Folder temporary tidak writable: ' . $folder
+			);
+		}
+
+		/*
+		 * Nama file
+		 */
+		$norek   = $restitusi->nomor_rekening;
+		$noAkad  = $restitusi->nomor_akad;
+		$codeDoc = '008';
+		$benefit = 2;
+
+		$fileName =
+			$norek . '_' .
+			$noAkad . '_' .
+			$codeDoc . '_' .
+			$benefit . '.pdf';
+
+		$zipFileName =
+			$norek . '_' .
+			$noAkad . '_' .
+			$codeDoc . '_' .
+			$benefit . '.zip';
+
+		$localPath = $folder . DIRECTORY_SEPARATOR . $fileName;
+		$zipPath   = $folder . DIRECTORY_SEPARATOR . $zipFileName;
+
+		/*
+		 * Simpan PDF sementara
+		 */
+		if (!$file->saveAs($localPath)) {
+			Yii::$app->session->setFlash(
+				'error',
+				'Gagal menyimpan file sementara.'
+			);
+
+			return $this->redirect(['index']);
+		}
+
+		/*
+		 * Buat ZIP
+		 */
+		$zip = new \ZipArchive();
+
+		if ($zip->open(
+			$zipPath,
+			\ZipArchive::CREATE | \ZipArchive::OVERWRITE
+		) !== true) {
+
+			if (file_exists($localPath)) {
+				unlink($localPath);
+			}
+
+			throw new \Exception(
+				'Gagal membuat file ZIP: ' . $zipPath
+			);
+		}
+
+		/*
+		 * Masukkan PDF ke dalam ZIP
+		 *
+		 * Nama file di dalam ZIP tetap:
+		 * norek_noakad_008_2.pdf
+		 */
+		$zip->addFile(
+			$localPath,
+			$fileName
+		);
+
+		$zip->close();
+
+		/*
+		 * Pastikan ZIP berhasil dibuat
+		 */
+		if (!file_exists($zipPath)) {
+
+			if (file_exists($localPath)) {
+				unlink($localPath);
+			}
+
+			throw new \Exception(
+				'File ZIP gagal dibuat.'
+			);
+		}
+
+		/*
+		 * Load phpseclib
+		 */
+		$autoload = Yii::getAlias(
+			'@webroot/protected/sftp-lib/vendor/autoload.php'
+		);
+
+		if (!file_exists($autoload)) {
+
+			if (file_exists($localPath)) {
+				unlink($localPath);
+			}
+
+			if (file_exists($zipPath)) {
+				unlink($zipPath);
+			}
+
+			throw new \Exception(
+				'Autoload phpseclib tidak ditemukan: ' . $autoload
+			);
+		}
+
+		require_once $autoload;
+
+		if (!class_exists('\phpseclib3\Net\SFTP')) {
+
+			if (file_exists($localPath)) {
+				unlink($localPath);
+			}
+
+			if (file_exists($zipPath)) {
+				unlink($zipPath);
+			}
+
+			throw new \Exception(
+				'Class phpseclib3\\Net\\SFTP tidak tersedia'
+			);
+		}
+
+		/*
+		 * SFTP
+		 */
+		$sftpHost     = 'web.bestpro-id.com';
+		$sftpPort     = 22;
+		$sftpUsername = 'bank_riau';
+		$sftpPassword = 'Thunderbolt5';
+
+		$sftpIncomingPath = '/sftp/bank_riau/incoming';
+
+		$sftp = new \phpseclib3\Net\SFTP(
+			$sftpHost,
+			$sftpPort,
+			10
+		);
+
+		/*
+		 * Login
+		 */
+		if (!$sftp->login(
+			$sftpUsername,
+			$sftpPassword
+		)) {
+
+			if (file_exists($localPath)) {
+				unlink($localPath);
+			}
+
+			if (file_exists($zipPath)) {
+				unlink($zipPath);
+			}
+
+			throw new \Exception(
+				'Gagal authentication SFTP'
+			);
+		}
+
+		/*
+		 * Cek folder incoming
+		 */
+		if (!$sftp->is_dir($sftpIncomingPath)) {
+
+			$sftp->disconnect();
+
+			if (file_exists($localPath)) {
+				unlink($localPath);
+			}
+
+			if (file_exists($zipPath)) {
+				unlink($zipPath);
+			}
+
+			throw new \Exception(
+				'Folder SFTP incoming tidak ditemukan: ' .
+				$sftpIncomingPath
+			);
+		}
+
+		/*
+		 * Path ZIP di SFTP
+		 */
+		$sftpFilePath =
+			$sftpIncomingPath .
+			'/' .
+			$zipFileName;
+
+		/*
+		 * Upload ZIP
+		 */
+		$uploadResult = $sftp->put(
+			$sftpFilePath,
+			$zipPath,
+			\phpseclib3\Net\SFTP::SOURCE_LOCAL_FILE
+		);
+
+		if (!$uploadResult) {
+
+			$sftp->disconnect();
+
+			if (file_exists($localPath)) {
+				unlink($localPath);
+			}
+
+			if (file_exists($zipPath)) {
+				unlink($zipPath);
+			}
+
+			throw new \Exception(
+				'Gagal upload ZIP ke SFTP: ' .
+				$sftpFilePath
+			);
+		}
+
+		/*
+		 * Cek ukuran file di SFTP
+		 */
+		$remoteFileSize = $sftp->filesize(
+			$sftpFilePath
+		);
+
+		$sftp->disconnect();
+
+		/*
+		 * Hapus file temporary
+		 */
+		if (file_exists($localPath)) {
+			unlink($localPath);
+		}
+
+		if (file_exists($zipPath)) {
+			unlink($zipPath);
+		}
+
+		/*
+		 * Simpan path ZIP ke database
+		 */
+		$restitusi->files = $sftpFilePath;
+
+		if (!$restitusi->save(false)) {
+
+			Yii::$app->session->setFlash(
+				'error',
+				'File berhasil diupload ke SFTP, tetapi gagal menyimpan data invoice.'
+			);
+
+			return $this->redirect(['index']);
+		}
+
+		Yii::$app->session->setFlash(
+			'success',
+			'Invoice berhasil dibuat menjadi ZIP dan diupload ke SFTP.'
+		);
+
 		return $this->redirect(['index']);
 	}
+
 
 
 
