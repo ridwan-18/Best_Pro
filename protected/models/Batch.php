@@ -452,11 +452,20 @@ elseif ($identity->role == User::ROLE_PUSAT) {
 		 * PENTING:
 		 * Jangan menggunakan partner_id di sini.
 		 */
-		} elseif ($identity->role == User::ROLE_UW) {
+		} 
+		elseif ($identity->role == User::ROLE_UW) {
 
 			$query->andWhere([
 				$tableBatch . '.created_by' => $identity->id
 			]);
+			
+		elseif ($identity->role == User::ROLE_BISNIS) {
+
+			$query->andWhere($tableUser . '.role = :role', [
+				':role' => 7
+			]);
+
+		}
 
 
 		/*
