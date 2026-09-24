@@ -753,7 +753,7 @@ $this->title = 'View Member - ' . Yii::$app->name;
 													'post',
 													[
 														'enctype' => 'multipart/form-data',
-														'id' => 'member-upload-form-' . $member['id']
+														'id' => 'member-upload-form-' . $retitusi['id']
 													]
 												) ?>
 

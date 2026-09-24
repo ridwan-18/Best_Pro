@@ -507,6 +507,7 @@ class RestitusiController  extends Controller
 			'personals' => $personals,
 			'pagination' => $pagination,
 			'filecbc' => $filecbc,
+			'retitusi'  => $retitusi,
 		]);
 	}
 
@@ -2054,12 +2055,26 @@ class RestitusiController  extends Controller
 			 *
 			 * Bisa diganti sesuai format yang dibutuhkan.
 			 */
-			$fileName = 'invoice_' . $batch->id . '.pdf';
+			$norek   = $member->nomor_rekening;
+		$noAkad  = $member->nomor_akad;
+		$codeDoc = '008';
+		$benefit = 2;
+		
+		$fileName =
+		$norek . '_' .
+		$noAkad . '_' .
+		$codeDoc . '_' .
+		$benefit . '.pdf';
+		
+		$pdfFileName = $fileName; 
+			// $fileName = 'invoice_' . $batch->id . '.pdf';
 
-			$localPath =
-				$folder .
-				DIRECTORY_SEPARATOR .
-				$fileName;
+			// $localPath =
+				// $folder .
+				// DIRECTORY_SEPARATOR .
+				// $fileName;
+				
+			$localPath =$folder . DIRECTORY_SEPARATOR . $pdfFileName;	
 
 			/*
 			 * =========================================================
