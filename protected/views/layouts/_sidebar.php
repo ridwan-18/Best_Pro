@@ -224,7 +224,7 @@ use app\models\User;
 				
 				
 				if (Yii::$app->user->identity->role == User::ROLE_BISNIS) :
-					
+                ?>
                     <li>
                         <a href="javascript: void(0);"><i class="fa fa-book"></i> <span> Report </span> <span class="menu-arrow"></span></a>
                         <ul class="nav-second-level" aria-expanded="false">
