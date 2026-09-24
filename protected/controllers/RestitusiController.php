@@ -1990,7 +1990,7 @@ class RestitusiController  extends Controller
 	}
 	
 
-	public function actionFileRestitusi()
+	public function actionFileRestitusi($id)
 	{
 		if (Yii::$app->request->isPost) {
 
