@@ -1994,7 +1994,7 @@ class RestitusiController  extends Controller
 	{
 		if (Yii::$app->request->isPost) {
 
-			$member = Yii::$app->request->post('id');
+			$retitusi = Yii::$app->request->post('id');
 
 			if (!$member) {
 				Yii::$app->session->setFlash(
