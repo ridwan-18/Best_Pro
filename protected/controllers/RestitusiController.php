@@ -1994,9 +1994,9 @@ class RestitusiController  extends Controller
 	{
 		if (Yii::$app->request->isPost) {
 
-			$retitusi = Yii::$app->request->post('id');
+			  $restitusi = Restitusi::findOne($id);
 
-			if (!$member) {
+			if (!$retitusi) {
 				Yii::$app->session->setFlash(
 					'error',
 					'Restitusi ID tidak ditemukan.'

@@ -749,36 +749,36 @@ $this->title = 'View Member - ' . Yii::$app->name;
 								 <td>
 
 												<?= Html::beginForm(
-													['restitusi/file-restitusi'],
-													'post',
-													[
-														'enctype' => 'multipart/form-data',
-														'id' => 'member-upload-form-' . $retitusi['id']
-													]
-												) ?>
+												['restitusi/file-restitusi', 'id' => $retitusi['id']],
+												'post',
+												[
+													'enctype' => 'multipart/form-data',
+													'id' => 'member-upload-form-' . $retitusi['id']
+												]
+											) ?>
 
-												<?= Html::hiddenInput(
-													'batch_id',
-													$member['id']
-												) ?>
+											<?= Html::hiddenInput(
+												'id',
+												$retitusi['id']
+											) ?>
 
-												<?= Html::fileInput(
-													'files_medis',
-													null,
-													[
-														'class' => 'form-control',
-														'required' => true
-													]
-												) ?>
+											<?= Html::fileInput(
+												'invoice',
+												null,
+												[
+													'class' => 'form-control',
+													'required' => true
+												]
+											) ?>
 
-												<?= Html::submitButton(
-													'<i class="fa fa-upload"></i> Upload',
-													[
-														'class' => 'btn btn-primary'
-													]
-												) ?>
+											<?= Html::submitButton(
+												'<i class="fa fa-upload"></i> Upload',
+												[
+													'class' => 'btn btn-primary'
+												]
+											) ?>
 
-												<?= Html::endForm() ?>
+											<?= Html::endForm() ?>
 
 										</td>
 								
