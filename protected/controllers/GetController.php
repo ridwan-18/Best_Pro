@@ -1018,7 +1018,7 @@ class GetController extends Controller
 			return [
 				'Result' => [
 					'status' => '200',
-					'kode_response' => '99',
+					'kode_response' => '05',
 					'message' => 'Data klaim tidak ditemukan',
 					'id_transaksi' => $id_transaksi,
 					'id_pengajuan' => $id_pengajuan_klaim_riau,
