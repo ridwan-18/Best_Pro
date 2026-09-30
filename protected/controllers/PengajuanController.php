@@ -5477,7 +5477,7 @@ if (file_exists($zipPath)) {
 			$checkMember =
 				member::find()
 					->where([
-						'no_akad' => $noAkad
+						'nomor_akad' => $noAkad
 					])
 					->one();
 
