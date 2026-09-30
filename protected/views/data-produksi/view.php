@@ -861,9 +861,11 @@ $(document).on('change', '.action-dropdown', function() {
     var row = dropdown.closest('tr');
 
     // Ambil input keterangan dari row tersebut
-    var keteranganInput = row.find('.keterangan-input');
+  var keteranganInput = row.find('.keterangan-input');
+	var totalBayarInput = row.find('.total-bayar-input');
 
-    var keterangan = $.trim(keteranganInput.val() || '');
+	var keterangan = $.trim(keteranganInput.val() || '');
+	var totalBayar = $.trim(totalBayarInput.val() || '');
 
     console.log('==============================');
     console.log('DEBUG CBC');
