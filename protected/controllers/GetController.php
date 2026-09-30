@@ -1043,6 +1043,22 @@ class GetController extends Controller
 				]
 			];
 		}
+		
+		if ($member->nomor_rekening == null) {
+
+			Yii::$app->response->statusCode = 200;
+
+			return [
+				'Result' => [
+					'status' => '200',
+					'kode_response' => '10',
+					'message' => 'nomor rekening tidak ditemukan',
+					'id_transaksi' => $id_transaksi,
+					'id_pengajuan' => $id_pengajuan_klaim_riau,
+					'nomor_rekening' => $nomor_rekening
+				]
+			];
+		}
 
 		$statusKlaim = $member->status_claim ?? 0;
 		$statusBayar = $member->status_bayar ?? 0;
