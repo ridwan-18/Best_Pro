@@ -1178,6 +1178,7 @@ class Member extends \yii\db\ActiveRecord
 			// 'premi_disetujui'   => '0',
 			'keterangan'        => $document->keterangan,
 			'benefit'           => $model->benefit,
+			'total_bayar'           => $document->total_bayar,
 		];
 
 		$jsonData = json_encode($payload);

@@ -4806,11 +4806,7 @@ if (file_exists($zipPath)) {
 
 		$request = Yii::$app->request;
 
-		/*
-		 * =========================================================
-		 * AUTHORIZATION
-		 * =========================================================
-		 */
+
 
 		$authorization = $request->headers->get('Authorization');
 
@@ -4824,13 +4820,6 @@ if (file_exists($zipPath)) {
 			];
 		}
 
-
-		/*
-		 * =========================================================
-		 * REQUEST BODY
-		 * =========================================================
-		 */
-
 		$body = $request->getBodyParams();
 
 		if (empty($body)) {
@@ -4843,12 +4832,6 @@ if (file_exists($zipPath)) {
 			];
 		}
 
-
-		/*
-		 * =========================================================
-		 * REQUIRED FIELD
-		 * =========================================================
-		 */
 
 		$requiredFields = [
 			'id_transaksi',
@@ -4892,13 +4875,6 @@ if (file_exists($zipPath)) {
 			}
 		}
 
-
-		/*
-		 * =========================================================
-		 * NORMALISASI
-		 * =========================================================
-		 */
-
 		$noAkad = trim($body['no_akad']);
 
 		$idTransaksi = trim($body['id_transaksi']);
@@ -4906,13 +4882,6 @@ if (file_exists($zipPath)) {
 		$idPengajuan = trim($body['id_pengajuan']);
 
 		$ktp = trim($body['ktp']);
-
-
-		/*
-		 * =========================================================
-		 * VALIDASI TANGGAL
-		 * =========================================================
-		 */
 
 		$dateFields = [
 			'periode_awal',
@@ -4949,13 +4918,6 @@ if (file_exists($zipPath)) {
 			$dateValues[$field] =
 				$date->format('Y-m-d');
 		}
-
-
-		/*
-		 * =========================================================
-		 * BENEFIT
-		 * =========================================================
-		 */
 
 		$idAgunan = isset($body['id_agunan'])
 			? trim($body['id_agunan'])
@@ -4994,13 +4956,6 @@ if (file_exists($zipPath)) {
 			}
 		}
 
-
-		/*
-		 * =========================================================
-		 * LOG REQUEST
-		 * =========================================================
-		 */
-
 		Yii::info(
 			'START actionSubmitClaim. ' .
 			'no_akad=' . $noAkad .
@@ -5008,18 +4963,6 @@ if (file_exists($zipPath)) {
 			', id_pengajuan=' . $idPengajuan,
 			'claim-sftp'
 		);
-
-
-		/*
-		 * =========================================================
-		 * MYSQL NAMED LOCK
-		 *
-		 * Lock berdasarkan no_akad.
-		 *
-		 * Jika request yang sama masuk bersamaan,
-		 * request kedua menunggu request pertama selesai.
-		 * =========================================================
-		 */
 
 		$lockName =
 			'CLAIM_' . md5($noAkad);
@@ -5054,13 +4997,6 @@ if (file_exists($zipPath)) {
 			];
 		}
 
-
-		/*
-		 * =========================================================
-		 * TRANSACTION
-		 * =========================================================
-		 */
-
 		$transaction = null;
 
 
@@ -5068,18 +5004,6 @@ if (file_exists($zipPath)) {
 
 			$transaction =
 				Yii::$app->db->beginTransaction();
-
-
-			/*
-			 * =====================================================
-			 * MEMBER CLAIM
-			 *
-			 * LOGIC:
-			 *
-			 * NULL  -> INSERT
-			 * ADA   -> UPDATE id_transaksi
-			 * =====================================================
-			 */
 
 			$checkMember =
 				MemberClaim::find()
@@ -5090,12 +5014,6 @@ if (file_exists($zipPath)) {
 
 
 			if ($checkMember === null) {
-
-				/*
-				 * ==============================================
-				 * INSERT MEMBER CLAIM
-				 * ==============================================
-				 */
 
 				Yii::info(
 					'MemberClaim tidak ditemukan. INSERT. ' .
@@ -5127,12 +5045,6 @@ if (file_exists($zipPath)) {
 
 			} else {
 
-				/*
-				 * ==============================================
-				 * UPDATE MEMBER CLAIM
-				 * ==============================================
-				 */
-
 				Yii::info(
 					'MemberClaim ditemukan. UPDATE id_transaksi. ' .
 					'no_akad=' . $noAkad .
@@ -5158,18 +5070,6 @@ if (file_exists($zipPath)) {
 					);
 				}
 			}
-
-
-			/*
-			 * =====================================================
-			 * CLAIM RIAU
-			 *
-			 * LOGIC:
-			 *
-			 * NULL  -> INSERT
-			 * ADA   -> UPDATE
-			 * =====================================================
-			 */
 
 			$model =
 				\app\models\claim_riau::find()
@@ -5200,13 +5100,6 @@ if (file_exists($zipPath)) {
 					'claim-sftp'
 				);
 			}
-
-
-			/*
-			 * =====================================================
-			 * ISI DATA CLAIM RIAU
-			 * =====================================================
-			 */
 
 			$model->id_transaksi =
 				$idTransaksi;
@@ -5284,23 +5177,11 @@ if (file_exists($zipPath)) {
 			$model->tanggal_kirim =
 				$dateValues['tanggal_kirim'];
 
-
-			/*
-			 * created_at HANYA ketika INSERT
-			 */
-
 			if ($model->isNewRecord) {
 
 				$model->created_at =
 					date('Y-m-d H:i:s');
 			}
-
-
-			/*
-			 * =====================================================
-			 * SAVE CLAIM RIAU
-			 * =====================================================
-			 */
 
 			if (!$model->save()) {
 
@@ -5311,13 +5192,6 @@ if (file_exists($zipPath)) {
 					)
 				);
 			}
-
-
-			/*
-			 * =====================================================
-			 * DOKUMEN CLAIM
-			 * =====================================================
-			 */
 
 			$countDokumen =
 				\app\models\map_member_dokumen_medis::find()
@@ -5335,13 +5209,6 @@ if (file_exists($zipPath)) {
 					'0',
 					STR_PAD_LEFT
 				);
-
-
-			/*
-			 * =====================================================
-			 * FILE NAME
-			 * =====================================================
-			 */
 
 			$norek =
 				trim(
@@ -5374,13 +5241,6 @@ if (file_exists($zipPath)) {
 				'claim-sftp'
 			);
 
-
-			/*
-			 * =====================================================
-			 * DOWNLOAD SFTP
-			 * =====================================================
-			 */
-
 			$sftpResult =
 				$this->downloadFileFromBankSftp(
 					$fileName
@@ -5392,13 +5252,6 @@ if (file_exists($zipPath)) {
 				json_encode($sftpResult),
 				'claim-sftp'
 			);
-
-
-			/*
-			 * =====================================================
-			 * SAVE MAPPING DOKUMEN
-			 * =====================================================
-			 */
 
 			$dokumenMedis =
 				new \app\models\map_member_dokumen_medis();
@@ -5447,13 +5300,6 @@ if (file_exists($zipPath)) {
 			$dokumenMedis->created_by =
 				1;
 
-
-			/*
-			 * =====================================================
-			 * SAVE DOKUMEN
-			 * =====================================================
-			 */
-
 			if (!$dokumenMedis->save()) {
 
 				throw new \Exception(
@@ -5464,21 +5310,8 @@ if (file_exists($zipPath)) {
 				);
 			}
 
-
-			/*
-			 * =====================================================
-			 * COMMIT
-			 * =====================================================
-			 */
-
 			$transaction->commit();
 
-
-			/*
-			 * =====================================================
-			 * RELEASE LOCK
-			 * =====================================================
-			 */
 
 			Yii::$app->db
 				->createCommand(
@@ -5497,13 +5330,6 @@ if (file_exists($zipPath)) {
 				', id_transaksi=' . $idTransaksi,
 				'claim-sftp'
 			);
-
-
-			/*
-			 * =====================================================
-			 * RESPONSE DOKUMEN BERHASIL
-			 * =====================================================
-			 */
 
 			if (
 				!empty($sftpResult['success']) &&
@@ -5525,13 +5351,6 @@ if (file_exists($zipPath)) {
 				];
 			}
 
-
-			/*
-			 * =====================================================
-			 * RESPONSE DOKUMEN BELUM TERSEDIA
-			 * =====================================================
-			 */
-
 			return [
 				'Result' => [
 					'status' => '200',
@@ -5551,12 +5370,6 @@ if (file_exists($zipPath)) {
 
 		} catch (\Exception $e) {
 
-			/*
-			 * =====================================================
-			 * ROLLBACK
-			 * =====================================================
-			 */
-
 			if (
 				$transaction !== null &&
 				$transaction->getIsActive()
@@ -5565,12 +5378,6 @@ if (file_exists($zipPath)) {
 				$transaction->rollBack();
 			}
 
-
-			/*
-			 * =====================================================
-			 * RELEASE LOCK
-			 * =====================================================
-			 */
 
 			try {
 
@@ -5593,13 +5400,6 @@ if (file_exists($zipPath)) {
 				);
 			}
 
-
-			/*
-			 * =====================================================
-			 * LOG ERROR
-			 * =====================================================
-			 */
-
 			Yii::error(
 				'ERROR actionSubmitClaim: ' .
 				$e->getMessage() .
@@ -5620,7 +5420,6 @@ if (file_exists($zipPath)) {
 			];
 		}
 	}
-
 
 
 	public function actionListIncomingFiles()

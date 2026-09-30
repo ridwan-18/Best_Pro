@@ -728,6 +728,7 @@ $this->title = 'View Member - ' . Yii::$app->name;
                             <td>Action</td>
 							<td>Keterangan</td>
                             <td>Status</td>
+							<td>Total Bayar</td>
                         </tr>
                     </thead>
 
@@ -802,6 +803,10 @@ $this->title = 'View Member - ' . Yii::$app->name;
 
                                 <td>
                                     <?= Html::encode($cd['approve']); ?>
+                                </td>
+								
+								 <td>
+                                    <?= Html::encode($cd['total_bayar']); ?>
                                 </td>
 
                             </tr>
