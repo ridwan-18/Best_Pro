@@ -1190,7 +1190,7 @@ class PengajuanController extends Controller
 			->one();
 
 		
-		var_dump($cekdokumen);
+		// var_dump($cekdokumen);
 		
 		if ($cekdokumen && trim($cekdokumen->approve) === 'DISETUJUI') 
 		{
