@@ -1026,6 +1026,23 @@ class GetController extends Controller
 				]
 			];
 		}
+		
+		
+		if ($member->benefit !=2) {
+
+			Yii::$app->response->statusCode = 200;
+
+			return [
+				'Result' => [
+					'status' => '200',
+					'kode_response' => '27',
+					'message' => 'Benefit tidak sesuai',
+					'id_transaksi' => $id_transaksi,
+					'id_pengajuan' => $id_pengajuan_klaim_riau,
+					'nomor_rekening' => $nomor_rekening
+				]
+			];
+		}
 
 		$statusKlaim = $member->status_claim ?? 0;
 		$statusBayar = $member->status_bayar ?? 0;
