@@ -1717,7 +1717,6 @@ class DataProduksiController  extends Controller
 			}
 
 			$action = Yii::$app->request->post('action');
-			$total_bayar = Yii::$app->request->post('total_bayar');
 			$keterangan = Yii::$app->request->post('keterangan');
 			$keterangan = trim($keterangan);
 
@@ -1768,7 +1767,7 @@ class DataProduksiController  extends Controller
 			$document->approve = 'Menunggu kelengkapan dokumen'; 
 			}
 			
-			$document->total_bayar = $total_bayar;
+			
 			$document->keterangan = $keterangan;
 			if (!$document->save(false)) {
 				return [

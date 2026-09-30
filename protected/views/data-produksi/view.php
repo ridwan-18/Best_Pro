@@ -728,7 +728,6 @@ $this->title = 'View Member - ' . Yii::$app->name;
                             <td>Action</td>
 							<td>Keterangan</td>
                             <td>Status</td>
-							<td>Total Bayar</td>
                         </tr>
                     </thead>
 
@@ -804,18 +803,6 @@ $this->title = 'View Member - ' . Yii::$app->name;
                                 <td>
                                     <?= Html::encode($cd['approve']); ?>
                                 </td>
-								
-								 <td>
-									<?= Html::textInput( 
-										'total_bayar',
-										'',
-										[
-											'class' => 'form-control total-bayar-input',
-											'placeholder' => 'Masukkan total bayar',
-											'autocomplete' => 'off',
-										]
-									); ?>
-								</td>
 
                             </tr>
 
@@ -861,11 +848,9 @@ $(document).on('change', '.action-dropdown', function() {
     var row = dropdown.closest('tr');
 
     // Ambil input keterangan dari row tersebut
-  var keteranganInput = row.find('.keterangan-input');
-	var totalBayarInput = row.find('.total-bayar-input');
+    var keteranganInput = row.find('.keterangan-input');
 
-	var keterangan = $.trim(keteranganInput.val() || '');
-	var totalBayar = $.trim(totalBayarInput.val() || '');
+    var keterangan = $.trim(keteranganInput.val() || '');
 
     console.log('==============================');
     console.log('DEBUG CBC');
@@ -899,98 +884,100 @@ $(document).on('change', '.action-dropdown', function() {
     // ==========================================
     $.ajax({
 
-    url: url,
+        url: url,
 
-		type: 'POST',
+        type: 'POST',
 
-		dataType: 'json',
+        dataType: 'json',
 
-		data: {
-			action: action,
-			keterangan: keterangan,
-			total_bayar: totalBayar
-		},
+        data: {
+            action: action,
+            keterangan: keterangan
+        },
 
-		beforeSend: function() {
+        beforeSend: function() {
 
-			dropdown.prop('disabled', true);
-			keteranganInput.prop('disabled', true);
-			totalBayarInput.prop('disabled', true);
+            dropdown.prop('disabled', true);
 
-		},
+            keteranganInput.prop('disabled', true);
 
-		success: function(response) {
+        },
 
-			console.log('RESPONSE CONTROLLER:', response);
+        success: function(response) {
 
-			if (
-				response.Result &&
-				response.Result.status == '200'
-			) {
+            console.log('RESPONSE CONTROLLER:', response);
 
-				alert(
-					'BERHASIL\n\n' +
-					'Status : ' + response.Result.status +
-					'\nKode : ' + response.Result.kode_response +
-					'\nPesan : ' + response.Result.message
-				);
+            if (
+                response.Result &&
+                response.Result.status == '200'
+            ) {
 
-				location.reload();
+                alert(
+                    'BERHASIL\\n\\n' +
+                    'Status : ' +
+                    response.Result.status +
+                    '\\nKode : ' +
+                    response.Result.kode_response +
+                    '\\nPesan : ' +
+                    response.Result.message
+                );
 
-			} else {
+                location.reload();
 
-				alert(
-					'GAGAL\n\n' +
-					'Status : ' +
-					(
-						response.Result
-						? response.Result.status
-						: '-'
-					) +
-					'\nKode : ' +
-					(
-						response.Result
-						? response.Result.kode_response
-						: '-'
-					) +
-					'\nPesan : ' +
-					(
-						response.Result
-						? response.Result.message
-						: 'Response tidak valid'
-					)
-				);
+            } else {
 
-				dropdown.prop('disabled', false);
-				keteranganInput.prop('disabled', false);
-				totalBayarInput.prop('disabled', false);
+                alert(
+                    'GAGAL\\n\\n' +
+                    'Status : ' +
+                    (
+                        response.Result
+                        ? response.Result.status
+                        : '-'
+                    ) +
+                    '\\nKode : ' +
+                    (
+                        response.Result
+                        ? response.Result.kode_response
+                        : '-'
+                    ) +
+                    '\\nPesan : ' +
+                    (
+                        response.Result
+                        ? response.Result.message
+                        : 'Response tidak valid'
+                    )
+                );
 
-			}
+                dropdown.prop('disabled', false);
 
-		},
+                keteranganInput.prop('disabled', false);
 
-		error: function(xhr, status, error) {
+            }
 
-			console.log('AJAX ERROR');
-			console.log('HTTP STATUS:', xhr.status);
-			console.log('ERROR:', error);
-			console.log('RESPONSE:', xhr.responseText);
+        },
 
-			alert(
-				'ERROR AJAX\n\n' +
-				'HTTP : ' + xhr.status +
-				'\nError : ' + error +
-				'\n\nResponse:\n' +
-				xhr.responseText
-			);
+        error: function(xhr, status, error) {
 
-			dropdown.prop('disabled', false);
-			keteranganInput.prop('disabled', false);
-			totalBayarInput.prop('disabled', false);
+            console.log('AJAX ERROR');
+            console.log('HTTP STATUS:', xhr.status);
+            console.log('ERROR:', error);
+            console.log('RESPONSE:', xhr.responseText);
 
-		}
+            alert(
+                'ERROR AJAX\\n\\n' +
+                'HTTP : ' + xhr.status +
+                '\\nError : ' + error +
+                '\\n\\nResponse:\\n' +
+                xhr.responseText
+            );
 
-	});
+            dropdown.prop('disabled', false);
+
+            keteranganInput.prop('disabled', false);
+
+        }
+
+    });
 
 });
 
