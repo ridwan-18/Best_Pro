@@ -806,12 +806,12 @@ $this->title = 'View Member - ' . Yii::$app->name;
                                 </td>
 								
 								 <td>
-									<?= Html::textInput(
+									<?= Html::textInput( 
 										'total_bayar',
 										'',
 										[
-											'class' => 'form-control keterangan-input',
-											'placeholder' => 'Masukkan keterangan',
+											'class' => 'form-control total-bayar-input',
+											'placeholder' => 'Masukkan total bayar',
 											'autocomplete' => 'off',
 										]
 									); ?>
@@ -897,100 +897,98 @@ $(document).on('change', '.action-dropdown', function() {
     // ==========================================
     $.ajax({
 
-        url: url,
+    url: url,
 
-        type: 'POST',
+		type: 'POST',
 
-        dataType: 'json',
+		dataType: 'json',
 
-        data: {
-            action: action,
-            keterangan: keterangan
-        },
+		data: {
+			action: action,
+			keterangan: keterangan,
+			total_bayar: totalBayar
+		},
 
-        beforeSend: function() {
+		beforeSend: function() {
 
-            dropdown.prop('disabled', true);
+			dropdown.prop('disabled', true);
+			keteranganInput.prop('disabled', true);
+			totalBayarInput.prop('disabled', true);
 
-            keteranganInput.prop('disabled', true);
+		},
 
-        },
+		success: function(response) {
 
-        success: function(response) {
+			console.log('RESPONSE CONTROLLER:', response);
 
-            console.log('RESPONSE CONTROLLER:', response);
+			if (
+				response.Result &&
+				response.Result.status == '200'
+			) {
 
-            if (
-                response.Result &&
-                response.Result.status == '200'
-            ) {
+				alert(
+					'BERHASIL\n\n' +
+					'Status : ' + response.Result.status +
+					'\nKode : ' + response.Result.kode_response +
+					'\nPesan : ' + response.Result.message
+				);
 
-                alert(
-                    'BERHASIL\\n\\n' +
-                    'Status : ' +
-                    response.Result.status +
-                    '\\nKode : ' +
-                    response.Result.kode_response +
-                    '\\nPesan : ' +
-                    response.Result.message
-                );
+				location.reload();
 
-                location.reload();
+			} else {
 
-            } else {
+				alert(
+					'GAGAL\n\n' +
+					'Status : ' +
+					(
+						response.Result
+						? response.Result.status
+						: '-'
+					) +
+					'\nKode : ' +
+					(
+						response.Result
+						? response.Result.kode_response
+						: '-'
+					) +
+					'\nPesan : ' +
+					(
+						response.Result
+						? response.Result.message
+						: 'Response tidak valid'
+					)
+				);
 
-                alert(
-                    'GAGAL\\n\\n' +
-                    'Status : ' +
-                    (
-                        response.Result
-                        ? response.Result.status
-                        : '-'
-                    ) +
-                    '\\nKode : ' +
-                    (
-                        response.Result
-                        ? response.Result.kode_response
-                        : '-'
-                    ) +
-                    '\\nPesan : ' +
-                    (
-                        response.Result
-                        ? response.Result.message
-                        : 'Response tidak valid'
-                    )
-                );
+				dropdown.prop('disabled', false);
+				keteranganInput.prop('disabled', false);
+				totalBayarInput.prop('disabled', false);
 
-                dropdown.prop('disabled', false);
+			}
 
-                keteranganInput.prop('disabled', false);
+		},
 
-            }
+		error: function(xhr, status, error) {
 
-        },
+			console.log('AJAX ERROR');
+			console.log('HTTP STATUS:', xhr.status);
+			console.log('ERROR:', error);
+			console.log('RESPONSE:', xhr.responseText);
 
-        error: function(xhr, status, error) {
+			alert(
+				'ERROR AJAX\n\n' +
+				'HTTP : ' + xhr.status +
+				'\nError : ' + error +
+				'\n\nResponse:\n' +
+				xhr.responseText
+			);
 
-            console.log('AJAX ERROR');
-            console.log('HTTP STATUS:', xhr.status);
-            console.log('ERROR:', error);
-            console.log('RESPONSE:', xhr.responseText);
+			dropdown.prop('disabled', false);
+			keteranganInput.prop('disabled', false);
+			totalBayarInput.prop('disabled', false);
 
-            alert(
-                'ERROR AJAX\\n\\n' +
-                'HTTP : ' + xhr.status +
-                '\\nError : ' + error +
-                '\\n\\nResponse:\\n' +
-                xhr.responseText
-            );
+		}
 
-            dropdown.prop('disabled', false);
-
-            keteranganInput.prop('disabled', false);
-
-        }
-
-    });
+	});
 
 });
 
