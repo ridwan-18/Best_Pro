@@ -5325,12 +5325,20 @@ if (file_exists($zipPath)) {
 					return [
 						'Result' => [
 							'status' => '200',
-							'kode_response' => '99',
+							'kode_response' => '121',
 							'message' => 'Nomor akad tidak ditemukan'
 						]
 					];
 				}		
-		if ($dateValues['tanggal_kejadian'] >= $member->end_date)
+		
+		
+		
+			
+
+		
+		
+		
+		if ($body['jumlah_diajukan'] > $member->sum_insured)
 		{
 
 				Yii::$app->response->statusCode = 200;
@@ -5338,11 +5346,55 @@ if (file_exists($zipPath)) {
 				return [
 					'Result' => [
 						'status' => '200',
-						'kode_response' => '89',
-						'message' => 'Tanggal kejadian klaim terjadi setelah waktu akad berakhir'
+						'kode_response' => '122',
+						'message' => 'Klaim yang diajukan melebihi uang pertanggungan'
+					]
+				];
+		}
+		
+		if (date('Y-m-d H:i:s') > $dateValues['tanggal_kejadian'])
+		{
+
+				Yii::$app->response->statusCode = 200;
+
+				return [
+					'Result' => [
+						'status' => '200',
+						'kode_response' => '123',
+						'message' => 'Tanggal kejadian klaim terjadi Setelah Hari Ini'
 					]
 				];
 		}	
+
+		if ($dateValues['tanggal_kejadian'] < $member->tgl_buka)
+		{
+
+				Yii::$app->response->statusCode = 200;
+
+				return [
+					'Result' => [
+						'status' => '200',
+						'kode_response' => '124',
+						'message' => 'Tanggal kejadian klaim terjadi sebelum waktu akad dimulai'
+					]
+				];
+		}	
+		
+		if ($dateValues['tanggal_kejadian'] > $member->end_date)
+		{
+
+				Yii::$app->response->statusCode = 200;
+
+				return [
+					'Result' => [
+						'status' => '200',
+						'kode_response' => '125',
+						'message' => 'Tanggal kejadian klaim terjadi setelah waktu akad berakhir'
+					]
+				];
+		}
+
+
 
 
 		if ((string)$body['benefit'] === '4') {
