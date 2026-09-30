@@ -1005,9 +1005,8 @@ class GetController extends Controller
 
 		$member = claim_riau::find()
 			->where([
-				'id_pengajuan_klaim_riau' => $id_pengajuan_klaim_riau,
-				'nomor_rekening'     => $nomor_rekening,
-				'benefit'            => $benefit
+				'id_pengajuan_klaim_riau' => $id_pengajuan_klaim_riau
+				
 			])
 			->one();
 
@@ -1028,7 +1027,7 @@ class GetController extends Controller
 		}
 		
 		
-		if ($member->benefit !=2) {
+		if ($benefit !=2) {
 
 			Yii::$app->response->statusCode = 200;
 
@@ -1044,7 +1043,7 @@ class GetController extends Controller
 			];
 		}
 		
-		if ($member->nomor_rekening == null) {
+		if (empty($nomor_rekening)) {
 
 			Yii::$app->response->statusCode = 200;
 
