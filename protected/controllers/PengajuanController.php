@@ -1632,12 +1632,14 @@ class PengajuanController extends Controller
 			$start = new \DateTime($tglBuka);
 
 			$age = $birth->diff($start)->y;
+		}
 
 
 		$tahunLahir = (int)substr($tglLahirRaw, 0, 4);
 		$tahunSekarang = (int)date('Y');
 
-		if ($tahunLahir >= $tahunSekarang) {
+		if ($tahunLahir >= $tahunSekarang) 
+		{
 
 			Yii::$app->response->statusCode = 200;
 
