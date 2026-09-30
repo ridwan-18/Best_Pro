@@ -1190,20 +1190,20 @@ class PengajuanController extends Controller
 			->one();
 
 		
-		if ($cekdokumen && $cekdokumen->approve === 'DISETUJUI')
-			{
-    // Dokumen sudah disetujui, lanjut proses
-		} 
-		else 
+	if ($cekdokumen && trim($cekdokumen->approve) === 'DISETUJUI') 
+	{
+		// Dokumen sudah disetujui, lanjut proses
+	} 
+	else
 		{
-			return [
-				'Result' => [
-					'status_code' => 200,
-					'kode_response' => '08',
-					'message' => 'Status Dokumen CBC belum disetujui',
-				]
-			];
-		}
+		return [
+			'Result' => [
+				'status_code' => 200,
+				'kode_response' => '08',
+				'message' => 'Status Dokumen CBC belum disetujui',
+			]
+		];
+	}
 
 		$quotation = Quotation::findOne([
 			'id' => $policybyproduk->quotation_id,
