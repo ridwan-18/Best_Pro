@@ -626,7 +626,7 @@ class MemberClaim extends \yii\db\ActiveRecord
 
 				'klaim_dibayarkan' => (string) $klaim->jumlah_diajukan,
 
-				'asuransi' => 'alamin',
+				'asuransi' => 'Reliance Life Unit Syariah',
 
 				'keterangan' => $document
 					? (string) $document->keterangan
