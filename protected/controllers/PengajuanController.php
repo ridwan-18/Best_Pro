@@ -1519,11 +1519,6 @@ class PengajuanController extends Controller
 			];
 		}
 
-		/*
-		 * ==========================================================
-		 * DATA UTAMA PAYLOAD
-		 * ==========================================================
-		 */
 
 		$idTransaksi       = $payload['id_transaksi'] ?? null;
 		$idPengajuan       = $payload['id_pengajuan'] ?? null;
@@ -1546,21 +1541,17 @@ class PengajuanController extends Controller
 		$coverage          = (float)($payload['coverage'] ?? 0);
 		$benefitPembiayaan = $payload['benefit_pembiayaan'] ?? null;
 
-		/*
-		 * ==========================================================
-		 * DATA RESTITUSI
-		 * ==========================================================
-		 * Dibaca dari payload, tetapi tidak mengubah logic
-		 * proses topup existing.
-		 */
-
 		$restitusiJiwa = $payload['restitusi_jiwa'] ?? null;
-
-		/*
-		 * ==========================================================
-		 * TANGGAL LAHIR
-		 * ==========================================================
-		 */
+		$oldNomorAkad = $restitusiJiwa['old_nomor_akad'] ?? null;
+		$tanggal_pengajuan_restitusi = $restitusiJiwa['tanggal_pengajuan_restitusi'] ?? null;
+		$tanggal_pembiayaan = $restitusiJiwa['tanggal_pembiayaan'] ?? null;
+		$tenor = $restitusiJiwa['tenor'] ?? null;
+		$tenor_berjalan = $restitusiJiwa['tenor_berjalan'] ?? null;
+		$sisa_tenor = $restitusiJiwa['sisa_tenor'] ?? null;
+		$plafon_penjaminan = $restitusiJiwa['plafon_penjaminan'] ?? null;
+		$premi_lama = $restitusiJiwa['premi_lama'] ?? null;
+		$asuransi_lama = $restitusiJiwa['asuransi_lama'] ?? null;
+		$tujuan_pembayaran  = (float)($restitusiJiwa['tujuan_pembayaran'] ?? 0);
 
 		$tglLahirRaw = (string)($payload['tgl_lahir'] ?? '');
 
@@ -1576,12 +1567,6 @@ class PengajuanController extends Controller
 			$tglLahir = null;
 		}
 
-		/*
-		 * ==========================================================
-		 * TANGGAL BUKA
-		 * ==========================================================
-		 */
-
 		$tglBukaRaw = (string)($payload['tgl_buka'] ?? '');
 
 		if (strlen($tglBukaRaw) === 8) {
@@ -1596,11 +1581,6 @@ class PengajuanController extends Controller
 			$tglBuka = null;
 		}
 
-		/*
-		 * ==========================================================
-		 * POLIS JIWA
-		 * ==========================================================
-		 */
 
 		$polisJiwa = $payload['polis_jiwa'] ?? [];
 
@@ -1624,11 +1604,6 @@ class PengajuanController extends Controller
 			?? 0
 		);
 
-		/*
-		 * ==========================================================
-		 * TANGGAL AKHIR
-		 * ==========================================================
-		 */
 
 		if ($tglBuka && $tenorPertanggungan > 0) {
 
@@ -1645,12 +1620,6 @@ class PengajuanController extends Controller
 			$tglAkhir = null;
 		}
 
-		/*
-		 * ==========================================================
-		 * HITUNG USIA
-		 * ==========================================================
-		 */
-
 		$age = null;
 
 		if ($tglLahir && $tglBuka) {
@@ -1659,13 +1628,7 @@ class PengajuanController extends Controller
 			$start = new \DateTime($tglBuka);
 
 			$age = $birth->diff($start)->y;
-		}
 
-		/*
-		 * ==========================================================
-		 * VALIDASI TAHUN LAHIR
-		 * ==========================================================
-		 */
 
 		$tahunLahir = (int)substr($tglLahirRaw, 0, 4);
 		$tahunSekarang = (int)date('Y');
@@ -1681,13 +1644,7 @@ class PengajuanController extends Controller
 					'message' => 'Tahun lahir tidak boleh tahun ini',
 				]
 			];
-		}
-
-		/*
-		 * ==========================================================
-		 * CARI POLICY BERDASARKAN PEKERJAAN
-		 * ==========================================================
-		 */
+		
 
 		$policybyproduk = Policy::findOne([
 			'produk_code' => $pekerjaan,
@@ -1703,12 +1660,6 @@ class PengajuanController extends Controller
 				]
 			];
 		}
-
-		/*
-		 * ==========================================================
-		 * CARI QUOTATION TC
-		 * ==========================================================
-		 */
 
 		$quotationtc = QuotationTc::findOne([
 			'quotation_id' => $policybyproduk->quotation_id,
@@ -1727,12 +1678,6 @@ class PengajuanController extends Controller
 			];
 		}
 
-		/*
-		 * ==========================================================
-		 * VALIDASI USIA
-		 * ==========================================================
-		 */
-
 		$termYear = $tenorPertanggungan / 12;
 
 		$endAge = $age + $termYear;
@@ -1741,10 +1686,6 @@ class PengajuanController extends Controller
 		$minAge    = (int)$quotationtc->min_age;
 		$maxup     = (float)$quotationtc->max_si;
 		$maxEntryAge = (int)$quotationtc->max_age;
-
-		/*
-		 * MINIMUM AGE
-		 */
 
 		if ($age < $minAge) {
 
@@ -1762,10 +1703,6 @@ class PengajuanController extends Controller
 			];
 		}
 
-		/*
-		 * MAX ENTRY AGE
-		 */
-
 		if ($age > $maxEntryAge) {
 
 			Yii::$app->response->statusCode = 200;
@@ -1781,10 +1718,6 @@ class PengajuanController extends Controller
 				]
 			];
 		}
-
-		/*
-		 * MAX END AGE
-		 */
 
 		if ($endAge > $maxEndAge) {
 
@@ -1805,11 +1738,6 @@ class PengajuanController extends Controller
 			];
 		}
 
-		/*
-		 * ==========================================================
-		 * MAX PLAFOND
-		 * ==========================================================
-		 */
 
 		if ($plafond > $maxup) {
 
@@ -1827,11 +1755,6 @@ class PengajuanController extends Controller
 			];
 		}
 
-		/*
-		 * ==========================================================
-		 * CEK DOKUMEN CBC
-		 * ==========================================================
-		 */
 
 		$cekdokumen = map_member_dokumen_medis::find()
 			->where([
@@ -1858,12 +1781,6 @@ class PengajuanController extends Controller
 			];
 		}
 
-		/*
-		 * ==========================================================
-		 * QUOTATION
-		 * ==========================================================
-		 */
-
 		$quotation = Quotation::findOne([
 			'id' => $policybyproduk->quotation_id,
 		]);
@@ -1878,12 +1795,6 @@ class PengajuanController extends Controller
 				]
 			];
 		}
-
-		/*
-		 * ==========================================================
-		 * UW LIMIT
-		 * ==========================================================
-		 */
 
 		$quotationUwLimit = QuotationUwLimit::find()
 			->where([
@@ -1908,11 +1819,6 @@ class PengajuanController extends Controller
 
 		$medicalCode = $quotationUwLimit->medical_code;
 
-		/*
-		 * ==========================================================
-		 * CEK MEMBER INFORCE
-		 * ==========================================================
-		 */
 
 		$existingMember = Member::find()
 			->where([
@@ -1958,11 +1864,6 @@ class PengajuanController extends Controller
 			$medicalCode = $quotationUwLimit->medical_code;
 		}
 
-		/*
-		 * ==========================================================
-		 * PERSONAL
-		 * ==========================================================
-		 */
 
 		$personalNo = Personal::generatePersonalNo(
 			$nama,
@@ -1970,12 +1871,6 @@ class PengajuanController extends Controller
 		);
 
 		$batchNo = $idPengajuan;
-
-		/*
-		 * ==========================================================
-		 * PREMI
-		 * ==========================================================
-		 */
 
 		if ($nominalPremi <= 0) {
 
@@ -1987,30 +1882,13 @@ class PengajuanController extends Controller
 
 		$nettPremium = round($nominalPremi, 0);
 
-		/*
-		 * ==========================================================
-		 * JSON POLIS JIWA
-		 * ==========================================================
-		 */
 
 		$polisJiwaJson = json_encode(
 			$polisJiwa,
 			JSON_UNESCAPED_UNICODE
 		);
 
-		/*
-		 * ==========================================================
-		 * SAVE DATA
-		 * ==========================================================
-		 */
-
 		try {
-
-			/*
-			 * ======================================================
-			 * PERSONAL
-			 * ======================================================
-			 */
 
 			$personal = new Personal();
 
@@ -2027,21 +1905,31 @@ class PengajuanController extends Controller
 					json_encode($personal->errors)
 				);
 			}
+		
+			$member_old = Member::findOne([
+				'nomor_akad' => $oldNomorAkad,
+			
+			]);
 
-			/*
-			 * ======================================================
-			 * CARI MEMBER BERDASARKAN KTP
-			 * ======================================================
-			 */
+			if (empty($member_old)) {
+
+				Yii::$app->response->statusCode = 200;
+
+				return [
+					'Result' => [
+						'status' => '200',
+						'kode_response' => '28',
+						'message' => 'Peserta lama berdasarkan nomor akad tidak ditemukan'
+					]
+				];
+			}
+			
 
 			$member = Member::findOne([
 				'ktp' => $ktp,
 				'tenor' => $tenorPertanggungan,
 				'sum_insured' => $plafonPertanggungan,
 			]);
-			
-				
-				
 
 			if (empty($member)) {
 
@@ -2056,12 +1944,6 @@ class PengajuanController extends Controller
 				];
 			}
 
-			/*
-			 * ======================================================
-			 * VALIDASI PREMI
-			 * ======================================================
-			 */
-
 			if ($nominalPremi != $member->gross_premium) {
 
 				Yii::$app->response->statusCode = 200;
@@ -2075,11 +1957,6 @@ class PengajuanController extends Controller
 				];
 			}
 
-			/*
-			 * ======================================================
-			 * RUNNING MEMBER NO
-			 * ======================================================
-			 */
 
 			$existingMemberTotal = Member::find()
 				->where([
@@ -2091,11 +1968,6 @@ class PengajuanController extends Controller
 
 			$runningNo = $existingMemberTotal + 1;
 
-			/*
-			 * ======================================================
-			 * DATA MEMBER EXISTING
-			 * ======================================================
-			 */
 
 			$member->policy_no = $policybyproduk->policy_no;
 			$member->batch_no = $batchNo;
@@ -2141,12 +2013,6 @@ class PengajuanController extends Controller
 
 			$member->status_uw = $medicalCode;
 
-			/*
-			 * ======================================================
-			 * DATA PAYLOAD UTAMA
-			 * ======================================================
-			 */
-
 			$member->no_ktp = $ktp;
 			$member->pekerjaan = $pekerjaan;
 
@@ -2180,24 +2046,8 @@ class PengajuanController extends Controller
 
 			$member->coverage = $coverage;
 
-			/*
-			 * Jika tabel member memiliki kolom `plafond`,
-			 * baris ini akan menyimpan nilai payload:
-			 * 150000000
-			 *
-			 * Jika kolom plafond tidak ada, hapus baris ini.
-			 */
-
-			/*
-			 * Simpan object polis_jiwa sebagai JSON
-			 */
 			$member->polis_jiwa = $polisJiwaJson;
 
-			/*
-			 * ======================================================
-			 * SAVE MEMBER
-			 * ======================================================
-			 */
 
 			if (!$member->save()) {
 
@@ -2207,11 +2057,6 @@ class PengajuanController extends Controller
 				);
 			}
 
-			/*
-			 * ======================================================
-			 * GENERATE SERTIFIKAT
-			 * ======================================================
-			 */
 
 			$sertifikat = $this->generateSertifikat(
 				$member,
@@ -2236,21 +2081,11 @@ class PengajuanController extends Controller
 			];
 		}
 
-		/*
-		 * ==========================================================
-		 * DOKUMEN MEDIS
-		 * ==========================================================
-		 */
 
 		$dokument = Dokumen_Medis::getAll([
 			'medis' => $medicalCode
 		]);
 
-		/*
-		 * ==========================================================
-		 * RESPONSE
-		 * ==========================================================
-		 */
 
 		return [
 			'Result' => [
