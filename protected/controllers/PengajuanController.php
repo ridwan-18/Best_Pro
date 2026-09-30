@@ -1555,14 +1555,17 @@ class PengajuanController extends Controller
 
 		$tglLahirRaw = (string)($payload['tgl_lahir'] ?? '');
 
-		if (strlen($tglLahirRaw) === 8) {
+		if (strlen($tglLahirRaw) === 8)
+			{
 
 			$tglLahir = date(
 				'Y-m-d',
 				strtotime($tglLahirRaw)
 			);
 
-		} else {
+		}
+		else 
+		{
 
 			$tglLahir = null;
 		}
@@ -1576,7 +1579,8 @@ class PengajuanController extends Controller
 				strtotime($tglBukaRaw)
 			);
 
-		} else {
+		} 
+		else {
 
 			$tglBuka = null;
 		}
@@ -1644,7 +1648,7 @@ class PengajuanController extends Controller
 					'message' => 'Tahun lahir tidak boleh tahun ini',
 				]
 			];
-		
+		}
 
 		$policybyproduk = Policy::findOne([
 			'produk_code' => $pekerjaan,
@@ -1911,7 +1915,8 @@ class PengajuanController extends Controller
 			
 			]);
 
-			if (empty($member_old)) {
+			if (empty($member_old)) 
+			{
 
 				Yii::$app->response->statusCode = 200;
 
