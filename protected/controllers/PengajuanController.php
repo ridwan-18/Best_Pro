@@ -5352,7 +5352,7 @@ if (file_exists($zipPath)) {
 				];
 		}
 		
-		if (date('Y-m-d') > $dateValues['tanggal_kejadian'])
+		if ($dateValues['tanggal_kejadian'] > date('Y-m-d'))
 		{
 
 				Yii::$app->response->statusCode = 200;
