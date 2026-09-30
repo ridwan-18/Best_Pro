@@ -1043,15 +1043,14 @@ class GetController extends Controller
 			];
 		}
 		
-		if (empty($nomor_rekening)) {
-
-			Yii::$app->response->statusCode = 200;
+		if (empty($member->nomor_rekening)) 
+		{
 
 			return [
 				'Result' => [
 					'status' => '200',
 					'kode_response' => '10',
-					'message' => 'nomor rekening tidak ditemukan',
+					'message' => 'Nomor rekening tidak ditemukan',
 					'id_transaksi' => $id_transaksi,
 					'id_pengajuan' => $id_pengajuan_klaim_riau,
 					'nomor_rekening' => $nomor_rekening
