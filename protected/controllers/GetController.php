@@ -943,7 +943,7 @@ class GetController extends Controller
 		];
 	}
 	
-	public function actionStatusKlaim()
+	public function actionStatusClaim()
 	{
 		Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
 
