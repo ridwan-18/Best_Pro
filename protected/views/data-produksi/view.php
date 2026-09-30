@@ -806,8 +806,16 @@ $this->title = 'View Member - ' . Yii::$app->name;
                                 </td>
 								
 								 <td>
-                                    <?= Html::encode($cd['total_bayar']); ?>
-                                </td>
+									<?= Html::textInput(
+										'total_bayar',
+										'',
+										[
+											'class' => 'form-control keterangan-input',
+											'placeholder' => 'Masukkan keterangan',
+											'autocomplete' => 'off',
+										]
+									); ?>
+								</td>
 
                             </tr>
 
