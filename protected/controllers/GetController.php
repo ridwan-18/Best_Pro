@@ -1043,7 +1043,7 @@ class GetController extends Controller
 			];
 		}
 		
-		if (empty($member->nomor_rekening)) 
+		if ($member->nomor_rekening != $nomor_rekening) 
 		{
 
 			return [
