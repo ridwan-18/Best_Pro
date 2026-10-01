@@ -2013,23 +2013,23 @@ try {
 
         $transaction->rollBack();
 
-        return [
-            'Result' => [
-                'status' => '400',
-                'kode_response' => '01',
-                'message' => $isNewRestitusi
-                    ? 'Gagal menyimpan data pengajuan restitusi'
-                    : 'Gagal memperbarui data pengajuan restitusi',
+        // return [
+            // 'Result' => [
+                // 'status' => '400',
+                // 'kode_response' => '01',
+                // 'message' => $isNewRestitusi
+                    // ? 'Gagal menyimpan data pengajuan restitusi'
+                    // : 'Gagal memperbarui data pengajuan restitusi',
 
-                'jenis_pengajuan' => 'RESTITUSI',
+                // 'jenis_pengajuan' => 'RESTITUSI',
 
-                'restitusi_jiwa' => [
-                    'status_restitusi' => '0'
-                ],
+                // 'restitusi_jiwa' => [
+                    // 'status_restitusi' => '0'
+                // ],
 
-                'errors' => $check_member->getErrors()
-            ]
-        ];
+                // 'errors' => $check_member->getErrors()
+            // ]
+        // ];
     }
 
 
@@ -2140,23 +2140,23 @@ try {
             'cbc-sftp'
         );
 
-        return [
-            'Result' => [
-                'status' => '400',
-                'kode_response' => '01',
-                'message' =>
-                    'Pengajuan berhasil, tetapi dokumen gagal disimpan',
+        // return [
+            // 'Result' => [
+                // 'status' => '400',
+                // 'kode_response' => '01',
+                // 'message' =>
+                    // 'Pengajuan berhasil, tetapi dokumen gagal disimpan',
 
-                'jenis_pengajuan' =>
-                    'RESTITUSI',
+                // 'jenis_pengajuan' =>
+                    // 'RESTITUSI',
 
-                'status_dokumen' =>
-                    0,
+                // 'status_dokumen' =>
+                    // 0,
 
-                'keterangan' =>
-                    json_encode($dokumenMedis->errors)
-            ]
-        ];
+                // 'keterangan' =>
+                    // json_encode($dokumenMedis->errors)
+            // ]
+        // ];
     }
 
 
@@ -2189,48 +2189,49 @@ try {
     if (
         !empty($sftpResult['success']) &&
         !empty($sftpResult['file_name'])
-    ) {
+    ) 
+	{
 
-        return [
-            'Result' => [
-                'status' => '200',
-                'kode_response' => '00',
-                'message' =>
-                    'Berhasil kirim pengajuan dokumen Restitusi',
+        // return [
+            // 'Result' => [
+                // 'status' => '200',
+                // 'kode_response' => '00',
+                // 'message' =>
+                    // 'Berhasil kirim pengajuan dokumen Restitusi',
 
-                'jenis_pengajuan' =>
-                    'RESTITUSI',
+                // 'jenis_pengajuan' =>
+                    // 'RESTITUSI',
 
-                'status_dokumen' =>
-                    1,
+                // 'status_dokumen' =>
+                    // 1,
 
-                'keterangan' =>
-                    'Dokumen Restitusi berhasil diterima'
-            ]
-        ];
+                // 'keterangan' =>
+                    // 'Dokumen Restitusi berhasil diterima'
+            // ]
+        // ];
     }
 
 
     // ==========================================================
     // 14. RESPONSE JIKA FILE BELUM ADA DI SFTP
     // ==========================================================
-    return [
-        'Result' => [
-            'status' => '200',
-            'kode_response' => '00',
-            'message' =>
-                'Pengajuan berhasil, dokumen belum tersedia di SFTP Bank',
+    // return [
+        // 'Result' => [
+            // 'status' => '200',
+            // 'kode_response' => '00',
+            // 'message' =>
+                // 'Pengajuan berhasil, dokumen belum tersedia di SFTP Bank',
 
-            'jenis_pengajuan' =>
-                'RESTITUSI',
+            // 'jenis_pengajuan' =>
+                // 'RESTITUSI',
 
-            'status_dokumen' =>
-                0,
+            // 'status_dokumen' =>
+                // 0,
 
-            'keterangan' =>
-                'Dokumen Restitusi belum tersedia di SFTP'
-        ]
-    ];
+            // 'keterangan' =>
+                // 'Dokumen Restitusi belum tersedia di SFTP'
+        // ]
+    // ];
 
 
 } catch (\Exception $e) {
@@ -2254,17 +2255,17 @@ try {
     );
 
 
-    return [
-        'Result' => [
-            'status' => '500',
-            'kode_response' => '99',
-            'message' =>
-                'Gagal menyimpan data Restitusi',
+    // return [
+        // 'Result' => [
+            // 'status' => '500',
+            // 'kode_response' => '99',
+            // 'message' =>
+                // 'Gagal menyimpan data Restitusi',
 
-            'error' =>
-                $e->getMessage()
-        ]
-    ];
+            // 'error' =>
+                // $e->getMessage()
+        // ]
+    // ];
 }
 			
 
@@ -2407,21 +2408,22 @@ try {
 				$nettPremium
 			);
 
-		} catch (\Exception $e) {
+		} catch (\Exception $e)
+		{
 
 			Yii::error(
 				'Submit Pembiayaan Topup Error: ' .
 				$e->getMessage()
 			);
 
-			return [
-				'Result' => [
-					'status' => '500',
-					'kode_response' => '99',
-					'message' => 'Gagal menyimpan data',
-					'error' => $e->getMessage(),
-				]
-			];
+			// return [
+				// 'Result' => [
+					// 'status' => '500',
+					// 'kode_response' => '99',
+					// 'message' => 'Gagal menyimpan data',
+					// 'error' => $e->getMessage(),
+				// ]
+			// ];
 		}
 
 
