@@ -7768,7 +7768,7 @@ if (file_exists($zipPath)) {
 			'reliance@brks2026';
 
 		$sftpIncomingPath =
-			'/outgoing';
+			'/Incoming';
 
 
 		// =========================================================
