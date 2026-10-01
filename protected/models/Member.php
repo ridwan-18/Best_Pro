@@ -1426,11 +1426,11 @@ class Member extends \yii\db\ActiveRecord
 
 				'status_callback' => '1',
 
-				'nomor_rekening' => $restitusi->nomor_rekening,
+				'nomor_rekening' => $model->nomor_rekening,
 
 				'kode_broker' => $restitusi->kode_broker,
 
-				'no_akad' => $restitusi->nomor_akad,
+				'no_akad' => $model->nomor_akad,
 
 				'kode_cabang' => $restitusi->kode_cabang,
 			];
