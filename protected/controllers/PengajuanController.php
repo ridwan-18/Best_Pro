@@ -1870,7 +1870,6 @@ class PengajuanController extends Controller
 			$medicalCode = $quotationUwLimit->medical_code;
 		}
 
-
 		$personalNo = Personal::generatePersonalNo(
 			$nama,
 			$tglLahir
