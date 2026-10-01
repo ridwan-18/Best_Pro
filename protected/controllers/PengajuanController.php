@@ -2540,10 +2540,9 @@ class PengajuanController extends Controller
         $member =
             Member::findOne([
                 'ktp' => $ktp,
-                'tenor' =>
-                    $tenorPertanggungan,
-                'sum_insured' =>
-                    $plafonPertanggungan,
+                'tenor' =>$tenorPertanggungan,
+                'sum_insured' =>$plafonPertanggungan,
+				'nomor_akad' => null,
             ]);
 
 
@@ -2842,6 +2841,9 @@ class PengajuanController extends Controller
 
             'kode_response' =>
                 '00',
+				
+			'tipe_pengajuan_polis' =>
+                'Asuransi Jiwa ',	
 
             'message' =>
                 'Berhasil kirim pengajuan polis baru',
@@ -2874,6 +2876,9 @@ class PengajuanController extends Controller
 
                 'asuransi' =>
                     'Reliance Life Unit Syariah',
+					
+				'jenis_penjaminan' =>
+                    'Asuransi Jiwa',	
 
                 'periode_awal' =>
                     date(
@@ -2908,12 +2913,10 @@ class PengajuanController extends Controller
                     0,
             ],
 
-            'restitusi_jiwa' => [
-
-                'status_restitusi' =>
-                    '1',
-
-            ],
+            'polis_pembiayaan' => null,
+			 'polis_kebakaran' => null,
+			  'restitusi_pembiayaan' => null,
+				  'restitusi_kebakaran' => null,
 
         ],
     ];
