@@ -1269,7 +1269,7 @@ class Member extends \yii\db\ActiveRecord
 	
 	public function callAPIPostDebitur($token, $model, $document = null, $restitusi = null)
 	{
-		$url = '202.152.22.234:5008/callback/debitur';
+		$url = 'http://202.152.22.234:5008/callback/debitur';
 
 		try {
 
@@ -1574,115 +1574,110 @@ class Member extends \yii\db\ActiveRecord
 			// =========================================================
 			// 16. DECODE RESPONSE
 			// =========================================================
-			$response = json_decode(
-				$body,
-				true
-			);
-
-
-			if (!is_array($response)) {
+			$response = json_decode($body, true);
 
 				Yii::error(
-					"===== RESPONSE BUKAN JSON =====\n" .
-					"JSON ERROR : " . json_last_error_msg() . "\n" .
-					"BODY       : " . $body,
+					"===== RESPONSE BANK =====\n" .
+					"HTTP CODE : " . $httpCode . "\n" .
+					"CURL NO   : " . $curlNo . "\n" .
+					"CURL ERR  : " . $curlErr . "\n" .
+					"BODY      : " . var_export($body, true) . "\n" .
+					"DECODE    : " . print_r($response, true),
 					'api'
 				);
 
+
+				// =========================================================
+				// 17. JIKA RESPONSE BUKAN JSON
+				// =========================================================
+				if (!is_array($response)) {
+
+					return [
+						'success' => false,
+						'http_code' => $httpCode,
+						'message' => 'Response Bank bukan JSON',
+						'body' => $body,
+						'json_error' => json_last_error_msg(),
+						'payload' => $payload,
+					];
+				}
+
+
+				// =========================================================
+				// 18. AMBIL RESULT
+				// =========================================================
+				if (isset($response['Result']) && is_array($response['Result'])) {
+
+					$result = $response['Result'];
+
+				} else {
+
+					// Kalau Bank tidak menggunakan wrapper Result
+					$result = $response;
+				}
+
+
+				// =========================================================
+				// 19. AMBIL CODE RESPONSE
+				// =========================================================
+				$kodeResponse = isset($result['kode_response'])
+					? (string) $result['kode_response']
+					: null;
+
+				$statusResponse = isset($result['status'])
+					? (string) $result['status']
+					: null;
+
+				$messageResponse = isset($result['message'])
+					? $result['message']
+					: null;
+
+
+				// =========================================================
+				// 20. DEBUG CODE BANK
+				// =========================================================
+				Yii::error(
+					"===== HASIL RESPONSE BANK =====\n" .
+					"HTTP CODE     : " . var_export($httpCode, true) . "\n" .
+					"STATUS        : " . var_export($statusResponse, true) . "\n" .
+					"KODE RESPONSE : " . var_export($kodeResponse, true) . "\n" .
+					"MESSAGE       : " . var_export($messageResponse, true) . "\n" .
+					"===============================",
+					'api'
+				);
+
+
+				// =========================================================
+				// 21. SUCCESS
+				// =========================================================
+				$success = (
+					$httpCode >= 200 &&
+					$httpCode < 300 &&
+					$kodeResponse === '00' &&
+					$statusResponse === '200'
+				);
+
+
+				// =========================================================
+				// 22. RETURN
+				// =========================================================
 				return [
-					'success' => false,
+					'success' => $success,
 
 					'http_code' => $httpCode,
+
+					'kode_response' => $kodeResponse,
+
+					'status' => $statusResponse,
+
+					'message' => $messageResponse,
+
+					'response' => $response,
 
 					'body' => $body,
 
 					'payload' => $payload,
-
-					'json_error' => json_last_error_msg(),
 				];
-			}
-
-
-			// =========================================================
-			// 17. DEBUG RESPONSE ARRAY
-			// =========================================================
-			Yii::error(
-				"===== RESPONSE ARRAY BANK =====\n" .
-				print_r($response, true),
-				'api'
-			);
-
-
-			// =========================================================
-			// 18. AMBIL RESULT
-			// =========================================================
-			$result = isset($response['Result'])
-				? $response['Result']
-				: [];
-
-
-			$kodeResponse = isset($result['kode_response'])
-				? (string) $result['kode_response']
-				: null;
-
-
-			$statusResponse = isset($result['status'])
-				? (string) $result['status']
-				: null;
-
-
-			$success = (
-				$httpCode >= 200 &&
-				$httpCode < 300 &&
-				$kodeResponse === '00' &&
-				$statusResponse === '200'
-			);
-
-
-			// =========================================================
-			// 19. DEBUG HASIL AKHIR
-			// =========================================================
-			Yii::error(
-				"========================================\n" .
-				"DEBUG HASIL CALLBACK\n" .
-				"========================================\n" .
-				"SUCCESS        : " . ($success ? 'TRUE' : 'FALSE') . "\n" .
-				"HTTP CODE      : " . var_export($httpCode, true) . "\n" .
-				"KODE RESPONSE  : " . var_export($kodeResponse, true) . "\n" .
-				"STATUS         : " . var_export($statusResponse, true) . "\n" .
-				"MESSAGE        : " . var_export(
-					isset($result['message'])
-						? $result['message']
-						: null,
-					true
-				) . "\n" .
-				"========================================",
-				'api'
-			);
-
-
-			// =========================================================
-			// 20. RETURN
-			// =========================================================
-			return [
-				'success' => $success,
-
-				'http_code' => $httpCode,
-
-				'kode_response' => $kodeResponse,
-
-				'status' => $statusResponse,
-
-				'message' => isset($result['message'])
-					? $result['message']
-					: null,
-
-				'response' => $response,
-
-				'body' => $body,
-
-				'payload' => $payload,
-			];
 
 		} catch (\Throwable $e) {
 
