@@ -104,10 +104,6 @@ class RestitusiController  extends Controller
 			'batch_no' => $models->batch_no,
 		]);
 		
-				echo '<pre>';
-print_r($models);
-// print_r($members);
-exit;
 
 		return $this->render('index', [
 			'models' => $models,
