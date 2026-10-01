@@ -103,6 +103,11 @@ class RestitusiController  extends Controller
 			'policy_no' => $models->policy_no,
 			'batch_no' => $models->batch_no,
 		]);
+		
+				echo '<pre>';
+print_r($models);
+print_r($members);
+exit;
 
 		return $this->render('index', [
 			'models' => $models,
