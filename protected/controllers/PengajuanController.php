@@ -3954,7 +3954,7 @@ class PengajuanController extends Controller
 	}
 
 
-	private function generateSertifikat($member, $policy, $nettPremium)
+	private function generateSertifikat1($member, $policy, $nettPremium)
 	{
 		// $folder = Yii::getAlias('@webroot/uploads/incoming');
 		
@@ -6545,6 +6545,1396 @@ if (file_exists($zipPath)) {
 				'line' => $e->getLine()
 			];
 		}
+	}
+	
+	private function generateSertifikat($member, $policy, $nettPremium)
+	{
+		// =========================================================
+		// 1. FOLDER TEMPORARY
+		// =========================================================
+
+		$folder = sys_get_temp_dir();
+
+		if (!is_dir($folder)) {
+			throw new \RuntimeException(
+				'Folder temporary tidak ditemukan: ' . $folder
+			);
+		}
+
+		if (!is_writable($folder)) {
+			throw new \RuntimeException(
+				'Folder temporary tidak writable: ' . $folder
+			);
+		}
+
+
+		// =========================================================
+		// 2. NAMA FILE
+		// =========================================================
+
+		$norek   = $member->nomor_rekening;
+		$noAkad  = $member->nomor_akad;
+		$codeDoc = '005';
+		$benefit = 2;
+
+		$fileName =
+			$norek . '_' .
+			$noAkad . '_' .
+			$codeDoc . '_' .
+			$benefit . '.pdf';
+
+		$pdfFileName = $fileName;
+
+		$pdfPath =
+			$folder .
+			DIRECTORY_SEPARATOR .
+			$pdfFileName;
+
+
+		// =========================================================
+		// 3. NAMA ZIP
+		// =========================================================
+
+		$zipFileName =
+			$norek . '_' .
+			$noAkad . '_' .
+			$codeDoc . '_' .
+			$benefit . '.zip';
+
+		$zipPath =
+			$folder .
+			DIRECTORY_SEPARATOR .
+			$zipFileName;
+
+
+		// =========================================================
+		// 4. GENERATE PDF
+		// =========================================================
+
+		$pdf = new \FPDF('L', 'mm', 'A4');
+
+		$pdf->SetMargins(0, 0, 0);
+		$pdf->SetAutoPageBreak(false);
+
+		$pdf->AddPage();
+
+		$pdf->SetFillColor(255, 255, 255);
+
+		$pdf->Rect(
+			0,
+			0,
+			297,
+			210,
+			'F'
+		);
+
+
+		// =========================================================
+		// HEADER BIRU
+		// =========================================================
+
+		$pdf->SetFillColor(42, 46, 111);
+
+		$pdf->Rect(
+			0,
+			0,
+			297,
+			25,
+			'F'
+		);
+
+
+		// =========================================================
+		// GARIS MERAH
+		// =========================================================
+
+		$pdf->SetFillColor(235, 52, 35);
+
+		$pdf->Rect(
+			0,
+			25,
+			297,
+			2,
+			'F'
+		);
+
+
+		// =========================================================
+		// LOGO RELIANCE
+		// =========================================================
+
+		$logoReliance =
+			Yii::getAlias(
+				'@webroot/uploads/assets/reliance.png'
+			);
+
+		if (file_exists($logoReliance)) {
+
+			$pdf->Image(
+				$logoReliance,
+				7,
+				4,
+				55,
+				17
+			);
+
+		} else {
+
+			$pdf->SetTextColor(255, 255, 255);
+
+			$pdf->SetFont(
+				'Arial',
+				'B',
+				20
+			);
+
+			$pdf->SetXY(
+				7,
+				4
+			);
+
+			$pdf->Cell(
+				55,
+				8,
+				'Reliance',
+				0,
+				1
+			);
+
+			$pdf->SetFont(
+				'Arial',
+				'',
+				8
+			);
+
+			$pdf->SetXY(
+				8,
+				14
+			);
+
+			$pdf->Cell(
+				55,
+				5,
+				'Life Unit Syariah',
+				0,
+				1
+			);
+		}
+
+
+		// =========================================================
+		// LOGO SYARIAH
+		// =========================================================
+
+		$logoSyariah =
+			Yii::getAlias(
+				'@webroot/uploads/assets/syariah.png'
+			);
+
+		if (file_exists($logoSyariah)) {
+
+			$pdf->Image(
+				$logoSyariah,
+				255,
+				3,
+				34,
+				19
+			);
+		}
+
+
+		// =========================================================
+		// WATERMARK
+		// =========================================================
+
+		$watermark =
+			Yii::getAlias(
+				'@webroot/uploads/assets/watermark.png'
+			);
+
+		if (file_exists($watermark)) {
+
+			$pdf->Image(
+				$watermark,
+				105,
+				48,
+				90,
+				90
+			);
+		}
+
+
+		// =========================================================
+		// JUDUL
+		// =========================================================
+
+		$pdf->SetTextColor(0, 0, 0);
+
+		$pdf->SetFont(
+			'Arial',
+			'',
+			10
+		);
+
+		$pdf->SetXY(
+			0,
+			32
+		);
+
+		$pdf->Cell(
+			297,
+			5,
+			'Bismillahirrahmanirrahim',
+			0,
+			1,
+			'C'
+		);
+
+
+		$pdf->SetFont(
+			'Arial',
+			'B',
+			11
+		);
+
+		$pdf->Cell(
+			297,
+			6,
+			'SERTIFIKAT KEPESERTAAN ASURANSI JIWA SYARIAH',
+			0,
+			1,
+			'C'
+		);
+
+
+		$pdf->SetFont(
+			'Arial',
+			'B',
+			9
+		);
+
+		$pdf->Cell(
+			297,
+			5,
+			'No Polis: ' . $policy->policy_no,
+			0,
+			1,
+			'C'
+		);
+
+
+		// =========================================================
+		// DATA PESERTA
+		// =========================================================
+
+		$pdf->SetFont(
+			'Arial',
+			'',
+			9
+		);
+
+		$y = 55;
+
+
+		// Nama
+		$pdf->SetXY(33, $y);
+
+		$pdf->Cell(
+			35,
+			5,
+			'Nama',
+			0
+		);
+
+		$pdf->Cell(
+			5,
+			5,
+			':',
+			0
+		);
+
+		$pdf->Cell(
+			100,
+			5,
+			strtoupper($member->nama),
+			0
+		);
+
+
+		// Nomor Sertifikat
+		$y += 6;
+
+		$pdf->SetXY(33, $y);
+
+		$pdf->Cell(
+			35,
+			5,
+			'Nomor Sertifikat',
+			0
+		);
+
+		$pdf->Cell(
+			5,
+			5,
+			':',
+			0
+		);
+
+		$nomorSertifikat =
+			!empty($member->member_no)
+				? $member->member_no
+				: $member->id;
+
+		$pdf->Cell(
+			100,
+			5,
+			$nomorSertifikat,
+			0
+		);
+
+
+		// Tanggal lahir
+		$y += 6;
+
+		$pdf->SetXY(33, $y);
+
+		$pdf->Cell(
+			35,
+			5,
+			'Tanggal Lahir',
+			0
+		);
+
+		$pdf->Cell(
+			5,
+			5,
+			':',
+			0
+		);
+
+		$tanggalLahir = '-';
+
+		if (!empty($member->tgl_lahir)) {
+
+			$tanggalLahir =
+				date(
+					'd-M-y',
+					strtotime($member->tgl_lahir)
+				);
+		}
+
+		$pdf->Cell(
+			100,
+			5,
+			$tanggalLahir,
+			0
+		);
+
+
+		// =========================================================
+		// PEMEGANG POLIS
+		// =========================================================
+
+		$y += 13;
+
+		$pdf->SetXY(
+			33,
+			$y
+		);
+
+		$pdf->Cell(
+			0,
+			5,
+			'Adalah Peserta dari Pemegang Polis Asuransi Jiwa Syariah:',
+			0,
+			1
+		);
+
+
+		$pemegangPolis =
+			'PT. PROTEKSI ANTAR NUSA QQ PT. BANK RIAU KEPRI SYARIAH (PERSERODA)';
+
+		if (!empty($member->pemegang_polis)) {
+
+			$pemegangPolis =
+				$member->pemegang_polis;
+
+		} elseif (!empty($policy->policy_holder)) {
+
+			$pemegangPolis =
+				$policy->policy_holder;
+
+		} elseif (!empty($policy->nama_pemegang_polis)) {
+
+			$pemegangPolis =
+				$policy->nama_pemegang_polis;
+		}
+
+
+		$y += 7;
+
+		$pdf->SetFont(
+			'Arial',
+			'B',
+			9
+		);
+
+		$pdf->SetXY(
+			25,
+			$y
+		);
+
+		$pdf->Cell(
+			247,
+			5,
+			strtoupper($pemegangPolis),
+			0,
+			1,
+			'C'
+		);
+
+
+		// =========================================================
+		// DETAIL ASURANSI
+		// =========================================================
+
+		$pdf->SetFont(
+			'Arial',
+			'',
+			9
+		);
+
+		$y += 12;
+
+		$pdf->SetXY(
+			33,
+			$y
+		);
+
+		$pdf->Cell(
+			0,
+			5,
+			'Dengan ketentuan Asuransi sebagai berikut:',
+			0,
+			1
+		);
+
+
+		$detailY = $y + 8;
+
+
+		// Produk
+		$pdf->SetXY(
+			33,
+			$detailY
+		);
+
+		$pdf->Cell(
+			38,
+			5,
+			'Produk Asuransi',
+			0
+		);
+
+		$pdf->Cell(
+			5,
+			5,
+			':',
+			0
+		);
+
+		$produk =
+			'Reliance Pembiayaan Syariah';
+
+		$pdf->Cell(
+			95,
+			5,
+			$produk,
+			0
+		);
+
+
+		// Manfaat
+		$detailY += 6;
+
+		$pdf->SetXY(
+			33,
+			$detailY
+		);
+
+		$pdf->Cell(
+			38,
+			5,
+			'Manfaat Asuransi',
+			0
+		);
+
+		$pdf->Cell(
+			5,
+			5,
+			':',
+			0
+		);
+
+		$pdf->Cell(
+			95,
+			5,
+			'Menurun',
+			0
+		);
+
+
+		// Masa Asuransi
+		$detailY += 6;
+
+		$pdf->SetXY(
+			33,
+			$detailY
+		);
+
+		$pdf->Cell(
+			38,
+			5,
+			'Masa Asuransi',
+			0
+		);
+
+		$pdf->Cell(
+			5,
+			5,
+			':',
+			0
+		);
+
+		$term =
+			!empty($member->term)
+				? $member->term . ' Bulan'
+				: '-';
+
+		$pdf->Cell(
+			95,
+			5,
+			$term,
+			0
+		);
+
+
+		// Periode
+		$detailY += 6;
+
+		$pdf->SetXY(
+			33,
+			$detailY
+		);
+
+		$pdf->Cell(
+			38,
+			5,
+			'Periode Asuransi',
+			0
+		);
+
+		$pdf->Cell(
+			5,
+			5,
+			':',
+			0
+		);
+
+		$periode = '-';
+
+		if (
+			!empty($member->start_date) &&
+			!empty($member->end_date)
+		) {
+
+			$periode =
+				date(
+					'd-M-y',
+					strtotime($member->start_date)
+				)
+				.
+				' s/d '
+				.
+				date(
+					'd-M-y',
+					strtotime($member->end_date)
+				);
+		}
+
+		$pdf->Cell(
+			95,
+			5,
+			$periode,
+			0
+		);
+
+
+		// Uang Asuransi
+		$detailY += 6;
+
+		$pdf->SetXY(
+			33,
+			$detailY
+		);
+
+		$pdf->Cell(
+			38,
+			5,
+			'Uang Asuransi',
+			0
+		);
+
+		$pdf->Cell(
+			5,
+			5,
+			':',
+			0
+		);
+
+		$sumInsured =
+			!empty($member->sum_insured)
+				? number_format(
+					$member->sum_insured,
+					0,
+					',',
+					'.'
+				)
+				: '0';
+
+		$pdf->Cell(
+			95,
+			5,
+			$sumInsured,
+			0
+		);
+
+
+		// =========================================================
+		// PREMIUM
+		// =========================================================
+
+		$rightY = $y + 8;
+
+
+		// Gross
+		$pdf->SetXY(
+			160,
+			$rightY
+		);
+
+		$pdf->Cell(
+			38,
+			5,
+			'Kontribusi Gross',
+			0
+		);
+
+		$pdf->Cell(
+			5,
+			5,
+			':',
+			0
+		);
+
+		$grossPremium =
+			!empty($member->gross_premium)
+				? number_format(
+					$member->gross_premium,
+					0,
+					',',
+					'.'
+				)
+				: '0';
+
+		$pdf->Cell(
+			50,
+			5,
+			$grossPremium,
+			0
+		);
+
+
+		// Extra
+		$rightY += 6;
+
+		$pdf->SetXY(
+			160,
+			$rightY
+		);
+
+		$pdf->Cell(
+			38,
+			5,
+			'Extra Kontribusi',
+			0
+		);
+
+		$pdf->Cell(
+			5,
+			5,
+			':',
+			0
+		);
+
+		$pdf->Cell(
+			50,
+			5,
+			'-',
+			0
+		);
+
+
+		// Total
+		$rightY += 6;
+
+		$pdf->SetXY(
+			160,
+			$rightY
+		);
+
+		$pdf->SetFont(
+			'Arial',
+			'B',
+			9
+		);
+
+		$totalPremium =
+			!empty($member->total_premium)
+				? $member->total_premium
+				: $nettPremium;
+
+		$totalPremium =
+			number_format(
+				$totalPremium,
+				0,
+				',',
+				'.'
+			);
+
+		$pdf->Cell(
+			38,
+			5,
+			'Total Kontribusi',
+			0
+		);
+
+		$pdf->Cell(
+			5,
+			5,
+			':',
+			0
+		);
+
+		$pdf->Cell(
+			50,
+			5,
+			$totalPremium,
+			0
+		);
+
+
+		// =========================================================
+		// CATATAN
+		// =========================================================
+
+		$pdf->SetFont(
+			'Arial',
+			'',
+			5.5
+		);
+
+		$pdf->SetXY(
+			33,
+			174
+		);
+
+		$catatan =
+			'Sertifikat ini tunduk pada Ketentuan Polis Asuransi serta ketentuan lain yang '
+			. 'tercantum di dalam atau melekat pada Polis dan merupakan bagian yang tidak '
+			. 'terpisahkan dari Perjanjian Asuransi.';
+
+		$pdf->MultiCell(
+			102,
+			3,
+			$catatan,
+			1,
+			'L'
+		);
+
+
+		// =========================================================
+		// KETERANGAN
+		// =========================================================
+
+		$pdf->SetFont(
+			'Arial',
+			'I',
+			5.5
+		);
+
+		$pdf->SetXY(
+			33,
+			190
+		);
+
+		$pdf->Cell(
+			150,
+			4,
+			'*Sertifikat Asuransi ini berlaku apabila pembayaran sudah dilakukan dan efektif masuk ke dalam rekening PT Asuransi Jiwa Reliance Indonesia Unit Syariah',
+			0
+		);
+
+
+		// =========================================================
+		// TANGGAL
+		// =========================================================
+
+		$tanggalBuka =
+			date('d-M-y');
+
+		if (!empty($member->tgl_buka)) {
+
+			$tanggalBuka =
+				date(
+					'd-M-y',
+					strtotime($member->tgl_buka)
+				);
+		}
+
+
+		$pdf->SetFont(
+			'Arial',
+			'',
+			8
+		);
+
+		$pdf->SetXY(
+			205,
+			145
+		);
+
+		$pdf->Cell(
+			70,
+			5,
+			'Jakarta, ' . $tanggalBuka,
+			0,
+			1,
+			'C'
+		);
+
+
+		// =========================================================
+		// TANDA TANGAN
+		// =========================================================
+
+		$pdf->SetFont(
+			'Arial',
+			'B',
+			8
+		);
+
+		$pdf->SetX(
+			205
+		);
+
+		$pdf->Cell(
+			70,
+			5,
+			'PT Asuransi Jiwa Reliance Indonesia Unit Syariah',
+			0,
+			1,
+			'C'
+		);
+
+
+		$signature =
+			Yii::getAlias(
+				'@webroot/uploads/assets/signature.png'
+			);
+
+		if (file_exists($signature)) {
+
+			$pdf->Image(
+				$signature,
+				228,
+				155,
+				28,
+				20
+			);
+		}
+
+
+		$pdf->SetFont(
+			'Arial',
+			'B',
+			8
+		);
+
+		$pdf->SetXY(
+			205,
+			178
+		);
+
+		$pdf->Cell(
+			70,
+			5,
+			'Gideon Heru Prasetya',
+			0,
+			1,
+			'C'
+		);
+
+
+		$pdf->SetFont(
+			'Arial',
+			'',
+			8
+		);
+
+		$pdf->SetXY(
+			205,
+			183
+		);
+
+		$pdf->Cell(
+			70,
+			5,
+			'Direktur Utama',
+			0,
+			1,
+			'C'
+		);
+
+
+		// =========================================================
+		// FOOTER
+		// =========================================================
+
+		$pdf->SetDrawColor(
+			180,
+			180,
+			180
+		);
+
+		$pdf->Line(
+			6,
+			198,
+			291,
+			198
+		);
+
+
+		$pdf->SetFont(
+			'Arial',
+			'B',
+			7
+		);
+
+		$pdf->SetXY(
+			6,
+			200
+		);
+
+		$pdf->Cell(
+			70,
+			4,
+			'PT Asuransi Jiwa Reliance Indonesia',
+			0,
+			1
+		);
+
+
+		$pdf->SetFont(
+			'Arial',
+			'',
+			6.5
+		);
+
+		$pdf->SetXY(
+			6,
+			204
+		);
+
+		$pdf->Cell(
+			70,
+			3,
+			'Gedung Soho West Point, Kota Kedoya',
+			0,
+			1
+		);
+
+		$pdf->SetXY(
+			6,
+			207
+		);
+
+		$pdf->Cell(
+			70,
+			3,
+			'Jl. Macan, Kav. 4-5, Kedoya Utara, Kebon Jeruk',
+			0,
+			1
+		);
+
+
+		$pdf->SetXY(
+			78,
+			202
+		);
+
+		$pdf->Cell(
+			55,
+			4,
+			'Tel. +62 21 2119 9444 (Hotline)',
+			0,
+			1
+		);
+
+
+		$pdf->SetXY(
+			136,
+			202
+		);
+
+		$pdf->Cell(
+			55,
+			4,
+			'https://reliance-life.co.id',
+			0,
+			1
+		);
+
+
+		$pdf->SetXY(
+			136,
+			206
+		);
+
+		$pdf->Cell(
+			55,
+			4,
+			'info@reliance-life.co.id',
+			0,
+			1
+		);
+
+
+		$pdf->SetXY(
+			194,
+			204
+		);
+
+		$pdf->Cell(
+			45,
+			4,
+			'Member of Reliance Group',
+			0,
+			1
+		);
+
+
+		$pdf->SetFont(
+			'Arial',
+			'B',
+			7
+		);
+
+		$pdf->SetXY(
+			250,
+			204
+		);
+
+		$pdf->Cell(
+			40,
+			4,
+			'your reliable partner',
+			0,
+			1,
+			'R'
+		);
+
+
+		// =========================================================
+		// 5. SIMPAN PDF
+		// =========================================================
+
+		$pdf->Output(
+			'F',
+			$pdfPath
+		);
+
+
+		if (!file_exists($pdfPath)) {
+
+			throw new \Exception(
+				'PDF sertifikat gagal dibuat: ' . $pdfPath
+			);
+		}
+
+
+		// =========================================================
+		// 6. BUAT ZIP
+		// =========================================================
+
+		$zip = new \ZipArchive();
+
+		if (
+			$zip->open(
+				$zipPath,
+				\ZipArchive::CREATE |
+				\ZipArchive::OVERWRITE
+			) !== true
+		) {
+
+			throw new \Exception(
+				'Gagal membuat file ZIP: ' . $zipPath
+			);
+		}
+
+
+		if (
+			!$zip->addFile(
+				$pdfPath,
+				$pdfFileName
+			)
+		) {
+
+			$zip->close();
+
+			throw new \Exception(
+				'Gagal memasukkan PDF ke dalam ZIP'
+			);
+		}
+
+
+		$zip->close();
+
+
+		if (!file_exists($zipPath)) {
+
+			throw new \Exception(
+				'File ZIP tidak berhasil dibuat: ' . $zipPath
+			);
+		}
+
+
+		// =========================================================
+		// 7. LOAD PHPSECLIB
+		// =========================================================
+
+		$autoload =
+			Yii::getAlias(
+				'@webroot/protected/sftp-lib/vendor/autoload.php'
+			);
+
+		if (!file_exists($autoload)) {
+
+			throw new \Exception(
+				'Autoload phpseclib tidak ditemukan: ' .
+				$autoload
+			);
+		}
+
+		require_once $autoload;
+
+
+		if (
+			!class_exists(
+				'\phpseclib3\Net\SFTP'
+			)
+		) {
+
+			throw new \Exception(
+				'Class phpseclib3\\Net\\SFTP tidak tersedia'
+			);
+		}
+
+
+		// =========================================================
+		// 8. CONFIG SFTP RELIANCE
+		// =========================================================
+
+		$sftpHost =
+			'202.152.22.234';
+
+		$sftpPort =
+			22;
+
+		$sftpUsername =
+			'reliance';
+
+		$sftpPassword =
+			'reliance@brks2026';
+
+		$sftpIncomingPath =
+			'/outgoing';
+
+
+		// =========================================================
+		// 9. CONNECT SFTP
+		// =========================================================
+
+		$sftp =
+			new \phpseclib3\Net\SFTP(
+				$sftpHost,
+				$sftpPort,
+				10
+			);
+
+
+		if (
+			!$sftp->login(
+				$sftpUsername,
+				$sftpPassword
+			)
+		) {
+
+			throw new \Exception(
+				'Gagal authentication SFTP Reliance'
+			);
+		}
+
+
+		// =========================================================
+		// 10. CEK FOLDER OUTGOING
+		// =========================================================
+
+		if (
+			!$sftp->is_dir(
+				$sftpIncomingPath
+			)
+		) {
+
+			$sftp->disconnect();
+
+			throw new \Exception(
+				'Folder SFTP tidak ditemukan: ' .
+				$sftpIncomingPath
+			);
+		}
+
+
+		// =========================================================
+		// 11. REMOTE FILE
+		// =========================================================
+
+		$sftpFilePath =
+			$sftpIncomingPath .
+			'/' .
+			$zipFileName;
+
+
+		// =========================================================
+		// 12. UPLOAD ZIP
+		// =========================================================
+
+		$uploadResult =
+			$sftp->put(
+				$sftpFilePath,
+				$zipPath,
+				\phpseclib3\Net\SFTP::SOURCE_LOCAL_FILE
+			);
+
+
+		if (!$uploadResult) {
+
+			$sftp->disconnect();
+
+			throw new \Exception(
+				'Gagal upload ZIP ke SFTP: ' .
+				$sftpFilePath
+			);
+		}
+
+
+		// =========================================================
+		// 13. CEK FILE DI SERVER
+		// =========================================================
+
+		if (
+			!$sftp->file_exists(
+				$sftpFilePath
+			)
+		) {
+
+			$sftp->disconnect();
+
+			throw new \Exception(
+				'File berhasil di-upload tetapi tidak ditemukan di SFTP: ' .
+				$sftpFilePath
+			);
+		}
+
+
+		// =========================================================
+		// 14. UKURAN FILE
+		// =========================================================
+
+		$remoteFileSize =
+			$sftp->filesize(
+				$sftpFilePath
+			);
+
+
+		// =========================================================
+		// 15. DISCONNECT
+		// =========================================================
+
+		$sftp->disconnect();
+
+
+		// =========================================================
+		// 16. HAPUS FILE TEMPORARY
+		// =========================================================
+
+		if (file_exists($pdfPath)) {
+
+			unlink($pdfPath);
+		}
+
+		if (file_exists($zipPath)) {
+
+			unlink($zipPath);
+		}
+
+
+		// =========================================================
+		// 17. RETURN
+		// =========================================================
+
+		return [
+
+			'file_name' =>
+				$zipFileName,
+
+			'sftp' => [
+
+				'success' =>
+					true,
+
+				'host' =>
+					$sftpHost,
+
+				'port' =>
+					$sftpPort,
+
+				'username' =>
+					$sftpUsername,
+
+				'folder' =>
+					$sftpIncomingPath,
+
+				'file_path' =>
+					$sftpFilePath,
+
+				'file_name' =>
+					$zipFileName,
+
+				'size' =>
+					$remoteFileSize
+			]
+		];
 	}
 
 }
