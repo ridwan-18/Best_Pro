@@ -2331,7 +2331,7 @@ class PengajuanController extends Controller
                 map_member_dokumen_medis::find()
                     ->where([
                         'id_loan' =>
-                            $idPengajuan,
+                            $oldNomorAkad,
                         'jenis_dokumen' =>
                             'restitusi',
                     ])
@@ -2400,7 +2400,7 @@ class PengajuanController extends Controller
              */
 
             $dokumenMedis->id_loan =
-                $nomorAkad;
+                $oldNomorAkad;
 
             $dokumenMedis->kode_dokumen =
                 $codeDoc;
