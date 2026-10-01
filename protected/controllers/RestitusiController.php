@@ -106,7 +106,7 @@ class RestitusiController  extends Controller
 		
 				echo '<pre>';
 print_r($models);
-print_r($members);
+// print_r($members);
 exit;
 
 		return $this->render('index', [
