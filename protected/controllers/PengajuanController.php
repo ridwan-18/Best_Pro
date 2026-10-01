@@ -1519,7 +1519,6 @@ class PengajuanController extends Controller
 			];
 		}
 
-
 		$idTransaksi       = $payload['id_transaksi'] ?? null;
 		$idPengajuan       = $payload['id_pengajuan'] ?? null;
 		$kodeBroker        = $payload['kode_broker'] ?? null;
@@ -1774,8 +1773,6 @@ class PengajuanController extends Controller
 
 		if ($cekdokumen && $cekdokumen->approve === 'DISETUJUI') {
 
-			// Dokumen sudah disetujui, lanjut proses
-
 		} else {
 
 			return [
@@ -1932,340 +1929,203 @@ class PengajuanController extends Controller
 			
 			$transaction = Yii::$app->db->beginTransaction();
 
-try {
+		try {
 
-    // ==========================================================
-    // 1. CARI DATA RESTITUSI BERDASARKAN OLD NOMOR AKAD
-    // ==========================================================
-    $check_member = Restitusi::findOne([
-        'old_nomor_akad' => $oldNomorAkad,
-    ]);
+			$check_member = Restitusi::findOne([
+				'old_nomor_akad' => $oldNomorAkad,
+			]);
 
-    $isNewRestitusi = false;
+			$isNewRestitusi = false;
 
-    if ($check_member === null) {
-        $check_member = new Restitusi();
-        $isNewRestitusi = true;
-    }
+			if ($check_member === null) {
+				$check_member = new Restitusi();
+				$isNewRestitusi = true;
 
+			$check_member->id_transaksi = $member_old->id_transaksi;
+			$check_member->id_pengajuan = $member_old->id_pengajuan;
+			$check_member->kode_broker = $kodeBroker;
+			$check_member->kode_cabang = $kodeCabang;
+			$check_member->nomor_rekening = $nomorRekening;
 
-    // ==========================================================
-    // 2. SET DATA RESTITUSI
-    // ==========================================================
-    $check_member->id_transaksi = $member_old->id_transaksi;
-    $check_member->id_pengajuan = $member_old->id_pengajuan;
-    $check_member->kode_broker = $kodeBroker;
-    $check_member->kode_cabang = $kodeCabang;
-    $check_member->nomor_rekening = $nomorRekening;
+			$check_member->tanggal_pembiayaan = $tanggal_pembiayaan;
 
-    $check_member->tanggal_pembiayaan = $tanggal_pembiayaan;
+			$check_member->old_nomor_akad = $oldNomorAkad;
+			$check_member->nomor_akad = $nomorAkad;
 
-    $check_member->old_nomor_akad = $oldNomorAkad;
-    $check_member->nomor_akad = $nomorAkad;
+			$check_member->plafon_pembiayaan = $plafond;
+			$check_member->tenor = $tenorPertanggungan;
+			$check_member->benefit = $benefit;
 
-    $check_member->plafon_pembiayaan = $plafond;
-    $check_member->tenor = $tenorPertanggungan;
-    $check_member->benefit = $benefit;
+			$check_member->restitusi_jiwa = $polisJiwaJson;
 
-    $check_member->restitusi_jiwa = $polisJiwaJson;
+			$check_member->plafon_penjaminan =
+				$restitusiJiwa['plafon_penjaminan'] ?? null;
 
-    $check_member->plafon_penjaminan =
-        $restitusiJiwa['plafon_penjaminan'] ?? null;
+			$check_member->tenor_berjalan =
+				$restitusiJiwa['tenor_berjalan'] ?? null;
 
-    $check_member->tenor_berjalan =
-        $restitusiJiwa['tenor_berjalan'] ?? null;
+			$check_member->sisa_tenor =
+				$restitusiJiwa['sisa_tenor'] ?? null;
 
-    $check_member->sisa_tenor =
-        $restitusiJiwa['sisa_tenor'] ?? null;
+			$check_member->premi =
+				$premi_lama;
 
-    $check_member->premi =
-        $premi_lama;
+			$check_member->asuransi =
+				$asuransi_lama;
 
-    $check_member->asuransi =
-        $asuransi_lama;
+			$check_member->tujuan_pembayaran =
+				$tujuan_pembayaran;
 
-    $check_member->tujuan_pembayaran =
-        $tujuan_pembayaran;
+			$check_member->status_restitusi = '1';
 
-    $check_member->status_restitusi = '1';
+			if ($isNewRestitusi) {
 
+				$check_member->created_at = date('Y-m-d H:i:s');
+				$check_member->created_by = 1;
 
-    // ==========================================================
-    // 3. CREATED / UPDATED
-    // ==========================================================
-    if ($isNewRestitusi) {
+			} else {
 
-        $check_member->created_at = date('Y-m-d H:i:s');
-        $check_member->created_by = 1;
+				$check_member->updated_at = date('Y-m-d H:i:s');
+				$check_member->updated_by = 1;
+			}
 
-    } else {
+			if (!$check_member->save()) {
 
-        $check_member->updated_at = date('Y-m-d H:i:s');
-        $check_member->updated_by = 1;
-    }
+				$transaction->rollBack();
 
+			}
 
-    // ==========================================================
-    // 4. SAVE RESTITUSI
-    // ==========================================================
-    if (!$check_member->save()) {
+			$countDokumen =
+				\app\models\map_member_dokumen_medis::find()
+					->where([
+						'id_loan' => $idPengajuan,
+						'jenis_dokumen' => 'restitusi',
+					])
+					->count();
 
-        $transaction->rollBack();
+			$sequence = str_pad(
+				$countDokumen + 1,
+				2,
+				'0',
+				STR_PAD_LEFT
+			);
 
-        // return [
-            // 'Result' => [
-                // 'status' => '400',
-                // 'kode_response' => '01',
-                // 'message' => $isNewRestitusi
-                    // ? 'Gagal menyimpan data pengajuan restitusi'
-                    // : 'Gagal memperbarui data pengajuan restitusi',
+			$norek = $nomorRekening;
+			$noakad = $nomorAkad;
 
-                // 'jenis_pengajuan' => 'RESTITUSI',
+			$codeDoc = '003';
 
-                // 'restitusi_jiwa' => [
-                    // 'status_restitusi' => '0'
-                // ],
+			$fileBenefit = (string)$benefit;
 
-                // 'errors' => $check_member->getErrors()
-            // ]
-        // ];
-    }
+			$fileName =
+				$norek . '_' .
+				$noakad . '_' .
+				$codeDoc . '_' .
+				$fileBenefit . '_' .
+				$sequence .
+				'.zip';
 
+			$sftpResult =
+				$this->downloadFileFromBankSftp($fileName);
 
+			$dokumenMedis =
+				new \app\models\map_member_dokumen_medis();
 
-    // ==========================================================
-    // 6. HITUNG SEQUENCE DOKUMEN
-    // ==========================================================
-    $countDokumen =
-        \app\models\map_member_dokumen_medis::find()
-            ->where([
-                'id_loan' => $idPengajuan,
-                'jenis_dokumen' => 'restitusi',
-            ])
-            ->count();
+			$dokumenMedis->id_loan =
+				$nomorAkad;
 
-    $sequence = str_pad(
-        $countDokumen + 1,
-        2,
-        '0',
-        STR_PAD_LEFT
-    );
+			$dokumenMedis->kode_dokumen =
+				$codeDoc;
 
 
-    // ==========================================================
-    // 7. BUAT NAMA FILE
-    // ==========================================================
-    $norek = $nomorRekening;
-    $noakad = $nomorAkad;
+			if (
+				!empty($sftpResult['success']) &&
+				!empty($sftpResult['file_name'])
+			) {
 
-    $codeDoc = '003';
+				$dokumenMedis->files =
+					$sftpResult['file_name'];
 
-    $fileBenefit = (string)$benefit;
+			} else {
 
-    $fileName =
-        $norek . '_' .
-        $noakad . '_' .
-        $codeDoc . '_' .
-        $fileBenefit . '_' .
-        $sequence .
-        '.zip';
+				$dokumenMedis->files = null;
+			}
 
 
-    // ==========================================================
-    // 8. DOWNLOAD FILE DARI SFTP BANK
-    // ==========================================================
-    $sftpResult =
-        $this->downloadFileFromBankSftp($fileName);
+			$dokumenMedis->approve = '-';
 
+			$dokumenMedis->ktp =
+				$ktp;
 
-    // ==========================================================
-    // 9. SIMPAN MAPPING DOKUMEN
-    // ==========================================================
-    $dokumenMedis =
-        new \app\models\map_member_dokumen_medis();
+			$dokumenMedis->tenor =
+				$tenorPertanggungan;
 
-    $dokumenMedis->id_loan =
-        $idPengajuan;
+			$dokumenMedis->plafond =
+				$plafondPertanggungan;
 
-    $dokumenMedis->kode_dokumen =
-        $codeDoc;
+			$dokumenMedis->jenis_dokumen =
+				'restitusi';
 
+			$dokumenMedis->created_at =
+				date('Y-m-d H:i:s');
 
-    if (
-        !empty($sftpResult['success']) &&
-        !empty($sftpResult['file_name'])
-    ) {
+			$dokumenMedis->created_by =
+				1;
 
-        $dokumenMedis->files =
-            $sftpResult['file_name'];
+			if (!$dokumenMedis->save()) {
 
-    } else {
+				$transaction->rollBack();
 
-        $dokumenMedis->files = null;
-    }
+				Yii::error(
+					'Gagal menyimpan mapping dokumen Restitusi: ' .
+					json_encode($dokumenMedis->errors),
+					'cbc-sftp'
+				);
 
+				
+			}
 
-    $dokumenMedis->approve = '-';
+			$transaction->commit();
 
-    $dokumenMedis->ktp =
-        $ktp;
-
-    $dokumenMedis->tenor =
-        $tenorPertanggungan;
+			Yii::info(
+				'Mapping dokumen Restitusi berhasil disimpan. ' .
+				'id_loan=' . $member->id_pengajuan .
+				', kode_dokumen=' . $codeDoc .
+				', file=' .
+				(
+					!empty($sftpResult['file_name'])
+						? $sftpResult['file_name']
+						: 'NULL'
+				),
+				'cbc-sftp'
+			);
 
-    $dokumenMedis->plafond =
-        $plafondPertanggungan;
+			if (
+				!empty($sftpResult['success']) &&
+				!empty($sftpResult['file_name'])
+			) 
+			{
 
-    $dokumenMedis->jenis_dokumen =
-        'restitusi';
-
-    $dokumenMedis->created_at =
-        date('Y-m-d H:i:s');
-
-    $dokumenMedis->created_by =
-        1;
+			}
 
-
-    // ==========================================================
-    // 10. SAVE DOKUMEN
-    // ==========================================================
-    if (!$dokumenMedis->save()) {
-
-        $transaction->rollBack();
+			} catch (\Exception $e) {
 
-        Yii::error(
-            'Gagal menyimpan mapping dokumen Restitusi: ' .
-            json_encode($dokumenMedis->errors),
-            'cbc-sftp'
-        );
+				if (
+					isset($transaction) &&
+					$transaction !== null &&
+					$transaction->isActive
+				) {
+					$transaction->rollBack();
+				}
 
-        // return [
-            // 'Result' => [
-                // 'status' => '400',
-                // 'kode_response' => '01',
-                // 'message' =>
-                    // 'Pengajuan berhasil, tetapi dokumen gagal disimpan',
-
-                // 'jenis_pengajuan' =>
-                    // 'RESTITUSI',
 
-                // 'status_dokumen' =>
-                    // 0,
-
-                // 'keterangan' =>
-                    // json_encode($dokumenMedis->errors)
-            // ]
-        // ];
-    }
-
-
-    // ==========================================================
-    // 11. COMMIT
-    // ==========================================================
-    $transaction->commit();
-
-
-    // ==========================================================
-    // 12. LOG
-    // ==========================================================
-    Yii::info(
-        'Mapping dokumen Restitusi berhasil disimpan. ' .
-        'id_loan=' . $member->id_pengajuan .
-        ', kode_dokumen=' . $codeDoc .
-        ', file=' .
-        (
-            !empty($sftpResult['file_name'])
-                ? $sftpResult['file_name']
-                : 'NULL'
-        ),
-        'cbc-sftp'
-    );
-
-
-    // ==========================================================
-    // 13. RESPONSE JIKA FILE SFTP DITEMUKAN
-    // ==========================================================
-    if (
-        !empty($sftpResult['success']) &&
-        !empty($sftpResult['file_name'])
-    ) 
-	{
-
-        // return [
-            // 'Result' => [
-                // 'status' => '200',
-                // 'kode_response' => '00',
-                // 'message' =>
-                    // 'Berhasil kirim pengajuan dokumen Restitusi',
-
-                // 'jenis_pengajuan' =>
-                    // 'RESTITUSI',
-
-                // 'status_dokumen' =>
-                    // 1,
-
-                // 'keterangan' =>
-                    // 'Dokumen Restitusi berhasil diterima'
-            // ]
-        // ];
-    }
-
-
-    // ==========================================================
-    // 14. RESPONSE JIKA FILE BELUM ADA DI SFTP
-    // ==========================================================
-    // return [
-        // 'Result' => [
-            // 'status' => '200',
-            // 'kode_response' => '00',
-            // 'message' =>
-                // 'Pengajuan berhasil, dokumen belum tersedia di SFTP Bank',
-
-            // 'jenis_pengajuan' =>
-                // 'RESTITUSI',
-
-            // 'status_dokumen' =>
-                // 0,
-
-            // 'keterangan' =>
-                // 'Dokumen Restitusi belum tersedia di SFTP'
-        // ]
-    // ];
-
-
-} catch (\Exception $e) {
-
-    // ==========================================================
-    // ROLLBACK JIKA TERJADI ERROR
-    // ==========================================================
-    if (
-        isset($transaction) &&
-        $transaction !== null &&
-        $transaction->isActive
-    ) {
-        $transaction->rollBack();
-    }
-
-
-    Yii::error(
-        'Submit Pembiayaan Topup Restitusi Error: ' .
-        $e->getMessage(),
-        'restitusi'
-    );
-
-
-    // return [
-        // 'Result' => [
-            // 'status' => '500',
-            // 'kode_response' => '99',
-            // 'message' =>
-                // 'Gagal menyimpan data Restitusi',
-
-            // 'error' =>
-                // $e->getMessage()
-        // ]
-    // ];
-}
+				Yii::error(
+					'Submit Pembiayaan Topup Restitusi Error: ' .
+					$e->getMessage(),
+					'restitusi'
+				);
+
+			}
 			
 
 			$member = Member::findOne([
@@ -2415,14 +2275,6 @@ try {
 				$e->getMessage()
 			);
 
-			// return [
-				// 'Result' => [
-					// 'status' => '500',
-					// 'kode_response' => '99',
-					// 'message' => 'Gagal menyimpan data',
-					// 'error' => $e->getMessage(),
-				// ]
-			// ];
 		}
 
 
