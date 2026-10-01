@@ -6304,248 +6304,248 @@ if (file_exists($zipPath)) {
 	}
 
 
-	public function actionListIncomingFiles()
-	{
-		Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
+	// public function actionListIncomingFiles()
+	// {
+		// Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
 
-		// $autoload = 'C:\xampp7.4\htdocs\BestPro_syariah\protected\sftp-lib\vendor\autoload.php';
-		$autoload = dirname(__DIR__) . '/sftp-lib/vendor/autoload.php';
+		// // $autoload = 'C:\xampp7.4\htdocs\BestPro_syariah\protected\sftp-lib\vendor\autoload.php';
+		// $autoload = dirname(__DIR__) . '/sftp-lib/vendor/autoload.php';
 
-		if (!file_exists($autoload)) {
-			return [
-				'success' => false,
-				'step' => 'autoload',
-				'message' => 'File autoload.php tidak ditemukan',
-				'autoload' => $autoload
-			];
-		}
+		// if (!file_exists($autoload)) {
+			// return [
+				// 'success' => false,
+				// 'step' => 'autoload',
+				// 'message' => 'File autoload.php tidak ditemukan',
+				// 'autoload' => $autoload
+			// ];
+		// }
 
-		require_once $autoload;
+		// require_once $autoload;
 
-		try {
+		// try {
 
-			if (!class_exists('\phpseclib3\Net\SFTP')) {
+			// if (!class_exists('\phpseclib3\Net\SFTP')) {
 
-				return [
-					'success' => false,
-					'step' => 'check_phpseclib',
-					'message' => 'Class phpseclib3\\Net\\SFTP tidak tersedia'
-				];
-			}
+				// return [
+					// 'success' => false,
+					// 'step' => 'check_phpseclib',
+					// 'message' => 'Class phpseclib3\\Net\\SFTP tidak tersedia'
+				// ];
+			// }
 
-			$host = 'web.bestpro-id.com';
-			$port = 22;
+			// $host = 'web.bestpro-id.com';
+			// $port = 22;
 
-			$username = 'bank_riau';
-			$password = 'Thunderbolt5';
+			// $username = 'bank_riau';
+			// $password = 'Thunderbolt5';
 
-			$rootPath = '/sftp/bank_riau';
-			$incomingPath = '/sftp/bank_riau/incoming';
+			// $rootPath = '/sftp/bank_riau';
+			// $incomingPath = '/sftp/bank_riau/incoming';
 
-			$sftp = new \phpseclib3\Net\SFTP(
-				$host,
-				$port,
-				10
-			);
+			// $sftp = new \phpseclib3\Net\SFTP(
+				// $host,
+				// $port,
+				// 10
+			// );
 
-			$login = $sftp->login(
-				$username,
-				$password
-			);
+			// $login = $sftp->login(
+				// $username,
+				// $password
+			// );
 
-			if (!$login) {
+			// if (!$login) {
 
-				$log = '';
+				// $log = '';
 
-				try {
-					$log = $sftp->getLog();
-				} catch (\Throwable $logException) {
-					$log = $logException->getMessage();
-				}
+				// try {
+					// $log = $sftp->getLog();
+				// } catch (\Throwable $logException) {
+					// $log = $logException->getMessage();
+				// }
 
-				Yii::error(
-					'SFTP LOGIN FAILED' .
-					"\nHost: " . $host .
-					"\nPort: " . $port .
-					"\nUsername: " . $username .
-					"\nLog: " . print_r($log, true),
-					'cbc-sftp'
-				);
+				// Yii::error(
+					// 'SFTP LOGIN FAILED' .
+					// "\nHost: " . $host .
+					// "\nPort: " . $port .
+					// "\nUsername: " . $username .
+					// "\nLog: " . print_r($log, true),
+					// 'cbc-sftp'
+				// );
 
-				return [
-					'success' => false,
-					'step' => 'login',
-					'message' => 'Gagal authentication SFTP',
-					'host' => $host,
-					'port' => $port,
-					'username' => $username,
-					'sftp_log' => $log
-				];
-			}
+				// return [
+					// 'success' => false,
+					// 'step' => 'login',
+					// 'message' => 'Gagal authentication SFTP',
+					// 'host' => $host,
+					// 'port' => $port,
+					// 'username' => $username,
+					// 'sftp_log' => $log
+				// ];
+			// }
 
-			$pwd = $sftp->pwd();
+			// $pwd = $sftp->pwd();
 
-			$currentFiles = $sftp->nlist('.');
+			// $currentFiles = $sftp->nlist('.');
 
-			if ($currentFiles === false) {
+			// if ($currentFiles === false) {
 
-				return [
-					'success' => false,
-					'step' => 'list_current',
-					'message' => 'Login berhasil tetapi gagal membaca current directory',
-					'current_directory' => $pwd
-				];
-			}
+				// return [
+					// 'success' => false,
+					// 'step' => 'list_current',
+					// 'message' => 'Login berhasil tetapi gagal membaca current directory',
+					// 'current_directory' => $pwd
+				// ];
+			// }
 
-			$currentFiles = array_values(
-				array_filter(
-					$currentFiles,
-					function ($file) {
-						return $file !== '.'
-							&& $file !== '..';
-					}
-				)
-			);
+			// $currentFiles = array_values(
+				// array_filter(
+					// $currentFiles,
+					// function ($file) {
+						// return $file !== '.'
+							// && $file !== '..';
+					// }
+				// )
+			// );
 
-			$rootExists = $sftp->is_dir($rootPath);
+			// $rootExists = $sftp->is_dir($rootPath);
 
-			$rootFiles = [];
+			// $rootFiles = [];
 
-			if ($rootExists) {
+			// if ($rootExists) {
 
-				$rootFiles = $sftp->nlist($rootPath);
+				// $rootFiles = $sftp->nlist($rootPath);
 
-				if ($rootFiles === false) {
-					$rootFiles = [];
-				}
+				// if ($rootFiles === false) {
+					// $rootFiles = [];
+				// }
 
-				$rootFiles = array_values(
-					array_filter(
-						$rootFiles,
-						function ($file) {
-							return $file !== '.'
-								&& $file !== '..';
-						}
-					)
-				);
-			}
+				// $rootFiles = array_values(
+					// array_filter(
+						// $rootFiles,
+						// function ($file) {
+							// return $file !== '.'
+								// && $file !== '..';
+						// }
+					// )
+				// );
+			// }
 
-			$incomingExists = $sftp->is_dir($incomingPath);
+			// $incomingExists = $sftp->is_dir($incomingPath);
 
-			$incomingFiles = [];
+			// $incomingFiles = [];
 
-			if ($incomingExists) {
+			// if ($incomingExists) {
 
-				$items = $sftp->rawlist($incomingPath);
+				// $items = $sftp->rawlist($incomingPath);
 
-				if ($items !== false) {
+				// if ($items !== false) {
 
-					foreach ($items as $itemName => $itemData) {
+					// foreach ($items as $itemName => $itemData) {
 
-						if (
-							$itemName === '.' ||
-							$itemName === '..'
-						) {
-							continue;
-						}
+						// if (
+							// $itemName === '.' ||
+							// $itemName === '..'
+						// ) {
+							// continue;
+						// }
 
-						$type = 'file';
+						// $type = 'file';
 
-						if (
-							isset($itemData['type']) &&
-							$itemData['type'] == 2
-						) {
-							$type = 'directory';
-						}
+						// if (
+							// isset($itemData['type']) &&
+							// $itemData['type'] == 2
+						// ) {
+							// $type = 'directory';
+						// }
 
-						$size = null;
+						// $size = null;
 
-						if (
-							$type === 'file' &&
-							isset($itemData['size'])
-						) {
-							$size = $itemData['size'];
-						}
+						// if (
+							// $type === 'file' &&
+							// isset($itemData['size'])
+						// ) {
+							// $size = $itemData['size'];
+						// }
 
-						$modified = null;
+						// $modified = null;
 
-						if (
-							isset($itemData['mtime']) &&
-							!empty($itemData['mtime'])
-						) {
-							$modified = date(
-								'Y-m-d H:i:s',
-								$itemData['mtime']
-							);
-						}
+						// if (
+							// isset($itemData['mtime']) &&
+							// !empty($itemData['mtime'])
+						// ) {
+							// $modified = date(
+								// 'Y-m-d H:i:s',
+								// $itemData['mtime']
+							// );
+						// }
 
-						$incomingFiles[] = [
-							'name' => $itemName,
-							'type' => $type,
-							'size' => $size,
-							'modified' => $modified
-						];
-					}
-				}
-			}
+						// $incomingFiles[] = [
+							// 'name' => $itemName,
+							// 'type' => $type,
+							// 'size' => $size,
+							// 'modified' => $modified
+						// ];
+					// }
+				// }
+			// }
 
-			$sftp->disconnect();
+			// $sftp->disconnect();
 
-			return [
-				'success' => true,
+			// return [
+				// 'success' => true,
 
-				'message' =>
-					'SFTP berhasil terhubung menggunakan phpseclib3',
+				// 'message' =>
+					// 'SFTP berhasil terhubung menggunakan phpseclib3',
 
-				'connection' => [
-					'host' => $host,
-					'port' => $port,
-					'username' => $username
-				],
+				// 'connection' => [
+					// 'host' => $host,
+					// 'port' => $port,
+					// 'username' => $username
+				// ],
 
-				'authentication' => true,
+				// 'authentication' => true,
 
-				'current_directory' => $pwd,
+				// 'current_directory' => $pwd,
 
-				'current_files' => $currentFiles,
+				// 'current_files' => $currentFiles,
 
-				'root_path' => $rootPath,
+				// 'root_path' => $rootPath,
 
-				'root_exists' => $rootExists,
+				// 'root_exists' => $rootExists,
 
-				'root_files' => $rootFiles,
+				// 'root_files' => $rootFiles,
 
-				'incoming_path' => $incomingPath,
+				// 'incoming_path' => $incomingPath,
 
-				'incoming_exists' => $incomingExists,
+				// 'incoming_exists' => $incomingExists,
 
-				'total_incoming_file' =>
-					count($incomingFiles),
+				// 'total_incoming_file' =>
+					// count($incomingFiles),
 
-				'incoming_files' =>
-					$incomingFiles
-			];
+				// 'incoming_files' =>
+					// $incomingFiles
+			// ];
 
-		} catch (\Throwable $e) {
+		// } catch (\Throwable $e) {
 
-			Yii::error(
-				'List SFTP Incoming Error:' .
-				"\nMessage: " . $e->getMessage() .
-				"\nFile: " . $e->getFile() .
-				"\nLine: " . $e->getLine() .
-				"\nTrace: " . $e->getTraceAsString(),
-				'cbc-sftp'
-			);
+			// Yii::error(
+				// 'List SFTP Incoming Error:' .
+				// "\nMessage: " . $e->getMessage() .
+				// "\nFile: " . $e->getFile() .
+				// "\nLine: " . $e->getLine() .
+				// "\nTrace: " . $e->getTraceAsString(),
+				// 'cbc-sftp'
+			// );
 
-			return [
-				'success' => false,
-				'step' => 'exception',
-				'message' => $e->getMessage(),
-				'file' => $e->getFile(),
-				'line' => $e->getLine()
-			];
-		}
-	}
+			// return [
+				// 'success' => false,
+				// 'step' => 'exception',
+				// 'message' => $e->getMessage(),
+				// 'file' => $e->getFile(),
+				// 'line' => $e->getLine()
+			// ];
+		// }
+	// }
 	
 	private function generateSertifikat($member, $policy, $nettPremium)
 	{
@@ -7937,7 +7937,7 @@ if (file_exists($zipPath)) {
 		];
 	}
 	
-	public function actionListIncomingBank()
+	public function actionListIncomingFiles()
 	{
 		Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
 
