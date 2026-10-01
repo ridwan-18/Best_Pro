@@ -1844,7 +1844,7 @@ class RestitusiController  extends Controller
 			}
 
 			$model = member::findOne([
-				'id_pengajuan' => $id_loan,
+				'nomor_akad' => $id_loan,
 			]);
 
 			if ($model === null) {
