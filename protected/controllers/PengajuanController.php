@@ -3584,37 +3584,37 @@ class PengajuanController extends Controller
 	
 
 	public function actionTestSftp()
-{
-    require Yii::getAlias('@app/sftp-lib/vendor/autoload.php');
+	{
+		require Yii::getAlias('@app/sftp-lib/vendor/autoload.php');
 
-    $sftp = new \phpseclib3\Net\SFTP(
-        '202.152.22.234',
-        22,
-        30
-    );
+		$sftp = new \phpseclib3\Net\SFTP(
+			'202.152.22.234',
+			22,
+			30
+		);
 
-    if (!$sftp->login('reliance', 'reliance@brks2026')) {
-        return $this->asJson([
-            'status' => false,
-            'message' => 'Login SFTP gagal'
-        ]);
-    }
+		if (!$sftp->login('reliance', 'reliance@brks2026')) {
+			return $this->asJson([
+				'status' => false,
+				'message' => 'Login SFTP gagal'
+			]);
+		}
 
-    if (!$sftp->chdir('/outgoing')) {
-        return $this->asJson([
-            'status' => false,
-            'message' => 'Folder /outgoing tidak ditemukan'
-        ]);
-    }
+		if (!$sftp->chdir('/outgoing')) {
+			return $this->asJson([
+				'status' => false,
+				'message' => 'Folder /outgoing tidak ditemukan'
+			]);
+		}
 
-    $files = $sftp->nlist();
+		$files = $sftp->nlist();
 
-    return $this->asJson([
-        'status' => true,
-        'message' => 'SFTP berhasil',
-        'files' => $files
-    ]);
-}
+		return $this->asJson([
+			'status' => true,
+			'message' => 'SFTP berhasil',
+			'files' => $files
+		]);
+	}
 
 	public function actionDownloadCbc()
 	{
@@ -6549,9 +6549,6 @@ if (file_exists($zipPath)) {
 	
 	private function generateSertifikat($member, $policy, $nettPremium)
 	{
-		// =========================================================
-		// 1. FOLDER TEMPORARY
-		// =========================================================
 
 		$folder = sys_get_temp_dir();
 
@@ -6567,13 +6564,12 @@ if (file_exists($zipPath)) {
 			);
 		}
 
-
-		// =========================================================
-		// 2. NAMA FILE
-		// =========================================================
-
 		$norek   = $member->nomor_rekening;
 		$noAkad  = $member->nomor_akad;
+
+		$noAkad = str_replace('.', '', $noAkad);
+		
+		
 		$codeDoc = '005';
 		$benefit = 2;
 
@@ -6590,11 +6586,6 @@ if (file_exists($zipPath)) {
 			DIRECTORY_SEPARATOR .
 			$pdfFileName;
 
-
-		// =========================================================
-		// 3. NAMA ZIP
-		// =========================================================
-
 		$zipFileName =
 			$norek . '_' .
 			$noAkad . '_' .
@@ -6605,11 +6596,6 @@ if (file_exists($zipPath)) {
 			$folder .
 			DIRECTORY_SEPARATOR .
 			$zipFileName;
-
-
-		// =========================================================
-		// 4. GENERATE PDF
-		// =========================================================
 
 		$pdf = new \FPDF('L', 'mm', 'A4');
 
@@ -6629,10 +6615,6 @@ if (file_exists($zipPath)) {
 		);
 
 
-		// =========================================================
-		// HEADER BIRU
-		// =========================================================
-
 		$pdf->SetFillColor(42, 46, 111);
 
 		$pdf->Rect(
@@ -6642,11 +6624,6 @@ if (file_exists($zipPath)) {
 			25,
 			'F'
 		);
-
-
-		// =========================================================
-		// GARIS MERAH
-		// =========================================================
 
 		$pdf->SetFillColor(235, 52, 35);
 
@@ -6659,9 +6636,6 @@ if (file_exists($zipPath)) {
 		);
 
 
-		// =========================================================
-		// LOGO RELIANCE
-		// =========================================================
 
 		$logoReliance =
 			Yii::getAlias(
@@ -6722,10 +6696,6 @@ if (file_exists($zipPath)) {
 		}
 
 
-		// =========================================================
-		// LOGO SYARIAH
-		// =========================================================
-
 		$logoSyariah =
 			Yii::getAlias(
 				'@webroot/uploads/assets/syariah.png'
@@ -6743,10 +6713,6 @@ if (file_exists($zipPath)) {
 		}
 
 
-		// =========================================================
-		// WATERMARK
-		// =========================================================
-
 		$watermark =
 			Yii::getAlias(
 				'@webroot/uploads/assets/watermark.png'
@@ -6762,11 +6728,6 @@ if (file_exists($zipPath)) {
 				90
 			);
 		}
-
-
-		// =========================================================
-		// JUDUL
-		// =========================================================
 
 		$pdf->SetTextColor(0, 0, 0);
 
@@ -6822,10 +6783,6 @@ if (file_exists($zipPath)) {
 			'C'
 		);
 
-
-		// =========================================================
-		// DATA PESERTA
-		// =========================================================
 
 		$pdf->SetFont(
 			'Arial',
@@ -6931,10 +6888,6 @@ if (file_exists($zipPath)) {
 		);
 
 
-		// =========================================================
-		// PEMEGANG POLIS
-		// =========================================================
-
 		$y += 13;
 
 		$pdf->SetXY(
@@ -6992,11 +6945,6 @@ if (file_exists($zipPath)) {
 			1,
 			'C'
 		);
-
-
-		// =========================================================
-		// DETAIL ASURANSI
-		// =========================================================
 
 		$pdf->SetFont(
 			'Arial',
@@ -7209,11 +7157,6 @@ if (file_exists($zipPath)) {
 			0
 		);
 
-
-		// =========================================================
-		// PREMIUM
-		// =========================================================
-
 		$rightY = $y + 8;
 
 
@@ -7334,10 +7277,6 @@ if (file_exists($zipPath)) {
 		);
 
 
-		// =========================================================
-		// CATATAN
-		// =========================================================
-
 		$pdf->SetFont(
 			'Arial',
 			'',
@@ -7363,10 +7302,6 @@ if (file_exists($zipPath)) {
 		);
 
 
-		// =========================================================
-		// KETERANGAN
-		// =========================================================
-
 		$pdf->SetFont(
 			'Arial',
 			'I',
@@ -7385,10 +7320,6 @@ if (file_exists($zipPath)) {
 			0
 		);
 
-
-		// =========================================================
-		// TANGGAL
-		// =========================================================
 
 		$tanggalBuka =
 			date('d-M-y');
@@ -7423,10 +7354,6 @@ if (file_exists($zipPath)) {
 			'C'
 		);
 
-
-		// =========================================================
-		// TANDA TANGAN
-		// =========================================================
 
 		$pdf->SetFont(
 			'Arial',
@@ -7506,10 +7433,6 @@ if (file_exists($zipPath)) {
 			'C'
 		);
 
-
-		// =========================================================
-		// FOOTER
-		// =========================================================
 
 		$pdf->SetDrawColor(
 			180,
@@ -7655,10 +7578,6 @@ if (file_exists($zipPath)) {
 		);
 
 
-		// =========================================================
-		// 5. SIMPAN PDF
-		// =========================================================
-
 		$pdf->Output(
 			'F',
 			$pdfPath
@@ -7672,10 +7591,6 @@ if (file_exists($zipPath)) {
 			);
 		}
 
-
-		// =========================================================
-		// 6. BUAT ZIP
-		// =========================================================
 
 		$zip = new \ZipArchive();
 
@@ -7718,11 +7633,6 @@ if (file_exists($zipPath)) {
 			);
 		}
 
-
-		// =========================================================
-		// 7. LOAD PHPSECLIB
-		// =========================================================
-
 		$autoload =
 			Yii::getAlias(
 				'@webroot/protected/sftp-lib/vendor/autoload.php'
@@ -7751,10 +7661,6 @@ if (file_exists($zipPath)) {
 		}
 
 
-		// =========================================================
-		// 8. CONFIG SFTP RELIANCE
-		// =========================================================
-
 		$sftpHost =
 			'202.152.22.234';
 
@@ -7770,10 +7676,6 @@ if (file_exists($zipPath)) {
 		$sftpIncomingPath =
 			'/incoming';
 
-
-		// =========================================================
-		// 9. CONNECT SFTP
-		// =========================================================
 
 		$sftp =
 			new \phpseclib3\Net\SFTP(
@@ -7796,10 +7698,6 @@ if (file_exists($zipPath)) {
 		}
 
 
-		// =========================================================
-		// 10. CEK FOLDER OUTGOING
-		// =========================================================
-
 		if (
 			!$sftp->is_dir(
 				$sftpIncomingPath
@@ -7815,19 +7713,12 @@ if (file_exists($zipPath)) {
 		}
 
 
-		// =========================================================
-		// 11. REMOTE FILE
-		// =========================================================
-
 		$sftpFilePath =
 			$sftpIncomingPath .
 			'/' .
 			$zipFileName;
 
 
-		// =========================================================
-		// 12. UPLOAD ZIP
-		// =========================================================
 
 		$uploadResult =
 			$sftp->put(
@@ -7848,9 +7739,6 @@ if (file_exists($zipPath)) {
 		}
 
 
-		// =========================================================
-		// 13. CEK FILE DI SERVER
-		// =========================================================
 
 		if (
 			!$sftp->file_exists(
@@ -7867,26 +7755,14 @@ if (file_exists($zipPath)) {
 		}
 
 
-		// =========================================================
-		// 14. UKURAN FILE
-		// =========================================================
-
 		$remoteFileSize =
 			$sftp->filesize(
 				$sftpFilePath
 			);
 
 
-		// =========================================================
-		// 15. DISCONNECT
-		// =========================================================
 
 		$sftp->disconnect();
-
-
-		// =========================================================
-		// 16. HAPUS FILE TEMPORARY
-		// =========================================================
 
 		if (file_exists($pdfPath)) {
 
@@ -7898,10 +7774,6 @@ if (file_exists($zipPath)) {
 			unlink($zipPath);
 		}
 
-
-		// =========================================================
-		// 17. RETURN
-		// =========================================================
 
 		return [
 
