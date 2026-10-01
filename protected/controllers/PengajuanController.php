@@ -7936,5 +7936,335 @@ if (file_exists($zipPath)) {
 			]
 		];
 	}
+	
+	public function actionListIncomingBank()
+	{
+		Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
+
+		// =========================================================
+		// 1. LOAD PHPSECLIB
+		// =========================================================
+
+		$autoload = dirname(__DIR__) . '/sftp-lib/vendor/autoload.php';
+
+		if (!file_exists($autoload)) {
+
+			return [
+				'success' => false,
+				'step' => 'autoload',
+				'message' => 'File autoload.php tidak ditemukan',
+				'autoload' => $autoload
+			];
+		}
+
+		require_once $autoload;
+
+		try {
+
+			// =========================================================
+			// 2. CHECK PHPSECLIB
+			// =========================================================
+
+			if (!class_exists('\phpseclib3\Net\SFTP')) {
+
+				return [
+					'success' => false,
+					'step' => 'check_phpseclib',
+					'message' => 'Class phpseclib3\\Net\\SFTP tidak tersedia'
+				];
+			}
+
+			// =========================================================
+			// 3. KONFIGURASI SFTP
+			// =========================================================
+
+			$sftpHost =
+				'202.152.22.234';
+
+			$sftpPort =
+				22;
+
+			$sftpUsername =
+				'reliance';
+
+			$sftpPassword =
+				'reliance@brks2026';
+
+			$sftpIncomingPath =
+				'/Incoming';
+
+
+			// =========================================================
+			// 4. CONNECT SFTP
+			// =========================================================
+
+			$sftp = new \phpseclib3\Net\SFTP(
+				$sftpHost,
+				$sftpPort,
+				10
+			);
+
+
+			// =========================================================
+			// 5. LOGIN
+			// =========================================================
+
+			$login = $sftp->login(
+				$sftpUsername,
+				$sftpPassword
+			);
+
+			if (!$login) {
+
+				$log = '';
+
+				try {
+					$log = $sftp->getLog();
+				} catch (\Throwable $logException) {
+					$log = $logException->getMessage();
+				}
+
+				Yii::error(
+					'SFTP LOGIN FAILED' .
+					"\nHost: " . $sftpHost .
+					"\nPort: " . $sftpPort .
+					"\nUsername: " . $sftpUsername .
+					"\nLog: " . print_r($log, true),
+					'cbc-sftp'
+				);
+
+				return [
+					'success' => false,
+					'step' => 'login',
+					'message' => 'Gagal authentication SFTP',
+					'host' => $sftpHost,
+					'port' => $sftpPort,
+					'username' => $sftpUsername,
+					'sftp_log' => $log
+				];
+			}
+
+
+			// =========================================================
+			// 6. CURRENT DIRECTORY
+			// =========================================================
+
+			$pwd = $sftp->pwd();
+
+
+			// =========================================================
+			// 7. LIST CURRENT DIRECTORY
+			// =========================================================
+
+			$currentFiles = $sftp->nlist('.');
+
+			if ($currentFiles === false) {
+
+				return [
+					'success' => false,
+					'step' => 'list_current',
+					'message' =>
+						'Login berhasil tetapi gagal membaca current directory',
+					'current_directory' => $pwd
+				];
+			}
+
+			$currentFiles = array_values(
+				array_filter(
+					$currentFiles,
+					function ($file) {
+
+						return $file !== '.'
+							&& $file !== '..';
+					}
+				)
+			);
+
+
+			// =========================================================
+			// 8. CHECK /Incoming
+			// =========================================================
+
+			$incomingExists =
+				$sftp->is_dir($sftpIncomingPath);
+
+
+			$incomingFiles = [];
+
+
+			// =========================================================
+			// 9. LIST FILE DI /Incoming
+			// =========================================================
+
+			if ($incomingExists) {
+
+				$items =
+					$sftp->rawlist($sftpIncomingPath);
+
+				if ($items !== false) {
+
+					foreach ($items as $itemName => $itemData) {
+
+						// Skip . dan ..
+						if (
+							$itemName === '.' ||
+							$itemName === '..'
+						) {
+							continue;
+						}
+
+
+						// Default file
+						$type = 'file';
+
+
+						// phpseclib:
+						// 1 = file
+						// 2 = directory
+						if (
+							isset($itemData['type']) &&
+							$itemData['type'] == 2
+						) {
+							$type = 'directory';
+						}
+
+
+						// File size
+						$size = null;
+
+						if (
+							$type === 'file' &&
+							isset($itemData['size'])
+						) {
+							$size = $itemData['size'];
+						}
+
+
+						// Modified date
+						$modified = null;
+
+						if (
+							isset($itemData['mtime']) &&
+							!empty($itemData['mtime'])
+						) {
+
+							$modified = date(
+								'Y-m-d H:i:s',
+								$itemData['mtime']
+							);
+						}
+
+
+						// Simpan data
+						$incomingFiles[] = [
+
+							'name' =>
+								$itemName,
+
+							'type' =>
+								$type,
+
+							'size' =>
+								$size,
+
+							'modified' =>
+								$modified,
+
+							'path' =>
+								$sftpIncomingPath . '/' . $itemName
+						];
+					}
+				}
+			}
+
+
+			// =========================================================
+			// 10. DISCONNECT
+			// =========================================================
+
+			$sftp->disconnect();
+
+
+			// =========================================================
+			// 11. RESPONSE
+			// =========================================================
+
+			return [
+
+				'success' =>
+					true,
+
+				'message' =>
+					'SFTP berhasil terhubung menggunakan phpseclib3',
+
+				'connection' => [
+
+					'host' =>
+						$sftpHost,
+
+					'port' =>
+						$sftpPort,
+
+					'username' =>
+						$sftpUsername
+				],
+
+				'authentication' =>
+					true,
+
+				'current_directory' =>
+					$pwd,
+
+				'current_files' =>
+					$currentFiles,
+
+				'incoming_path' =>
+					$sftpIncomingPath,
+
+				'incoming_exists' =>
+					$incomingExists,
+
+				'total_incoming_file' =>
+					count($incomingFiles),
+
+				'incoming_files' =>
+					$incomingFiles
+			];
+
+
+		} catch (\Throwable $e) {
+
+			// =========================================================
+			// ERROR HANDLING
+			// =========================================================
+
+			Yii::error(
+				'List SFTP Incoming Error:' .
+				"\nMessage: " . $e->getMessage() .
+				"\nFile: " . $e->getFile() .
+				"\nLine: " . $e->getLine() .
+				"\nTrace: " . $e->getTraceAsString(),
+				'cbc-sftp'
+			);
+
+			return [
+
+				'success' =>
+					false,
+
+				'step' =>
+					'exception',
+
+				'message' =>
+					$e->getMessage(),
+
+				'file' =>
+					$e->getFile(),
+
+				'line' =>
+					$e->getLine()
+			];
+		}
+	}
 
 }
