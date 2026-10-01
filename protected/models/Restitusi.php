@@ -223,7 +223,7 @@ class Restitusi extends \yii\db\ActiveRecord
 			// Join Member
 			->leftJoin(
 				$memberTable . ' member',
-				'member.nomor_akad = r.nomor_akad'
+				'member.nomor_akad = r.old_nomor_akad'
 			)
 
 			->asArray();

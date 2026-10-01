@@ -1954,7 +1954,7 @@ try {
     // 2. SET DATA RESTITUSI
     // ==========================================================
     $check_member->id_transaksi = $idTransaksi;
-    $check_member->id_pengajuan = $idPengajuan;
+    $check_member->id_pengajuan = $check_member->id_pengajuan;
     $check_member->kode_broker = $kodeBroker;
     $check_member->kode_cabang = $kodeCabang;
     $check_member->nomor_rekening = $nomorRekening;
