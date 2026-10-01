@@ -418,7 +418,7 @@ class RestitusiController  extends Controller
 	{
 		$retitusi = Restitusi::findOne(['id' => $id]);
 		
-		$batch = Member::findOne(['nomor_akad' => $retitusi->nomor_akad]);
+		$batch = Member::findOne(['nomor_akad' => $retitusi->old_nomor_akad]);
 
 		if ($batch === null) {
 			throw new \yii\web\NotFoundHttpException('Member tidak ditemukan.');
