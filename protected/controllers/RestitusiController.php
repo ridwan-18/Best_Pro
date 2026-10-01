@@ -455,11 +455,11 @@ class RestitusiController  extends Controller
 		// var_dump($model);
 		
 		
-		if ($model !== null && $model->id_pengajuan != null) {
+		if ($model !== null && $model->nomor_akad != null) {
 			$filecbc = map_member_dokumen_medis::find()
 				->asArray()
 				->where([
-					'id_loan' => $model->id_pengajuan,
+					'id_loan' => $model->nomor_akad,
 					'jenis_dokumen' => 'Restitusi',
 				])
 				->all();
