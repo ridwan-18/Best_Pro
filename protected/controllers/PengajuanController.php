@@ -2916,6 +2916,9 @@ class PengajuanController extends Controller
             'polis_pembiayaan' => null,
 			 'polis_kebakaran' => null,
 			  'restitusi_pembiayaan' => null,
+			  'restitusi_jiwa' => [
+							'status_restitusi' => 1
+				],
 				  'restitusi_kebakaran' => null,
 
         ],
