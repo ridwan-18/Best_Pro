@@ -197,28 +197,35 @@ class Restitusi extends \yii\db\ActiveRecord
 		$query = self::find()
 			->alias('r')
 			->select([
-		
-				'r.id',
-				'r.id_pengajuan',
-				'r.nomor_akad',
-				'r.status_restitusi',
-				'member.id AS member_id',
-				'member.member_no',
-				'member.no_ktp',
-				'member.nama',
-				'member.tgl_lahir',
-				'member.age',
-				'member.term',
-				'member.policy_no',
-				'member.batch_no',
-				'member.status',
-				'member.id_loan',
-				'member.refund_premi',
-				'member.start_date',
-				'member.end_date',
-				'member.sum_insured',
-				'member.gross_premium',
-			])
+    'r.id',
+    'r.id_pengajuan',
+    'r.nomor_akad',
+    'r.old_nomor_akad',
+    'r.status_restitusi',
+
+    'member.id AS member_id',
+    'member.member_no',
+    'member.no_ktp',
+    'member.nama',
+    'member.tgl_lahir',
+    'member.age',
+    'member.term',
+    'member.policy_no',
+    'member.batch_no',
+    'member.status',
+    'member.member_status',
+    'member.id_loan',
+    'member.refund_premi',
+    'member.start_date',
+    'member.end_date',
+    'member.sum_insured',
+    'member.rate_premi',
+    'member.gross_premium',
+    'member.percentage_discount',
+    'member.discount_premium',
+    'member.nett_premium',
+    'member.medical_code',
+])
 
 			// Join Member
 			->leftJoin(

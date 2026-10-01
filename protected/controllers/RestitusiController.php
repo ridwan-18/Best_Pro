@@ -498,6 +498,11 @@ class RestitusiController  extends Controller
 		$params['sort'] = SORT_ASC;
 
 		$members = Restitusi::getAllProductionParticipant($params);
+		
+		echo '<pre>';
+print_r($params);
+print_r($members);
+exit;
 
 		return $this->render('view', [
 			'batch' => $batch,
