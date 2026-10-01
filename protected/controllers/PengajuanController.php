@@ -2040,7 +2040,7 @@ try {
     $countDokumen =
         \app\models\map_member_dokumen_medis::find()
             ->where([
-                'id_loan' => $member->id_pengajuan,
+                'id_loan' => $idPengajuan,
                 'jenis_dokumen' => 'restitusi',
             ])
             ->count();
@@ -2086,7 +2086,7 @@ try {
         new \app\models\map_member_dokumen_medis();
 
     $dokumenMedis->id_loan =
-        $member->id_pengajuan;
+        $idPengajuan;
 
     $dokumenMedis->kode_dokumen =
         $codeDoc;
@@ -5331,13 +5331,6 @@ if (file_exists($zipPath)) {
 					];
 				}		
 		
-		
-		
-			
-
-		
-		
-		
 		if ($body['jumlah_diajukan'] > $member->sum_insured)
 		{
 
@@ -5645,6 +5638,9 @@ if (file_exists($zipPath)) {
 
 			$model->tanggal_kirim =
 				$dateValues['tanggal_kirim'];
+			
+			$model->id_pengajuan_klaim_riau =
+							$idPengajuan;			
 
 			if ($model->isNewRecord) {
 
