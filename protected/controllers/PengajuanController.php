@@ -1502,1428 +1502,1428 @@ class PengajuanController extends Controller
 	
 	
 	public function actionSubmitPembiayaanTopup()
-{
-    Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
+	{
+		Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
 
-    $request = Yii::$app->request;
+		$request = Yii::$app->request;
 
-    $payload = json_decode($request->getRawBody(), true);
+		$payload = json_decode($request->getRawBody(), true);
 
-    if (!is_array($payload)) {
-        return [
-            'Result' => [
-                'status' => '400',
-                'kode_response' => '01',
-                'message' => 'Payload JSON tidak valid',
-            ]
-        ];
-    }
+		if (!is_array($payload)) {
+			return [
+				'Result' => [
+					'status' => '400',
+					'kode_response' => '01',
+					'message' => 'Payload JSON tidak valid',
+				]
+			];
+		}
 
-    $idTransaksi       = $payload['id_transaksi'] ?? null;
-    $idPengajuan       = $payload['id_pengajuan'] ?? null;
-    $kodeBroker        = $payload['kode_broker'] ?? null;
-    $kodeCabang        = $payload['kode_cabang'] ?? null;
-    $nomorAkad         = $payload['nomor_akad'] ?? null;
-    $nomorRekening     = $payload['nomor_rekening'] ?? null;
-    $nama              = $payload['nama'] ?? null;
-    $ktp               = $payload['ktp'] ?? null;
-    $npwp               = $payload['npwp'] ?? null;
-    $jenisKelamin      = $payload['jenis_kelamin'] ?? null;
-    $pekerjaan         = $payload['pekerjaan'] ?? null;
+		$idTransaksi       = $payload['id_transaksi'] ?? null;
+		$idPengajuan       = $payload['id_pengajuan'] ?? null;
+		$kodeBroker        = $payload['kode_broker'] ?? null;
+		$kodeCabang        = $payload['kode_cabang'] ?? null;
+		$nomorAkad         = $payload['nomor_akad'] ?? null;
+		$nomorRekening     = $payload['nomor_rekening'] ?? null;
+		$nama              = $payload['nama'] ?? null;
+		$ktp               = $payload['ktp'] ?? null;
+		$npwp               = $payload['npwp'] ?? null;
+		$jenisKelamin      = $payload['jenis_kelamin'] ?? null;
+		$pekerjaan         = $payload['pekerjaan'] ?? null;
 
-    $jenisPembiayaan   = $payload['jenis_pembiayaan'] ?? null;
-    $jenisPengajuan    = $payload['jenis_pengajuan'] ?? null;
+		$jenisPembiayaan   = $payload['jenis_pembiayaan'] ?? null;
+		$jenisPengajuan    = $payload['jenis_pengajuan'] ?? null;
 
-    $plafond           = (float)($payload['plafond'] ?? 0);
-    $bunga             = (float)($payload['bunga'] ?? 0);
-    $benefit           = $payload['benefit'] ?? null;
-    $coverage          = (float)($payload['coverage'] ?? 0);
-    $benefitPembiayaan = $payload['benefit_pembiayaan'] ?? null;
+		$plafond           = (float)($payload['plafond'] ?? 0);
+		$bunga             = (float)($payload['bunga'] ?? 0);
+		$benefit           = $payload['benefit'] ?? null;
+		$coverage          = (float)($payload['coverage'] ?? 0);
+		$benefitPembiayaan = $payload['benefit_pembiayaan'] ?? null;
 
-    /*
-     * =========================
-     * RESTITUSI JIWA
-     * =========================
-     */
+		/*
+		 * =========================
+		 * RESTITUSI JIWA
+		 * =========================
+		 */
 
-    $restitusiJiwa = $payload['restitusi_jiwa'] ?? [];
+		$restitusiJiwa = $payload['restitusi_jiwa'] ?? [];
 
-    $oldNomorAkad =
-        $restitusiJiwa['old_nomor_akad'] ?? null;
+		$oldNomorAkad =
+			$restitusiJiwa['old_nomor_akad'] ?? null;
 
-    $tanggal_pengajuan_restitusi =
-        $restitusiJiwa['tanggal_pengajuan_restitusi'] ?? null;
+		$tanggal_pengajuan_restitusi =
+			$restitusiJiwa['tanggal_pengajuan_restitusi'] ?? null;
 
-    $tanggal_pembiayaan =
-        $restitusiJiwa['tanggal_pembiayaan'] ?? null;
+		$tanggal_pembiayaan =
+			$restitusiJiwa['tanggal_pembiayaan'] ?? null;
 
-    $tenor =
-        $restitusiJiwa['tenor'] ?? null;
+		$tenor =
+			$restitusiJiwa['tenor'] ?? null;
 
-    $tenor_berjalan =
-        $restitusiJiwa['tenor_berjalan'] ?? null;
+		$tenor_berjalan =
+			$restitusiJiwa['tenor_berjalan'] ?? null;
 
-    $sisa_tenor =
-        $restitusiJiwa['sisa_tenor'] ?? null;
+		$sisa_tenor =
+			$restitusiJiwa['sisa_tenor'] ?? null;
 
-    $plafon_penjaminan =
-        $restitusiJiwa['plafon_penjaminan'] ?? null;
+		$plafon_penjaminan =
+			$restitusiJiwa['plafon_penjaminan'] ?? null;
 
-    $premi_lama =
-        $restitusiJiwa['premi_lama'] ?? null;
+		$premi_lama =
+			$restitusiJiwa['premi_lama'] ?? null;
 
-    $asuransi_lama =
-        $restitusiJiwa['asuransi_lama'] ?? null;
+		$asuransi_lama =
+			$restitusiJiwa['asuransi_lama'] ?? null;
 
-    $tujuan_pembayaran =
-        (float)($restitusiJiwa['tujuan_pembayaran'] ?? 0);
+		$tujuan_pembayaran =
+			(float)($restitusiJiwa['tujuan_pembayaran'] ?? 0);
 
 
-    /*
-     * =========================
-     * TANGGAL LAHIR
-     * =========================
-     */
+		/*
+		 * =========================
+		 * TANGGAL LAHIR
+		 * =========================
+		 */
 
-    $tglLahirRaw =
-        (string)($payload['tgl_lahir'] ?? '');
+		$tglLahirRaw =
+			(string)($payload['tgl_lahir'] ?? '');
 
-    if (strlen($tglLahirRaw) === 8) {
+		if (strlen($tglLahirRaw) === 8) {
 
-        $tglLahir = date(
-            'Y-m-d',
-            strtotime($tglLahirRaw)
-        );
+			$tglLahir = date(
+				'Y-m-d',
+				strtotime($tglLahirRaw)
+			);
 
-    } else {
+		} else {
 
-        $tglLahir = null;
-    }
+			$tglLahir = null;
+		}
 
 
-    /*
-     * =========================
-     * TANGGAL BUKA
-     * =========================
-     */
+		/*
+		 * =========================
+		 * TANGGAL BUKA
+		 * =========================
+		 */
 
-    $tglBukaRaw =
-        (string)($payload['tgl_buka'] ?? '');
+		$tglBukaRaw =
+			(string)($payload['tgl_buka'] ?? '');
 
-    if (strlen($tglBukaRaw) === 8) {
+		if (strlen($tglBukaRaw) === 8) {
 
-        $tglBuka = date(
-            'Y-m-d',
-            strtotime($tglBukaRaw)
-        );
+			$tglBuka = date(
+				'Y-m-d',
+				strtotime($tglBukaRaw)
+			);
 
-    } else {
+		} else {
 
-        $tglBuka = null;
-    }
+			$tglBuka = null;
+		}
 
 
-    /*
-     * =========================
-     * POLIS JIWA
-     * =========================
-     */
+		/*
+		 * =========================
+		 * POLIS JIWA
+		 * =========================
+		 */
 
-    $polisJiwa =
-        $payload['polis_jiwa'] ?? [];
+		$polisJiwa =
+			$payload['polis_jiwa'] ?? [];
 
-    $plafonPertanggungan =
-        (float)(
-            $polisJiwa['plafon_pertanggungan']
-            ?? $plafond
-        );
+		$plafonPertanggungan =
+			(float)(
+				$polisJiwa['plafon_pertanggungan']
+				?? $plafond
+			);
 
-    $tenorPertanggungan =
-        (int)(
-            $polisJiwa['tenor_pertanggungan']
-            ?? ($payload['tenor'] ?? 0)
-        );
+		$tenorPertanggungan =
+			(int)(
+				$polisJiwa['tenor_pertanggungan']
+				?? ($payload['tenor'] ?? 0)
+			);
 
-    $ratePolis =
-        (float)(
-            $polisJiwa['rate_polis']
-            ?? 0
-        );
+		$ratePolis =
+			(float)(
+				$polisJiwa['rate_polis']
+				?? 0
+			);
 
-    $nominalPremi =
-        (float)(
-            $polisJiwa['nominal_premi']
-            ?? 0
-        );
+		$nominalPremi =
+			(float)(
+				$polisJiwa['nominal_premi']
+				?? 0
+			);
 
 
-    /*
-     * =========================
-     * TANGGAL AKHIR
-     * =========================
-     */
+		/*
+		 * =========================
+		 * TANGGAL AKHIR
+		 * =========================
+		 */
 
-    if ($tglBuka && $tenorPertanggungan > 0) {
+		if ($tglBuka && $tenorPertanggungan > 0) {
 
-        $tglAkhir = date(
-            'Y-m-d',
-            strtotime(
-                '+' . $tenorPertanggungan . ' months',
-                strtotime($tglBuka)
-            )
-        );
+			$tglAkhir = date(
+				'Y-m-d',
+				strtotime(
+					'+' . $tenorPertanggungan . ' months',
+					strtotime($tglBuka)
+				)
+			);
 
-    } else {
+		} else {
 
-        $tglAkhir = null;
-    }
+			$tglAkhir = null;
+		}
 
 
-    /*
-     * =========================
-     * HITUNG USIA
-     * =========================
-     */
+		/*
+		 * =========================
+		 * HITUNG USIA
+		 * =========================
+		 */
 
-    $age = null;
+		$age = null;
 
-    if ($tglLahir && $tglBuka) {
+		if ($tglLahir && $tglBuka) {
 
-        $birth = new \DateTime($tglLahir);
-        $start = new \DateTime($tglBuka);
+			$birth = new \DateTime($tglLahir);
+			$start = new \DateTime($tglBuka);
 
-        $age = $birth->diff($start)->y;
-    }
+			$age = $birth->diff($start)->y;
+		}
 
 
-    /*
-     * =========================
-     * VALIDASI TAHUN LAHIR
-     * =========================
-     */
+		/*
+		 * =========================
+		 * VALIDASI TAHUN LAHIR
+		 * =========================
+		 */
 
-    $tahunLahir =
-        (int)substr($tglLahirRaw, 0, 4);
+		$tahunLahir =
+			(int)substr($tglLahirRaw, 0, 4);
 
-    $tahunSekarang =
-        (int)date('Y');
+		$tahunSekarang =
+			(int)date('Y');
 
-    if ($tahunLahir >= $tahunSekarang) {
+		if ($tahunLahir >= $tahunSekarang) {
 
-        Yii::$app->response->statusCode = 200;
+			Yii::$app->response->statusCode = 200;
 
-        return [
-            'Result' => [
-                'status' => '200',
-                'kode_response' => '08',
-                'message' => 'Tahun lahir tidak boleh tahun ini',
-            ]
-        ];
-    }
+			return [
+				'Result' => [
+					'status' => '200',
+					'kode_response' => '08',
+					'message' => 'Tahun lahir tidak boleh tahun ini',
+				]
+			];
+		}
 
 
-    /*
-     * =========================
-     * CARI POLICY BERDASARKAN PEKERJAAN
-     * =========================
-     */
+		/*
+		 * =========================
+		 * CARI POLICY BERDASARKAN PEKERJAAN
+		 * =========================
+		 */
 
-    $policybyproduk = Policy::findOne([
-        'produk_code' => $pekerjaan,
-    ]);
+		$policybyproduk = Policy::findOne([
+			'produk_code' => $pekerjaan,
+		]);
 
-    if (!$policybyproduk) {
+		if (!$policybyproduk) {
 
-        return [
-            'Result' => [
-                'status' => '400',
-                'kode_response' => '08',
-                'message' => 'Data Pekerjaan tidak di temukan',
-            ]
-        ];
-    }
+			return [
+				'Result' => [
+					'status' => '400',
+					'kode_response' => '08',
+					'message' => 'Data Pekerjaan tidak di temukan',
+				]
+			];
+		}
 
 
-    /*
-     * =========================
-     * QUOTATION TC
-     * =========================
-     */
+		/*
+		 * =========================
+		 * QUOTATION TC
+		 * =========================
+		 */
 
-    $quotationtc = QuotationTc::findOne([
-        'quotation_id' =>
-            $policybyproduk->quotation_id,
-    ]);
+		$quotationtc = QuotationTc::findOne([
+			'quotation_id' =>
+				$policybyproduk->quotation_id,
+		]);
 
-    if (!$quotationtc) {
+		if (!$quotationtc) {
 
-        Yii::$app->response->statusCode = 200;
+			Yii::$app->response->statusCode = 200;
 
-        return [
-            'Result' => [
-                'status' => '200',
-                'kode_response' => '08',
-                'message' =>
-                    'Data ketentuan usia untuk quotation tidak ditemukan.',
-            ]
-        ];
-    }
+			return [
+				'Result' => [
+					'status' => '200',
+					'kode_response' => '08',
+					'message' =>
+						'Data ketentuan usia untuk quotation tidak ditemukan.',
+				]
+			];
+		}
 
 
-    /*
-     * =========================
-     * VALIDASI USIA
-     * =========================
-     */
+		/*
+		 * =========================
+		 * VALIDASI USIA
+		 * =========================
+		 */
 
-    $termYear =
-        $tenorPertanggungan / 12;
+		$termYear =
+			$tenorPertanggungan / 12;
 
-    $endAge =
-        $age + $termYear;
+		$endAge =
+			$age + $termYear;
 
-    $maxEndAge =
-        (int)$quotationtc->age_term;
-
-    $minAge =
-        (int)$quotationtc->min_age;
-
-    $maxup =
-        (float)$quotationtc->max_si;
-
-    $maxEntryAge =
-        (int)$quotationtc->max_age;
-
-
-    if ($age < $minAge) {
-
-        Yii::$app->response->statusCode = 200;
-
-        return [
-            'Result' => [
-                'status' => '200',
-                'kode_response' => '08',
-                'message' =>
-                    'Usia peserta tidak memenuhi batas minimum. '
-                    . 'Usia sekarang: ' . $age . ' tahun, '
-                    . 'minimal usia: ' . $minAge . ' tahun.'
-            ]
-        ];
-    }
-
-
-    if ($age > $maxEntryAge) {
-
-        Yii::$app->response->statusCode = 200;
-
-        return [
-            'Result' => [
-                'status' => '200',
-                'kode_response' => '08',
-                'message' =>
-                    'Usia peserta melebihi batas usia masuk. '
-                    . 'Maksimal usia masuk: ' . $maxEntryAge . ' tahun, '
-                    . 'usia akhir maksimal: ' . $maxEndAge . ' tahun.'
-            ]
-        ];
-    }
-
-
-    if ($endAge > $maxEndAge) {
-
-        Yii::$app->response->statusCode = 200;
-
-        return [
-            'Result' => [
-                'status' => '200',
-                'kode_response' => '08',
-                'message' =>
-                    'Usia pada akhir masa pertanggungan tidak boleh melebihi '
-                    . $maxEndAge . ' tahun. '
-                    . 'Tenor: ' . $tenorPertanggungan . ' bulan / '
-                    . $termYear . ' tahun, '
-                    . 'usia akhir: ' . $endAge . ' tahun, '
-                    . 'maksimal usia akhir: ' . $maxEndAge . ' tahun.'
-            ]
-        ];
-    }
-
-
-    /*
-     * =========================
-     * VALIDASI PLAFOND
-     * =========================
-     */
-
-    if ($plafond > $maxup) {
-
-        Yii::$app->response->statusCode = 200;
-
-        return [
-            'Result' => [
-                'status' => '200',
-                'kode_response' => '08',
-                'message' =>
-                    'Plafond pada produk ini melebihi limit. '
-                    . 'Maksimal plafond pada produk ini: Rp '
-                    . $maxup . '.'
-            ]
-        ];
-    }
-
-
-    /*
-     * =========================
-     * VALIDASI DOKUMEN CBC
-     * =========================
-     */
-
-    $cekdokumen =
-        map_member_dokumen_medis::find()
-            ->where([
-                'ktp' => $ktp,
-                'tenor' => $tenorPertanggungan,
-                'plafond' => $plafond,
-                'jenis_dokumen' => 'Pengajuan',
-            ])
-            ->orderBy([
-                'id' => SORT_DESC
-            ])
-            ->one();
-
-    if (
-        !$cekdokumen ||
-        $cekdokumen->approve !== 'DISETUJUI'
-    ) {
-
-        return [
-            'Result' => [
-                'status' => '200',
-                'kode_response' => '08',
-                'message' =>
-                    'Status Dokumen CBC belum disetujui',
-            ]
-        ];
-    }
-
-
-    /*
-     * =========================
-     * QUOTATION
-     * =========================
-     */
-
-    $quotation = Quotation::findOne([
-        'id' =>
-            $policybyproduk->quotation_id,
-    ]);
-
-    if (!$quotation) {
-
-        return [
-            'Result' => [
-                'status' => '200',
-                'kode_response' => '08',
-                'message' =>
-                    'Quotation tidak ditemukan',
-            ]
-        ];
-    }
-
-
-    /*
-     * =========================
-     * UW LIMIT
-     * =========================
-     */
-
-    $quotationUwLimit =
-        QuotationUwLimit::find()
-            ->where([
-                'quotation_id' =>
-                    $policybyproduk->quotation_id
-            ])
-            ->andWhere([
-                '<=',
-                'min_age',
-                $age
-            ])
-            ->andWhere([
-                '>=',
-                'max_age',
-                $age
-            ])
-            ->andWhere([
-                '<=',
-                'min_si',
-                $plafonPertanggungan
-            ])
-            ->andWhere([
-                '>=',
-                'max_si',
-                $plafonPertanggungan
-            ])
-            ->one();
-
-    if (!$quotationUwLimit) {
-
-        return [
-            'Result' => [
-                'status' => '400',
-                'kode_response' => '05',
-                'message' =>
-                    'UW limit tidak ditemukan',
-            ]
-        ];
-    }
-
-    $medicalCode =
-        $quotationUwLimit->medical_code;
-
-
-    /*
-     * =========================
-     * CEK MEMBER INFORCE
-     * =========================
-     */
-
-    $existingMember =
-        Member::find()
-            ->where([
-                'no_ktp' => $ktp,
-                'member_status' =>
-                    Member::MEMBER_STATUS_INFORCE
-            ])
-            ->one();
-
-    $akumulasi = 'False';
-
-    $nilaiAkumulasi =
-        $plafonPertanggungan;
-
-
-    if ($existingMember) {
-
-        $akumulasi = 'True';
-
-        $upAwal =
-            (float)$existingMember->sum_insured;
-
-        $nilaiAkumulasi =
-            $upAwal +
-            $plafonPertanggungan;
-
-
-        $quotationUwLimit =
-            QuotationUwLimit::find()
-                ->where([
-                    'quotation_id' =>
-                        $policybyproduk->quotation_id
-                ])
-                ->andWhere([
-                    '<=',
-                    'min_age',
-                    $age
-                ])
-                ->andWhere([
-                    '>=',
-                    'max_age',
-                    $age
-                ])
-                ->andWhere([
-                    '<=',
-                    'min_si',
-                    $nilaiAkumulasi
-                ])
-                ->andWhere([
-                    '>=',
-                    'max_si',
-                    $nilaiAkumulasi
-                ])
-                ->one();
-
-        if (!$quotationUwLimit) {
-
-            return [
-                'Result' => [
-                    'status' => '400',
-                    'kode_response' => '06',
-                    'message' =>
-                        'Akumulasi UP melebihi batas underwriting',
-                    'nilai_akumulasi' =>
-                        $nilaiAkumulasi,
-                ]
-            ];
-        }
-
-        $medicalCode =
-            $quotationUwLimit->medical_code;
-    }
-
-
-    /*
-     * =========================
-     * PERSONAL NUMBER
-     * =========================
-     */
-
-    $personalNo =
-        Personal::generatePersonalNo(
-            $nama,
-            $tglLahir
-        );
-
-    $batchNo =
-        $idPengajuan;
-
-
-    /*
-     * =========================
-     * HITUNG PREMI
-     * =========================
-     */
-
-    if ($nominalPremi <= 0) {
-
-        $nominalPremi =
-            $plafonPertanggungan *
-            $ratePolis /
-            1000;
-    }
-
-    $nettPremium =
-        round($nominalPremi, 0);
-
-
-    /*
-     * =========================
-     * JSON POLIS
-     * =========================
-     */
-
-    $polisJiwaJson =
-        json_encode(
-            $polisJiwa,
-            JSON_UNESCAPED_UNICODE
-        );
-
-
-    /*
-     * ==================================================
-     * MULAI PROSES DATABASE
-     * ==================================================
-     */
-
-    try {
-
-        /*
-         * =========================
-         * PERSONAL
-         * =========================
-         */
-
-        $personal =
-            new Personal();
-
-        $personal->personal_no =
-            $personalNo;
-
-        $personal->name =
-            $nama;
-
-        $personal->birth_date =
-            $tglLahir;
-
-        $personal->id_card_no =
-            $ktp;
-
-        $personal->phone =
-            $ktp;
-
-        if (!$personal->save()) {
-
-            throw new \Exception(
-                'Gagal insert Personal: ' .
-                json_encode(
-                    $personal->errors
-                )
-            );
-        }
-
-
-        /*
-         * =========================
-         * CARI MEMBER LAMA
-         * BERDASARKAN OLD NOMOR AKAD
-         * =========================
-         */
-
-        $member_old =
-            Member::findOne([
-                'nomor_akad' =>
-                    $oldNomorAkad,
-            ]);
-
-        if (!$member_old) {
-
-            Yii::$app->response->statusCode = 200;
-
-            return [
-                'Result' => [
-                    'status' => '200',
-                    'kode_response' => '28',
-                    'message' =>
-                        'Peserta lama berdasarkan nomor akad tidak ditemukan'
-                ]
-            ];
-        }
-
-
-        /*
-         * ==================================================
-         * TRANSACTION RESTITUSI + DOKUMEN
-         * ==================================================
-         */
-
-        $transaction =
-            Yii::$app->db->beginTransaction();
-
-        try {
-
-            /*
-             * =========================
-             * CARI / BUAT RESTITUSI
-             * =========================
-             */
-
-            $check_member =
-                Restitusi::findOne([
-                    'old_nomor_akad' =>
-                        $oldNomorAkad,
-                ]);
-
-            $isNewRestitusi =
-                false;
-
-
-            if ($check_member === null) {
-
-                $check_member =
-                    new Restitusi();
-
-                $isNewRestitusi =
-                    true;
-            }
-
-
-            /*
-             * =========================
-             * ISI DATA RESTITUSI
-             * =========================
-             */
-
-            $check_member->id_transaksi =
-                $member_old->id_transaksi;
-
-            $check_member->id_pengajuan =
-                $member_old->id_pengajuan;
-
-            $check_member->kode_broker =
-                $kodeBroker;
-
-            $check_member->kode_cabang =
-                $kodeCabang;
-
-            $check_member->nomor_rekening =
-                $nomorRekening;
-
-            $check_member->tanggal_pembiayaan =
-                $tanggal_pembiayaan;
-
-            $check_member->old_nomor_akad =
-                $oldNomorAkad;
-
-            $check_member->nomor_akad =
-                $nomorAkad;
-
-            $check_member->plafon_pembiayaan =
-                $plafond;
-
-            $check_member->tenor =
-                $tenorPertanggungan;
-
-            $check_member->benefit =
-                $benefit;
-
-            $check_member->restitusi_jiwa =
-                $polisJiwaJson;
-
-            $check_member->plafon_penjaminan =
-                $plafon_penjaminan;
-
-            $check_member->tenor_berjalan =
-                $tenor_berjalan;
-
-            $check_member->sisa_tenor =
-                $sisa_tenor;
-
-            $check_member->premi =
-                $premi_lama;
-
-            $check_member->asuransi =
-                $asuransi_lama;
-
-            $check_member->tujuan_pembayaran =
-                $tujuan_pembayaran;
-
-            $check_member->status_restitusi =
-                '1';
-
-
-            /*
-             * =========================
-             * CREATED / UPDATED
-             * =========================
-             */
-
-            if ($isNewRestitusi) {
-
-                $check_member->created_at =
-                    date('Y-m-d H:i:s');
-
-                $check_member->created_by =
-                    1;
-
-            } else {
-
-                $check_member->updated_at =
-                    date('Y-m-d H:i:s');
-
-                $check_member->updated_by =
-                    1;
-            }
-
-
-            /*
-             * =========================
-             * SAVE RESTITUSI
-             * =========================
-             */
-
-            if (!$check_member->save()) {
-
-                throw new \Exception(
-                    'Gagal menyimpan Restitusi: ' .
-                    json_encode(
-                        $check_member->errors
-                    )
-                );
-            }
-
-
-            /*
-             * ==================================================
-             * CARI FILE RESTITUSI DI SFTP BANK
-             * ==================================================
-             */
-
-            $countDokumen =
-                map_member_dokumen_medis::find()
-                    ->where([
-                        'id_loan' =>
-                            $oldNomorAkad,
-                        'jenis_dokumen' =>
-                            'restitusi',
-                    ])
-                    ->count();
-
-
-            $sequence =
-                str_pad(
-                    $countDokumen + 1,
-                    2,
-                    '0',
-                    STR_PAD_LEFT
-                );
-
-
-            $norek =
-                $nomorRekening;
-
-            $noakad =
-                $nomorAkad;
-
-            $codeDoc =
-                '003';
-
-            $fileBenefit =
-                (string)$benefit;
-
-
-            $fileName =
-                $norek . '_' .
-                $noakad . '_' .
-                $codeDoc . '_' .
-                $fileBenefit . '_' .
-                $sequence .
-                '.zip';
-
-
-            /*
-             * =========================
-             * DOWNLOAD SFTP
-             * =========================
-             */
-
-            $sftpResult =
-                $this->downloadFileFromBankSftp(
-                    $fileName
-                );
-
-
-            /*
-             * =========================
-             * BUAT MAPPING DOKUMEN
-             * =========================
-             */
-
-            $dokumenMedis =
-                new map_member_dokumen_medis();
-
-
-            /*
-             * PERHATIKAN:
-             * Di kode lama Anda menggunakan
-             * $nomorAkad.
-             *
-             * Saya pertahankan sesuai kode Anda.
-             */
-
-            $dokumenMedis->id_loan =
-                $oldNomorAkad;
-
-            $dokumenMedis->kode_dokumen =
-                $codeDoc;
-
-
-            if (
-                !empty($sftpResult['success']) &&
-                !empty($sftpResult['file_name'])
-            ) {
-
-                $dokumenMedis->files =
-                    $sftpResult['file_name'];
-
-            } else {
-
-                $dokumenMedis->files =
-                    null;
-            }
-
-
-            $dokumenMedis->approve =
-                '-';
-
-            $dokumenMedis->ktp =
-                $ktp;
-
-            $dokumenMedis->tenor =
-                $tenorPertanggungan;
-
-            $dokumenMedis->plafond =
-                $plafonPertanggungan;
-
-            $dokumenMedis->jenis_dokumen =
-                'restitusi';
-
-            $dokumenMedis->created_at =
-                date('Y-m-d H:i:s');
-
-            $dokumenMedis->created_by =
-                1;
-
-
-            /*
-             * =========================
-             * SAVE DOKUMEN
-             * =========================
-             */
-
-            if (!$dokumenMedis->save()) {
-
-                throw new \Exception(
-                    'Gagal menyimpan mapping dokumen Restitusi: ' .
-                    json_encode(
-                        $dokumenMedis->errors
-                    )
-                );
-            }
-
-
-            /*
-             * =========================
-             * COMMIT
-             * =========================
-             */
-
-            $transaction->commit();
-
-
-            /*
-             * =========================
-             * LOG
-             * =========================
-             */
-
-            Yii::info(
-                'Mapping dokumen Restitusi berhasil disimpan. ' .
-                'id_loan=' .
-                $member_old->id_pengajuan .
-                ', kode_dokumen=' .
-                $codeDoc .
-                ', file=' .
-                (
-                    !empty(
-                        $sftpResult['file_name']
-                    )
-                    ?
-                    $sftpResult['file_name']
-                    :
-                    'NULL'
-                ),
-                'cbc-sftp'
-            );
-
-        } catch (\Exception $e) {
-
-            /*
-             * =========================
-             * ROLLBACK
-             * =========================
-             */
-
-            if (
-                isset($transaction) &&
-                $transaction !== null &&
-                $transaction->isActive
-            ) {
-
-                $transaction->rollBack();
-            }
-
-
-            Yii::error(
-                'Submit Pembiayaan Topup Restitusi Error: ' .
-                $e->getMessage(),
-                'restitusi'
-            );
-
-
-            return [
-                'Result' => [
-                    'status' => '400',
-                    'kode_response' => '01',
-                    'message' =>
-                        'Gagal menyimpan data restitusi: ' .
-                        $e->getMessage(),
-                ]
-            ];
-        }
-
-
-        /*
-         * ==================================================
-         * CARI MEMBER YANG AKAN DIUPDATE
-         * ==================================================
-         */
-
-        $member =
-            Member::findOne([
-                'ktp' => $ktp,
-                'tenor' =>$tenorPertanggungan,
-                'sum_insured' =>$plafonPertanggungan,
-				'nomor_akad' => null,
-            ]);
-
-
-        if (empty($member)) {
-
-            Yii::$app->response->statusCode = 200;
-
-            return [
-                'Result' => [
-                    'status' => '200',
-                    'kode_response' => '89',
-                    'message' =>
-                        'Peserta tidak ditemukan'
-                ]
-            ];
-        }
-
-
-        /*
-         * =========================
-         * VALIDASI PREMI
-         * =========================
-         */
-
-        if (
-            (float)$nominalPremi !=
-            (float)$member->gross_premium
-        ) {
-
-            Yii::$app->response->statusCode = 200;
-
-            return [
-                'Result' => [
-                    'status' => '200',
-                    'kode_response' => '89',
-                    'message' =>
-                        'Premi Tidak sesuai'
-                ]
-            ];
-        }
-
-
-        /*
-         * ==================================================
-         * RUNNING MEMBER NUMBER
-         * ==================================================
-         */
-
-        $existingMemberTotal =
-            Member::find()
-                ->where([
-                    'and',
-                    [
-                        'policy_no' =>
-                            $policybyproduk->policy_no
-                    ],
-                    [
-                        '!=',
-                        'member_no',
-                        ''
-                    ]
-                ])
-                ->count();
-
-
-        $runningNo =
-            $existingMemberTotal + 1;
-
-
-        /*
-         * ==================================================
-         * UPDATE MEMBER
-         * ==================================================
-         */
-
-        $member->policy_no =
-            $policybyproduk->policy_no;
-
-        $member->batch_no =
-            $batchNo;
-
-        $member->member_no =
-            Member::generateMemberNo(
-                $runningNo,
-                $policybyproduk->policy_no
-            );
-
-        $member->personal_no =
-            $personalNo;
-
-        $member->age =
-            $age;
-
-        $member->term =
-            $tenorPertanggungan;
+		$maxEndAge =
+			(int)$quotationtc->age_term;
+
+		$minAge =
+			(int)$quotationtc->min_age;
+
+		$maxup =
+			(float)$quotationtc->max_si;
+
+		$maxEntryAge =
+			(int)$quotationtc->max_age;
+
+
+		if ($age < $minAge) {
+
+			Yii::$app->response->statusCode = 200;
+
+			return [
+				'Result' => [
+					'status' => '200',
+					'kode_response' => '08',
+					'message' =>
+						'Usia peserta tidak memenuhi batas minimum. '
+						. 'Usia sekarang: ' . $age . ' tahun, '
+						. 'minimal usia: ' . $minAge . ' tahun.'
+				]
+			];
+		}
+
+
+		if ($age > $maxEntryAge) {
+
+			Yii::$app->response->statusCode = 200;
+
+			return [
+				'Result' => [
+					'status' => '200',
+					'kode_response' => '08',
+					'message' =>
+						'Usia peserta melebihi batas usia masuk. '
+						. 'Maksimal usia masuk: ' . $maxEntryAge . ' tahun, '
+						. 'usia akhir maksimal: ' . $maxEndAge . ' tahun.'
+				]
+			];
+		}
+
+
+		if ($endAge > $maxEndAge) {
+
+			Yii::$app->response->statusCode = 200;
+
+			return [
+				'Result' => [
+					'status' => '200',
+					'kode_response' => '08',
+					'message' =>
+						'Usia pada akhir masa pertanggungan tidak boleh melebihi '
+						. $maxEndAge . ' tahun. '
+						. 'Tenor: ' . $tenorPertanggungan . ' bulan / '
+						. $termYear . ' tahun, '
+						. 'usia akhir: ' . $endAge . ' tahun, '
+						. 'maksimal usia akhir: ' . $maxEndAge . ' tahun.'
+				]
+			];
+		}
+
+
+		/*
+		 * =========================
+		 * VALIDASI PLAFOND
+		 * =========================
+		 */
+
+		if ($plafond > $maxup) {
+
+			Yii::$app->response->statusCode = 200;
+
+			return [
+				'Result' => [
+					'status' => '200',
+					'kode_response' => '08',
+					'message' =>
+						'Plafond pada produk ini melebihi limit. '
+						. 'Maksimal plafond pada produk ini: Rp '
+						. $maxup . '.'
+				]
+			];
+		}
+
+
+		/*
+		 * =========================
+		 * VALIDASI DOKUMEN CBC
+		 * =========================
+		 */
+
+		$cekdokumen =
+			map_member_dokumen_medis::find()
+				->where([
+					'ktp' => $ktp,
+					'tenor' => $tenorPertanggungan,
+					'plafond' => $plafond,
+					'jenis_dokumen' => 'Pengajuan',
+				])
+				->orderBy([
+					'id' => SORT_DESC
+				])
+				->one();
+
+		if (
+			!$cekdokumen ||
+			$cekdokumen->approve !== 'DISETUJUI'
+		) {
+
+			return [
+				'Result' => [
+					'status' => '200',
+					'kode_response' => '08',
+					'message' =>
+						'Status Dokumen CBC belum disetujui',
+				]
+			];
+		}
+
+
+		/*
+		 * =========================
+		 * QUOTATION
+		 * =========================
+		 */
+
+		$quotation = Quotation::findOne([
+			'id' =>
+				$policybyproduk->quotation_id,
+		]);
+
+		if (!$quotation) {
+
+			return [
+				'Result' => [
+					'status' => '200',
+					'kode_response' => '08',
+					'message' =>
+						'Quotation tidak ditemukan',
+				]
+			];
+		}
+
+
+		/*
+		 * =========================
+		 * UW LIMIT
+		 * =========================
+		 */
+
+		$quotationUwLimit =
+			QuotationUwLimit::find()
+				->where([
+					'quotation_id' =>
+						$policybyproduk->quotation_id
+				])
+				->andWhere([
+					'<=',
+					'min_age',
+					$age
+				])
+				->andWhere([
+					'>=',
+					'max_age',
+					$age
+				])
+				->andWhere([
+					'<=',
+					'min_si',
+					$plafonPertanggungan
+				])
+				->andWhere([
+					'>=',
+					'max_si',
+					$plafonPertanggungan
+				])
+				->one();
+
+		if (!$quotationUwLimit) {
+
+			return [
+				'Result' => [
+					'status' => '400',
+					'kode_response' => '05',
+					'message' =>
+						'UW limit tidak ditemukan',
+				]
+			];
+		}
+
+		$medicalCode =
+			$quotationUwLimit->medical_code;
+
+
+		/*
+		 * =========================
+		 * CEK MEMBER INFORCE
+		 * =========================
+		 */
+
+		$existingMember =
+			Member::find()
+				->where([
+					'no_ktp' => $ktp,
+					'member_status' =>
+						Member::MEMBER_STATUS_INFORCE
+				])
+				->one();
+
+		$akumulasi = 'False';
+
+		$nilaiAkumulasi =
+			$plafonPertanggungan;
+
+
+		if ($existingMember) {
+
+			$akumulasi = 'True';
+
+			$upAwal =
+				(float)$existingMember->sum_insured;
+
+			$nilaiAkumulasi =
+				$upAwal +
+				$plafonPertanggungan;
+
+
+			$quotationUwLimit =
+				QuotationUwLimit::find()
+					->where([
+						'quotation_id' =>
+							$policybyproduk->quotation_id
+					])
+					->andWhere([
+						'<=',
+						'min_age',
+						$age
+					])
+					->andWhere([
+						'>=',
+						'max_age',
+						$age
+					])
+					->andWhere([
+						'<=',
+						'min_si',
+						$nilaiAkumulasi
+					])
+					->andWhere([
+						'>=',
+						'max_si',
+						$nilaiAkumulasi
+					])
+					->one();
+
+			if (!$quotationUwLimit) {
+
+				return [
+					'Result' => [
+						'status' => '400',
+						'kode_response' => '06',
+						'message' =>
+							'Akumulasi UP melebihi batas underwriting',
+						'nilai_akumulasi' =>
+							$nilaiAkumulasi,
+					]
+				];
+			}
+
+			$medicalCode =
+				$quotationUwLimit->medical_code;
+		}
+
+
+		/*
+		 * =========================
+		 * PERSONAL NUMBER
+		 * =========================
+		 */
+
+		$personalNo =
+			Personal::generatePersonalNo(
+				$nama,
+				$tglLahir
+			);
+
+		$batchNo =
+			$idPengajuan;
+
+
+		/*
+		 * =========================
+		 * HITUNG PREMI
+		 * =========================
+		 */
+
+		if ($nominalPremi <= 0) {
+
+			$nominalPremi =
+				$plafonPertanggungan *
+				$ratePolis /
+				1000;
+		}
+
+		$nettPremium =
+			round($nominalPremi, 0);
+
+
+		/*
+		 * =========================
+		 * JSON POLIS
+		 * =========================
+		 */
+
+		$polisJiwaJson =
+			json_encode(
+				$polisJiwa,
+				JSON_UNESCAPED_UNICODE
+			);
+
+
+		/*
+		 * ==================================================
+		 * MULAI PROSES DATABASE
+		 * ==================================================
+		 */
+
+		try {
+
+			/*
+			 * =========================
+			 * PERSONAL
+			 * =========================
+			 */
+
+			$personal =
+				new Personal();
+
+			$personal->personal_no =
+				$personalNo;
+
+			$personal->name =
+				$nama;
+
+			$personal->birth_date =
+				$tglLahir;
+
+			$personal->id_card_no =
+				$ktp;
+
+			$personal->phone =
+				$ktp;
+
+			if (!$personal->save()) {
+
+				throw new \Exception(
+					'Gagal insert Personal: ' .
+					json_encode(
+						$personal->errors
+					)
+				);
+			}
+
+
+			/*
+			 * =========================
+			 * CARI MEMBER LAMA
+			 * BERDASARKAN OLD NOMOR AKAD
+			 * =========================
+			 */
+
+			$member_old =
+				Member::findOne([
+					'nomor_akad' =>
+						$oldNomorAkad,
+				]);
+
+			if (!$member_old) {
+
+				Yii::$app->response->statusCode = 200;
+
+				return [
+					'Result' => [
+						'status' => '200',
+						'kode_response' => '28',
+						'message' =>
+							'Peserta lama berdasarkan nomor akad tidak ditemukan'
+					]
+				];
+			}
+
+
+			/*
+			 * ==================================================
+			 * TRANSACTION RESTITUSI + DOKUMEN
+			 * ==================================================
+			 */
+
+			$transaction =
+				Yii::$app->db->beginTransaction();
+
+			try {
+
+				/*
+				 * =========================
+				 * CARI / BUAT RESTITUSI
+				 * =========================
+				 */
+
+				$check_member =
+					Restitusi::findOne([
+						'old_nomor_akad' =>
+							$oldNomorAkad,
+					]);
+
+				$isNewRestitusi =
+					false;
+
+
+				if ($check_member === null) {
+
+					$check_member =
+						new Restitusi();
+
+					$isNewRestitusi =
+						true;
+				}
+
+
+				/*
+				 * =========================
+				 * ISI DATA RESTITUSI
+				 * =========================
+				 */
+
+				$check_member->id_transaksi =
+					$member_old->id_transaksi;
+
+				$check_member->id_pengajuan =
+					$member_old->id_pengajuan;
+
+				$check_member->kode_broker =
+					$kodeBroker;
+
+				$check_member->kode_cabang =
+					$kodeCabang;
+
+				$check_member->nomor_rekening =
+					$nomorRekening;
+
+				$check_member->tanggal_pembiayaan =
+					$tanggal_pembiayaan;
+
+				$check_member->old_nomor_akad =
+					$oldNomorAkad;
+
+				$check_member->nomor_akad =
+					$nomorAkad;
+
+				$check_member->plafon_pembiayaan =
+					$plafond;
+
+				$check_member->tenor =
+					$tenorPertanggungan;
+
+				$check_member->benefit =
+					$benefit;
+
+				$check_member->restitusi_jiwa =
+					$polisJiwaJson;
+
+				$check_member->plafon_penjaminan =
+					$plafon_penjaminan;
+
+				$check_member->tenor_berjalan =
+					$tenor_berjalan;
+
+				$check_member->sisa_tenor =
+					$sisa_tenor;
+
+				$check_member->premi =
+					$premi_lama;
+
+				$check_member->asuransi =
+					$asuransi_lama;
+
+				$check_member->tujuan_pembayaran =
+					$tujuan_pembayaran;
+
+				$check_member->status_restitusi =
+					'1';
+
+
+				/*
+				 * =========================
+				 * CREATED / UPDATED
+				 * =========================
+				 */
+
+				if ($isNewRestitusi) {
+
+					$check_member->created_at =
+						date('Y-m-d H:i:s');
+
+					$check_member->created_by =
+						1;
+
+				} else {
+
+					$check_member->updated_at =
+						date('Y-m-d H:i:s');
+
+					$check_member->updated_by =
+						1;
+				}
+
+
+				/*
+				 * =========================
+				 * SAVE RESTITUSI
+				 * =========================
+				 */
+
+				if (!$check_member->save()) {
+
+					throw new \Exception(
+						'Gagal menyimpan Restitusi: ' .
+						json_encode(
+							$check_member->errors
+						)
+					);
+				}
+
+
+				/*
+				 * ==================================================
+				 * CARI FILE RESTITUSI DI SFTP BANK
+				 * ==================================================
+				 */
+
+				$countDokumen =
+					map_member_dokumen_medis::find()
+						->where([
+							'id_loan' =>
+								$oldNomorAkad,
+							'jenis_dokumen' =>
+								'restitusi',
+						])
+						->count();
+
+
+				$sequence =
+					str_pad(
+						$countDokumen + 1,
+						2,
+						'0',
+						STR_PAD_LEFT
+					);
+
+
+				$norek =
+					$nomorRekening;
+
+				$noakad =
+					$nomorAkad;
+
+				$codeDoc =
+					'003';
+
+				$fileBenefit =
+					(string)$benefit;
+
+
+				$fileName =
+					$norek . '_' .
+					$noakad . '_' .
+					$codeDoc . '_' .
+					$fileBenefit . '_' .
+					$sequence .
+					'.zip';
+
+
+				/*
+				 * =========================
+				 * DOWNLOAD SFTP
+				 * =========================
+				 */
+
+				$sftpResult =
+					$this->downloadFileFromBankSftp(
+						$fileName
+					);
+
+
+				/*
+				 * =========================
+				 * BUAT MAPPING DOKUMEN
+				 * =========================
+				 */
+
+				$dokumenMedis =
+					new map_member_dokumen_medis();
+
+
+				/*
+				 * PERHATIKAN:
+				 * Di kode lama Anda menggunakan
+				 * $nomorAkad.
+				 *
+				 * Saya pertahankan sesuai kode Anda.
+				 */
+
+				$dokumenMedis->id_loan =
+					$oldNomorAkad;
+
+				$dokumenMedis->kode_dokumen =
+					$codeDoc;
+
+
+				if (
+					!empty($sftpResult['success']) &&
+					!empty($sftpResult['file_name'])
+				) {
+
+					$dokumenMedis->files =
+						$sftpResult['file_name'];
+
+				} else {
+
+					$dokumenMedis->files =
+						null;
+				}
+
+
+				$dokumenMedis->approve =
+					'-';
+
+				$dokumenMedis->ktp =
+					$ktp;
+
+				$dokumenMedis->tenor =
+					$tenorPertanggungan;
+
+				$dokumenMedis->plafond =
+					$plafonPertanggungan;
+
+				$dokumenMedis->jenis_dokumen =
+					'restitusi';
+
+				$dokumenMedis->created_at =
+					date('Y-m-d H:i:s');
+
+				$dokumenMedis->created_by =
+					1;
+
+
+				/*
+				 * =========================
+				 * SAVE DOKUMEN
+				 * =========================
+				 */
+
+				if (!$dokumenMedis->save()) {
+
+					throw new \Exception(
+						'Gagal menyimpan mapping dokumen Restitusi: ' .
+						json_encode(
+							$dokumenMedis->errors
+						)
+					);
+				}
+
+
+				/*
+				 * =========================
+				 * COMMIT
+				 * =========================
+				 */
+
+				$transaction->commit();
+
+
+				/*
+				 * =========================
+				 * LOG
+				 * =========================
+				 */
+
+				Yii::info(
+					'Mapping dokumen Restitusi berhasil disimpan. ' .
+					'id_loan=' .
+					$member_old->id_pengajuan .
+					', kode_dokumen=' .
+					$codeDoc .
+					', file=' .
+					(
+						!empty(
+							$sftpResult['file_name']
+						)
+						?
+						$sftpResult['file_name']
+						:
+						'NULL'
+					),
+					'cbc-sftp'
+				);
+
+			} catch (\Exception $e) {
+
+				/*
+				 * =========================
+				 * ROLLBACK
+				 * =========================
+				 */
+
+				if (
+					isset($transaction) &&
+					$transaction !== null &&
+					$transaction->isActive
+				) {
+
+					$transaction->rollBack();
+				}
+
+
+				Yii::error(
+					'Submit Pembiayaan Topup Restitusi Error: ' .
+					$e->getMessage(),
+					'restitusi'
+				);
+
+
+				return [
+					'Result' => [
+						'status' => '400',
+						'kode_response' => '01',
+						'message' =>
+							'Gagal menyimpan data restitusi: ' .
+							$e->getMessage(),
+					]
+				];
+			}
+
+
+			/*
+			 * ==================================================
+			 * CARI MEMBER YANG AKAN DIUPDATE
+			 * ==================================================
+			 */
+
+			$member =
+				Member::findOne([
+					'ktp' => $ktp,
+					'tenor' =>$tenorPertanggungan,
+					'sum_insured' =>$plafonPertanggungan,
+					'nomor_akad' => null,
+				]);
+
+
+			if (empty($member)) {
+
+				Yii::$app->response->statusCode = 200;
+
+				return [
+					'Result' => [
+						'status' => '200',
+						'kode_response' => '89',
+						'message' =>
+							'Peserta tidak ditemukan'
+					]
+				];
+			}
+
+
+			/*
+			 * =========================
+			 * VALIDASI PREMI
+			 * =========================
+			 */
+
+			if (
+				(float)$nominalPremi !=
+				(float)$member->gross_premium
+			) {
+
+				Yii::$app->response->statusCode = 200;
+
+				return [
+					'Result' => [
+						'status' => '200',
+						'kode_response' => '89',
+						'message' =>
+							'Premi Tidak sesuai'
+					]
+				];
+			}
+
+
+			/*
+			 * ==================================================
+			 * RUNNING MEMBER NUMBER
+			 * ==================================================
+			 */
+
+			$existingMemberTotal =
+				Member::find()
+					->where([
+						'and',
+						[
+							'policy_no' =>
+								$policybyproduk->policy_no
+						],
+						[
+							'!=',
+							'member_no',
+							''
+						]
+					])
+					->count();
+
+
+			$runningNo =
+				$existingMemberTotal + 1;
+
+
+			/*
+			 * ==================================================
+			 * UPDATE MEMBER
+			 * ==================================================
+			 */
+
+			$member->policy_no =
+				$policybyproduk->policy_no;
+
+			$member->batch_no =
+				$batchNo;
+
+			$member->member_no =
+				Member::generateMemberNo(
+					$runningNo,
+					$policybyproduk->policy_no
+				);
+
+			$member->personal_no =
+				$personalNo;
+
+			$member->age =
+				$age;
+
+			$member->term =
+				$tenorPertanggungan;
 
-        $member->start_date =
-            $tglBuka;
+			$member->start_date =
+				$tglBuka;
 
-        $member->end_date =
-            $tglAkhir;
+			$member->end_date =
+				$tglAkhir;
 
-        $member->sum_insured =
-            $plafonPertanggungan;
+			$member->sum_insured =
+				$plafonPertanggungan;
 
-        $member->total_si =
-            $plafonPertanggungan;
+			$member->total_si =
+				$plafonPertanggungan;
 
-        $member->total_premium =
-            $nettPremium;
+			$member->total_premium =
+				$nettPremium;
 
-        $member->rate_premi =
-            $ratePolis;
+			$member->rate_premi =
+				$ratePolis;
 
-        $member->gross_premium =
-            $nettPremium;
+			$member->gross_premium =
+				$nettPremium;
 
-        $member->basic_premium =
-            $nettPremium;
+			$member->basic_premium =
+				$nettPremium;
 
-        $member->nett_premium =
-            $nettPremium;
+			$member->nett_premium =
+				$nettPremium;
 
-        $member->medical_code =
-            $medicalCode;
+			$member->medical_code =
+				$medicalCode;
 
-        $member->status =
-            'Inforce';
+			$member->status =
+				'Inforce';
 
-        $member->member_status =
-            'Inforce';
+			$member->member_status =
+				'Inforce';
 
-        $member->created_at =
-            date('Y-m-d H:i:s');
+			$member->created_at =
+				date('Y-m-d H:i:s');
 
-        $member->created_by =
-            $this->createdBy;
+			$member->created_by =
+				$this->createdBy;
 
-        $member->contract_date =
-            $tglBuka;
+			$member->contract_date =
+				$tglBuka;
 
-        $member->produk =
-            $policybyproduk->produk;
+			$member->produk =
+				$policybyproduk->produk;
 
-        $member->id_loan =
-            $idTransaksi;
+			$member->id_loan =
+				$idTransaksi;
 
-        $member->status_uw =
-            $medicalCode;
+			$member->status_uw =
+				$medicalCode;
 
-        $member->no_ktp =
-            $ktp;
+			$member->no_ktp =
+				$ktp;
 
-        $member->pekerjaan =
-            $pekerjaan;
+			$member->pekerjaan =
+				$pekerjaan;
 
-        $member->id_transaksi =
-            $idTransaksi;
+			$member->id_transaksi =
+				$idTransaksi;
 
-        $member->id_pengajuan =
-            $idPengajuan;
+			$member->id_pengajuan =
+				$idPengajuan;
 
-        $member->kode_broker =
-            $kodeBroker;
+			$member->kode_broker =
+				$kodeBroker;
 
-        $member->kode_cabang =
-            $kodeCabang;
+			$member->kode_cabang =
+				$kodeCabang;
 
-        $member->nomor_akad =
-            $nomorAkad;
+			$member->nomor_akad =
+				$nomorAkad;
 
-        $member->nomor_rekening =
-            $nomorRekening;
+			$member->nomor_rekening =
+				$nomorRekening;
 
-        $member->nama =
-            $nama;
+			$member->nama =
+				$nama;
 
-        $member->ktp =
-            $ktp;
+			$member->ktp =
+				$ktp;
 
-        $member->npwp =
-            $npwp;
+			$member->npwp =
+				$npwp;
 
-        $member->jenis_kelamin =
-            $jenisKelamin;
+			$member->jenis_kelamin =
+				$jenisKelamin;
 
-        $member->tgl_lahir =
-            $tglLahir;
+			$member->tgl_lahir =
+				$tglLahir;
 
-        $member->tgl_buka =
-            $tglBuka;
+			$member->tgl_buka =
+				$tglBuka;
 
-        $member->tenor =
-            $tenorPertanggungan;
+			$member->tenor =
+				$tenorPertanggungan;
 
-        $member->bunga =
-            $bunga;
+			$member->bunga =
+				$bunga;
 
-        $member->jenis_pembiayaan =
-            $jenisPembiayaan;
+			$member->jenis_pembiayaan =
+				$jenisPembiayaan;
 
-        $member->jenis_pengajuan =
-            $jenisPengajuan;
+			$member->jenis_pengajuan =
+				$jenisPengajuan;
 
-        $member->benefit =
-            $benefit;
+			$member->benefit =
+				$benefit;
 
-        $member->benefit_pembiayaan =
-            $benefitPembiayaan;
+			$member->benefit_pembiayaan =
+				$benefitPembiayaan;
 
-        $member->coverage =
-            $coverage;
+			$member->coverage =
+				$coverage;
 
-        $member->polis_jiwa =
-            $polisJiwaJson;
+			$member->polis_jiwa =
+				$polisJiwaJson;
 
 
-        /*
-         * =========================
-         * SAVE MEMBER
-         * =========================
-         */
+			/*
+			 * =========================
+			 * SAVE MEMBER
+			 * =========================
+			 */
 
-        if (!$member->save()) {
+			if (!$member->save()) {
 
-            throw new \Exception(
-                'Gagal update Member: ' .
-                json_encode(
-                    $member->errors
-                )
-            );
-        }
+				throw new \Exception(
+					'Gagal update Member: ' .
+					json_encode(
+						$member->errors
+					)
+				);
+			}
 
 
-        /*
-         * =========================
-         * GENERATE SERTIFIKAT
-         * =========================
-         */
+			/*
+			 * =========================
+			 * GENERATE SERTIFIKAT
+			 * =========================
+			 */
 
-        $sertifikat =
-            $this->generateSertifikat(
-                $member,
-                $policybyproduk,
-                $nettPremium
-            );
+			$sertifikat =
+				$this->generateSertifikat(
+					$member,
+					$policybyproduk,
+					$nettPremium
+				);
 
 
-    } catch (\Exception $e) {
+		} catch (\Exception $e) {
 
-        Yii::error(
-            'Submit Pembiayaan Topup Error: ' .
-            $e->getMessage(),
-            'pengajuan'
-        );
+			Yii::error(
+				'Submit Pembiayaan Topup Error: ' .
+				$e->getMessage(),
+				'pengajuan'
+			);
 
 
-        Yii::$app->response->statusCode = 200;
+			Yii::$app->response->statusCode = 200;
 
-        return [
-            'Result' => [
-                'status' => '400',
-                'kode_response' => '01',
-                'message' =>
-                    'Gagal submit pembiayaan topup: ' .
-                    $e->getMessage(),
-            ]
-        ];
-    }
+			return [
+				'Result' => [
+					'status' => '400',
+					'kode_response' => '01',
+					'message' =>
+						'Gagal submit pembiayaan topup: ' .
+						$e->getMessage(),
+				]
+			];
+		}
 
 
-    /*
-     * ==================================================
-     * DOKUMEN MEDIS
-     * ==================================================
-     */
+		/*
+		 * ==================================================
+		 * DOKUMEN MEDIS
+		 * ==================================================
+		 */
 
-    $dokument =
-        Dokumen_Medis::getAll([
-            'medis' =>
-                $medicalCode
-        ]);
+		$dokument =
+			Dokumen_Medis::getAll([
+				'medis' =>
+					$medicalCode
+			]);
 
 
-    /*
-     * ==================================================
-     * RESPONSE SUCCESS
-     * ==================================================
-     */
+		/*
+		 * ==================================================
+		 * RESPONSE SUCCESS
+		 * ==================================================
+		 */
 
-    return [
-        'Result' => [
+		return [
+			'Result' => [
 
-            'status' =>
-                '200',
+				'status' =>
+					'200',
 
-            'kode_response' =>
-                '00',
-				
-			'tipe_pengajuan_polis' =>
-                'Asuransi Jiwa ',	
-
-            'message' =>
-                'Berhasil kirim pengajuan polis baru',
-
-            'nama' =>
-                $nama,
-
-            'nomor_rekening' =>
-                $nomorRekening,
-
-            'nomor_akad' =>
-                $nomorAkad,
-
-            'jenis_pengajuan' =>
-                $jenisPengajuan,
-
-            'jenis_penjaminan' =>
-                'Asuransi Jiwa',
-
-            'coverage' =>
-                $coverage,
-
-            'polis_jiwa' => [
-
-                'no_polis' =>
-                    $policybyproduk->policy_no,
-
-                's&k' =>
-                    '-',
-
-                'asuransi' =>
-                    'Reliance Life Unit Syariah',
+				'kode_response' =>
+					'00',
 					
+				'tipe_pengajuan_polis' =>
+					'Asuransi Jiwa ',	
+
+				'message' =>
+					'Berhasil kirim pengajuan polis baru',
+
+				'nama' =>
+					$nama,
+
+				'nomor_rekening' =>
+					$nomorRekening,
+
+				'nomor_akad' =>
+					$nomorAkad,
+
+				'jenis_pengajuan' =>
+					$jenisPengajuan,
+
 				'jenis_penjaminan' =>
-                    'Asuransi Jiwa',	
+					'Asuransi Jiwa',
 
-                'periode_awal' =>
-                    date(
-                        'Ymd',
-                        strtotime($tglBuka)
-                    ),
+				'coverage' =>
+					$coverage,
 
-                'periode_akhir' =>
-                    date(
-                        'Ymd',
-                        strtotime($tglAkhir)
-                    ),
+				'polis_jiwa' => [
 
-                'nilai_penjaminan' =>
-                    $plafonPertanggungan,
+					'no_polis' =>
+						$policybyproduk->policy_no,
 
-                'tarif_imbal_jasa' =>
-                    $ratePolis,
+					's&k' =>
+						'-',
 
-                'jumlah_imbal_jasa' =>
-                    number_format(
-                        $nettPremium,
-                        3,
-                        '.',
-                        ''
-                    ),
+					'asuransi' =>
+						'Reliance Life Unit Syariah',
+						
+					'jenis_penjaminan' =>
+						'Asuransi Jiwa',	
 
-                'tarif_extra_premi' =>
-                    0,
+					'periode_awal' =>
+						date(
+							'Ymd',
+							strtotime($tglBuka)
+						),
 
-                'jumlah_extra_premi' =>
-                    0,
-            ],
+					'periode_akhir' =>
+						date(
+							'Ymd',
+							strtotime($tglAkhir)
+						),
 
-            'polis_pembiayaan' => null,
-			 'polis_kebakaran' => null,
-			  'restitusi_pembiayaan' => null,
-			  'restitusi_jiwa' => [
-							'status_restitusi' => 1
+					'nilai_penjaminan' =>
+						$plafonPertanggungan,
+
+					'tarif_imbal_jasa' =>
+						$ratePolis,
+
+					'jumlah_imbal_jasa' =>
+						number_format(
+							$nettPremium,
+							3,
+							'.',
+							''
+						),
+
+					'tarif_extra_premi' =>
+						0,
+
+					'jumlah_extra_premi' =>
+						0,
 				],
-				  'restitusi_kebakaran' => null,
 
-        ],
-    ];
-}
+				'polis_pembiayaan' => null,
+				 'polis_kebakaran' => null,
+				  'restitusi_pembiayaan' => null,
+				  'restitusi_jiwa' => [
+								'status_restitusi' => 1
+					],
+					  'restitusi_kebakaran' => null,
+
+			],
+		];
+	}
 
 	
 	
@@ -7768,7 +7768,7 @@ if (file_exists($zipPath)) {
 			'reliance@brks2026';
 
 		$sftpIncomingPath =
-			'/Incoming';
+			'/incoming';
 
 
 		// =========================================================
