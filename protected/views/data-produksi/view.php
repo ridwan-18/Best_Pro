@@ -524,12 +524,12 @@ $this->title = 'View Member - ' . Yii::$app->name;
                                                                 </div>
                                                                 <div class="col-md-6">
                                                                     <div class="form-group">
-                                                                        <label for="name">Name</label>
-                                                                        <?= Html::input('text', 'name', $member['name'], [
+                                                                        <label for="nama">Nama</label>
+                                                                        <?= Html::input('text', 'nama', $member['nama'], [
                                                                             'class' => 'form-control',
-                                                                            'id' => 'name',
+                                                                            'id' => 'nama',
                                                                             'required' => 'required',
-                                                                            'value' => $member['name'],
+                                                                            'value' => $member['nama'],
                                                                         ]) ?>
                                                                     </div>
                                                                 </div>
