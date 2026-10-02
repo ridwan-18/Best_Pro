@@ -481,7 +481,7 @@ $this->title = 'View Member - ' . Yii::$app->name;
                                                         <?= Html::a(
                                                             '<i class="fa fa-trash"></i>',
                                                             [
-                                                                'member/delete-member',
+                                                                'data-produksi/delete-member',
                                                                 'id' => $member['id'],
                                                             ],
                                                             [
@@ -504,7 +504,7 @@ $this->title = 'View Member - ' . Yii::$app->name;
                                                             <h4 class="modal-title" id="myMediumModalLabel">Update Member #<?= $i; ?></h4>
                                                         </div>
                                                         <div class="modal-body">
-                                                            <?= Html::beginForm(['member/update-member'], 'post', ['id' => 'uw-update-form']) ?>
+                                                            <?= Html::beginForm(['data-produksi/update-member'], 'post', ['id' => 'uw-update-form']) ?>
                                                             <?= Html::input('hidden', 'batch_id', $batch->id) ?>
                                                             <?= Html::input('hidden', 'id', $member['id'], [
                                                                 'id' => 'id',
