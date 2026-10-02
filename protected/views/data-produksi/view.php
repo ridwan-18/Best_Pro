@@ -588,6 +588,19 @@ $this->title = 'View Member - ' . Yii::$app->name;
                                                                         ]) ?>
                                                                     </div>
                                                                 </div>
+																
+																<div class="col-md-6">
+                                                                    <div class="form-group">
+                                                                        <label for="extra_premium">Extra Premi</label>
+                                                                        <?= Html::input('text', 'extra_premium', $member['extra_premium'], [
+                                                                            'class' => 'form-control',
+                                                                            'id' => 'extra_premium',
+                                                                            'required' => 'required',
+                                                                            'value' => $member['extra_premium'],
+                                                                        ]) ?>
+                                                                    </div>
+                                                                </div>
+																
                                                                 <div class="col-md-6">
                                                                     <div class="form-group">
                                                                         <label for="status">Status</label>
