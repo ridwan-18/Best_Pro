@@ -1362,15 +1362,38 @@ class PengajuanController extends Controller
 				];
 			}
 			
-			$existingMemberTotal = Member::find()
-			->where([
-				'and',
-				['policy_no' => $batch->policy_no],
-				['!=', 'member_no', '']
+			$existingMemberDesc = Member::find()
+		   ->where([
+			'policy_no' => $policybyproduk->policy_no,
 			])
-			->count();
+			->orderBy(['member_no' => SORT_DESC])
+			->one();
 			
+			if ($existingMemberDesc) 
+			{
+
+			$memberNo = $existingMemberDesc->member_no;
+
+			// Contoh:
+			// 103-26090005054-686
+
+			$parts = explode('-', $memberNo);
+
+			// $parts[1] = 26090005054
+			$middle = $parts[1];
+
+			// Buang 4 digit tanggal (ym = 2609)
+			$existingMemberTotal = (int)substr($middle, 4);
+
+			}
+
+			else 
+			{
+				$existingMemberTotal = 0;
+			}
+				
 			$runningNo = $existingMemberTotal + 1;
+			
 			
 			$no_peserta=Member::generateMemberNo($runningNo, $policybyproduk->policy_no);
 			$member->policy_no = $policybyproduk->policy_no;
@@ -2592,26 +2615,37 @@ class PengajuanController extends Controller
 			 * ==================================================
 			 */
 
-			$existingMemberTotal =
-				Member::find()
-					->where([
-						'and',
-						[
-							'policy_no' =>
-								$policybyproduk->policy_no
-						],
-						[
-							'!=',
-							'member_no',
-							''
-						]
-					])
-					->count();
+			$existingMemberDesc = Member::find()
+		   ->where([
+			'policy_no' => $policybyproduk->policy_no,
+			])
+			->orderBy(['member_no' => SORT_DESC])
+			->one();
+			
+			if ($existingMemberDesc) 
+			{
 
+			$memberNo = $existingMemberDesc->member_no;
 
-			$runningNo =
-				$existingMemberTotal + 1;
+			// Contoh:
+			// 103-26090005054-686
 
+			$parts = explode('-', $memberNo);
+
+			// $parts[1] = 26090005054
+			$middle = $parts[1];
+
+			// Buang 4 digit tanggal (ym = 2609)
+			$existingMemberTotal = (int)substr($middle, 4);
+
+			}
+
+			else 
+			{
+				$existingMemberTotal = 0;
+			}
+				
+			$runningNo = $existingMemberTotal + 1;
 
 			/*
 			 * ==================================================
