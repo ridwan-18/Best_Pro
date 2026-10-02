@@ -1351,16 +1351,6 @@ class DataProduksiController  extends Controller
 			]);
 		}
 
-		$personal->name = Yii::$app->request->post('name');
-		$personal->birth_date = Yii::$app->request->post('birth_date');
-		if (!$personal->save(false)) {
-			Yii::$app->session->setFlash('error', "Error while saving personal");
-			return $this->redirect([
-				'view',
-				'id' => Yii::$app->request->post('batch_id'),
-			]);
-		}
-
 		Yii::$app->session->setFlash('success', "Member Successfully saved");
 		return $this->redirect(Yii::$app->request->post('redirect_url'));
 	}
