@@ -535,12 +535,12 @@ $this->title = 'View Member - ' . Yii::$app->name;
                                                                 </div>
                                                                 <div class="col-md-6">
                                                                     <div class="form-group">
-                                                                        <label for="birth_date">Date of Birth</label>
-                                                                        <?= Html::input('text', 'birth_date', $member['birth_date'], [
+                                                                        <label for="tgl_lahir">Date of Birth</label>
+                                                                        <?= Html::input('text', 'tgl_lahir', $member['tgl_lahir'], [
                                                                             'class' => 'form-control dtpckr',
-                                                                            'id' => 'birth_date',
+                                                                            'id' => 'tgl_lahir',
                                                                             'required' => 'required',
-                                                                            'value' => $member['birth_date']
+                                                                            'value' => $member['tgl_lahir']
                                                                         ]) ?>
                                                                     </div>
                                                                 </div>

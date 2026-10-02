@@ -1233,53 +1233,6 @@ class DataProduksiController  extends Controller
 			]);
 		}
 
-		$batch = Batch::findOne([
-			'batch_no' => $model->batch_no,
-			'policy_no' => $model->policy_no
-		]);
-		if ($batch == null) {
-			Yii::$app->session->setFlash('error', "Batch not found");
-			return $this->redirect([
-				'view',
-				'id' => Yii::$app->request->post('batch_id'),
-			]);
-		}
-
-		$personal = Personal::findOne(['personal_no' => $model->personal_no]);
-		if ($personal == null) {
-			Yii::$app->session->setFlash('error', "Personal not found");
-			return $this->redirect([
-				'view',
-				'id' => Yii::$app->request->post('batch_id'),
-			]);
-		}
-
-		$policy = Policy::findOne(['policy_no' => $model->policy_no]);
-		if ($policy == null) {
-			Yii::$app->session->setFlash('error', "Policy not found");
-			return $this->redirect([
-				'view',
-				'id' => Yii::$app->request->post('batch_id'),
-			]);
-		}
-
-		$quotation = Quotation::findOne(['id' => $policy->quotation_id]);
-		if ($quotation == null) {
-			Yii::$app->session->setFlash('error', "Quotation not found");
-			return $this->redirect(['create']);
-		}
-
-		$quotationCommission = QuotationCommission::findOne(['quotation_id' => $policy->quotation_id]);
-		if ($quotationCommission == null) {
-			Yii::$app->session->setFlash('error', "Quotation not found");
-			return $this->redirect(['create']);
-		}
-
-		$quotationProduct = QuotationProduct::findOne(['quotation_id' => $policy->quotation_id]);
-		if ($quotationProduct == null) {
-			Yii::$app->session->setFlash('error', "Quotation Product not found");
-			return $this->redirect(['create']);
-		}
 
 		$dateTime = new \DateTime();
 		$currentDateTime = $dateTime->format('Y-m-d H:i:s');
@@ -1365,16 +1318,7 @@ class DataProduksiController  extends Controller
 		}
 
 		$em = ($emPremium == '') ? 0 : $emPremium;
-		$batch->total_up = $batch->total_up - $model->sum_insured + Yii::$app->request->post('sum_insured');
-		$batch->total_gross_premium = $batch->total_gross_premium - $model->gross_premium + $grossPremium;
-		$batch->total_discount_premium = $batch->total_discount_premium - $model->discount_premium + $discount;
-		$batch->total_extra_premium = $batch->total_extra_premium;
-		$batch->total_saving_premium = $batch->total_saving_premium;
-		$batch->total_nett_premium = $batch->total_nett_premium - $model->nett_premium + $nettPremium + $em;
-		if (!$batch->save(false)) {
-			Yii::$app->session->setFlash('error', "Error while saving Batch");
-			return $this->redirect(['create']);
-		}
+		
 
 		$model->age = $age;
 		$model->start_date = Yii::$app->request->post('start_date');
