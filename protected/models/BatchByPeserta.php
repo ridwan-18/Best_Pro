@@ -239,6 +239,7 @@ class BatchByPeserta extends \yii\db\ActiveRecord
 				$table . '.tgl_lahir',
 				$table . '.gross_premium',
 				$table . '.medical_code',
+				$table . '.extra_premium',
 			])
 			->asArray();
 
