@@ -2815,7 +2815,7 @@ class PengajuanController extends Controller
 			 */
 
 			$sertifikat =
-				$this->generateSertifikatTopup(
+				$this->generateSertifikat(
 					$member,
 					$policybyproduk,
 					$nettPremium
