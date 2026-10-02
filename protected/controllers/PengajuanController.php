@@ -2579,7 +2579,7 @@ class PengajuanController extends Controller
 						'status' => '200',
 						'kode_response' => '89',
 						'message' =>
-							'Peserta tidak ditemukan'
+							'Peserta tidak ditemukan / pengajuan Cbc belum diajukan'
 					]
 				];
 			}
