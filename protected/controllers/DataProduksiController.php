@@ -1398,6 +1398,7 @@ class DataProduksiController  extends Controller
 		$model->uw_notes = Yii::$app->request->post('uw_notes');
 		$model->updated_at = $currentDateTime;
 		$model->updated_by = Yii::$app->user->identity->id;
+		$model->extra_premium = Yii::$app->request->post('extra_premium');
 		if (!$model->save(false)) {
 			Yii::$app->session->setFlash('error', "Error while saving");
 			return $this->redirect([
