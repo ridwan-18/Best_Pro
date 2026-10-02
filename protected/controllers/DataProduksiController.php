@@ -1237,109 +1237,7 @@ class DataProduksiController  extends Controller
 		$dateTime = new \DateTime();
 		$currentDateTime = $dateTime->format('Y-m-d H:i:s');
 
-		$rateEm = '';
-		$emPremium = '';
-		if (Yii::$app->request->post('em_type') != null) {
-			if (Yii::$app->request->post('em_type') == Member::EM_MANUAL) {
-				$emPremium = $model->total_premium * Yii::$app->request->post('percentage_em') / 100;
-			} else if (Yii::$app->request->post('em_type') == Member::EM_FROM_PRODUCT) {
-				$termYear = floor($model->term / 12);
-				$productEm = ProductEm::find()
-					->where([
-						'product_id' => $quotationProduct->product_id,
-						'percentage' => Yii::$app->request->post('percentage_em'),
-						'age' => $model->age,
-						'term' => $termYear
-					])
-					->one();
-				$rateEm = $productEm->em;
-				$emPremium = $model->total_premium * Yii::$app->request->post('percentage_em') / 100 * $rateEm;
-			}
-		}
-
-		$term = Member::getTerm($quotation->rate_type, Yii::$app->request->post('start_date'), Yii::$app->request->post('end_date'));
-		$age = Member::getAge($quotation->age_calculate, Yii::$app->request->post('birth_date'), Yii::$app->request->post('start_date'));
-
-		if ($quotation->rate_type == RateType::RATE_ROUND_UP) {
-			$termYear = ceil($term / 12);
-		} else {
-			$termYear = floor($term / 12);
-		}
-
-		if ($quotationProduct->rate_type == ProductRateType::AGE_TERM) {
-			$quotationRate = QuotationRate::findOne([
-				'quotation_id' => $policy->quotation_id,
-				'age' => $age,
-				'term' => ($quotationProduct->period_type == PeriodType::ANNUALLY) ? $termYear : $term
-			]);
-		} else {
-			$quotationRate = QuotationRate::findOne([
-				'quotation_id' => $policy->quotation_id,
-				'term' => ($quotationProduct->period_type == PeriodType::ANNUALLY) ? $termYear : $term
-			]);
-		}
-
-		$quotationTc = QuotationTc::findOne([
-			'quotation_id' => $policy->quotation_id,
-		]);
-
-		$quotationUwLimit = QuotationUwLimit::find()
-			->where(['quotation_id' => $policy->quotation_id])
-			->andWhere(['<=', 'min_age', $age])
-			->andWhere(['>=', 'max_age', $age])
-			->andWhere(['<=', 'min_si', Yii::$app->request->post('sum_insured')])
-			->andWhere(['>=', 'max_si', Yii::$app->request->post('sum_insured')])
-			->one();
-
-		$totalPremium = Yii::$app->request->post('sum_insured') * $quotationRate->rate / 1000;
-		$grossPremium = $totalPremium;
-		$basicPremium = $totalPremium;
-		$discount = $totalPremium * $quotationCommission->discount / 100;
-		$nettPremium = $totalPremium - $discount;
-
-		$statusReason = '';
-		if ($age < $quotationTc->min_age || $age > $quotationTc->max_age) {
-			$statusReason .= "Age does not meet the requirements\n";
-		}
-		if ($termYear > $quotationTc->max_term) {
-			$statusReason .= "Term does not meet the requirements\n";
-		}
-		if (Yii::$app->request->post('sum_insured') > $quotationTc->max_si) {
-			$statusReason .= "SI does not meet the requirements\n";
-		}
-		if ($totalPremium < $quotationTc->min_premi) {
-			$statusReason .= "Premi does not meet the requirements\n";
-		}
-		if ($quotationUwLimit->medical_code == '') {
-			$statusReason .= "Medical does not meet the requirements\n";
-		}
-		if ($statusReason != '') {
-			$status = Member::MEMBER_STATUS_PENDING;
-		}
-
-		$em = ($emPremium == '') ? 0 : $emPremium;
 		
-
-		$model->age = $age;
-		$model->start_date = Yii::$app->request->post('start_date');
-		$model->end_date = Yii::$app->request->post('end_date');
-		$model->sum_insured = Yii::$app->request->post('sum_insured');
-		$model->total_si = Yii::$app->request->post('sum_insured');
-		$model->total_premium = $totalPremium;
-		$model->rate_premi = $quotationRate->rate;
-		$model->gross_premium = $grossPremium;
-		$model->basic_premium = $basicPremium;
-		$model->discount_premium = $discount;
-		$model->nett_premium = $nettPremium;
-		$model->medical_code = Yii::$app->request->post('medical_code');
-		$model->em_type = Yii::$app->request->post('em_type');
-		$model->percentage_em = Yii::$app->request->post('percentage_em');
-		$model->rate_em = $rateEm;
-		$model->em_premium = $emPremium;
-		$model->member_status = Yii::$app->request->post('member_status');
-		$model->status_reason = $statusReason;
-		$model->em_notes = Yii::$app->request->post('em_notes');
-		$model->uw_notes = Yii::$app->request->post('uw_notes');
 		$model->updated_at = $currentDateTime;
 		$model->updated_by = Yii::$app->user->identity->id;
 		$model->extra_premium = Yii::$app->request->post('extra_premium');
@@ -1347,12 +1245,12 @@ class DataProduksiController  extends Controller
 			Yii::$app->session->setFlash('error', "Error while saving");
 			return $this->redirect([
 				'view',
-				'id' => Yii::$app->request->post('batch_id'),
+				'id' => Yii::$app->request->post('id'),
 			]);
 		}
 
 		Yii::$app->session->setFlash('success', "Member Successfully saved");
-		return $this->redirect(Yii::$app->request->post('redirect_url'));
+		return $this->redirect(Yii::$app->request->post('id'));
 	}
 
 	public function actionApprove($id)
