@@ -470,7 +470,7 @@ $this->title = 'View Member - ' . Yii::$app->name;
 												   </td>
 												 
                                                 <td>
-												 <?php if ($user==1) { ?>
+												 
                                                     <div class="btn-group mb-2">
                                                         <?= Html::a('<i class="fa fa-pencil"></i>', 'javascript:void(0)', [
                                                             'class' => 'btn btn-light btn-sm waves-effect',
@@ -492,7 +492,7 @@ $this->title = 'View Member - ' . Yii::$app->name;
                                                             ]
                                                         ); ?>
                                                     </div>
-													 <?php } ?>
+													
                                                 </td>
                                             </tr>
 
