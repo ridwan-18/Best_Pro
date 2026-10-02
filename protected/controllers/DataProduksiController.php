@@ -1250,7 +1250,7 @@ class DataProduksiController  extends Controller
 		}
 
 		Yii::$app->session->setFlash('success', "Member Successfully saved");
-		return $this->redirect(Yii::$app->request->post('id'));
+		return $this->redirect(['view', 'id' => $id]);
 	}
 
 	public function actionApprove($id)
