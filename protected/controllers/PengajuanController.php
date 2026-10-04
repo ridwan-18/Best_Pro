@@ -2733,8 +2733,8 @@ class PengajuanController extends Controller
 			$member->id_transaksi =
 				$idTransaksi;
 
-			$member->id_pengajuan =
-				$idPengajuan;
+			// $member->id_pengajuan =
+				// $idPengajuan;
 
 			$member->kode_broker =
 				$kodeBroker;

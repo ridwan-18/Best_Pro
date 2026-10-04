@@ -747,9 +747,6 @@ class MemberClaimController extends Controller
 
 			$request = Yii::$app->request;
 
-			// =========================================================
-			// 1. HANYA POST
-			// =========================================================
 			if (!$request->isPost) {
 				return [
 					'Result' => [
@@ -760,9 +757,6 @@ class MemberClaimController extends Controller
 				];
 			}
 
-			// =========================================================
-			// 2. AMBIL POST
-			// =========================================================
 			$action = trim((string) $request->post('action', ''));
 			$keterangan = trim((string) $request->post('keterangan', ''));
 			$status_bayar = trim((string) $request->post('status_bayar', ''));
@@ -777,9 +771,6 @@ class MemberClaimController extends Controller
 				'restitusi'
 			);
 
-			// =========================================================
-			// 3. VALIDASI ACTION
-			// =========================================================
 			$allowedAction = [
 				'1',
 				'2',
@@ -801,9 +792,6 @@ class MemberClaimController extends Controller
 				];
 			}
 
-			// =========================================================
-			// 4. VALIDASI STATUS BAYAR
-			// =========================================================
 			if (!in_array($status_bayar, ['1', '2'], true)) {
 				return [
 					'Result' => [
@@ -814,9 +802,6 @@ class MemberClaimController extends Controller
 				];
 			}
 
-			// =========================================================
-			// 5. VALIDASI KETERANGAN
-			// =========================================================
 			if ($keterangan === '') {
 				return [
 					'Result' => [
@@ -827,9 +812,6 @@ class MemberClaimController extends Controller
 				];
 			}
 
-			// =========================================================
-			// 6. CARI DOKUMEN CLAIM TERAKHIR
-			// =========================================================
 			$document = map_member_dokumen_medis::find()
 				->where([
 					'id_loan' => $id_loan,
@@ -850,9 +832,6 @@ class MemberClaimController extends Controller
 				];
 			}
 
-			// =========================================================
-			// 7. UPDATE DOKUMEN
-			// =========================================================
 			$document->approve = $action;
 			$document->keterangan = $keterangan;
 
@@ -870,9 +849,6 @@ class MemberClaimController extends Controller
 				];
 			}
 
-			// =========================================================
-			// 8. CARI MEMBER
-			// =========================================================
 			$model = Member::find()
 				->where([
 					'nomor_akad' => $id_loan,
@@ -889,9 +865,6 @@ class MemberClaimController extends Controller
 				];
 			}
 
-			// =========================================================
-			// 9. CARI CLAIM
-			// =========================================================
 			$klaim = MemberClaim::find()
 				->where([
 					'no_akad' => $id_loan,
@@ -911,9 +884,6 @@ class MemberClaimController extends Controller
 				];
 			}
 
-			// =========================================================
-			// 10. UPDATE CLAIM
-			// =========================================================
 			$klaim->status_bayar = $status_bayar;
 			$klaim->status_claim = $action;
 
@@ -931,9 +901,6 @@ class MemberClaimController extends Controller
 				];
 			}
 
-			// =========================================================
-			// 11. LOGIN KE BANK RIAU
-			// =========================================================
 			$loginResponse = $klaim->callAPIPostMemberLoginRiau();
 
 			Yii::info(
@@ -956,9 +923,6 @@ class MemberClaimController extends Controller
 				];
 			}
 
-			// =========================================================
-			// 12. AMBIL TOKEN
-			// =========================================================
 			$token = '';
 
 			if (isset($loginResponse['token'])) {
@@ -983,9 +947,6 @@ class MemberClaimController extends Controller
 				];
 			}
 
-			// =========================================================
-			// 13. CALLBACK KE BANK
-			// =========================================================
 			$apiResponse = $klaim->callAPIPostDebitur(
 				$token,
 				$model,
@@ -997,9 +958,7 @@ class MemberClaimController extends Controller
 			'api_response' => $apiResponse,
 		];
 
-			// =========================================================
-			// 14. TAMPILKAN RESPONSE CALLBACK JIKA GAGAL
-			// =========================================================
+
 			if (!is_array($apiResponse)) {
 
 				return [
@@ -1026,9 +985,6 @@ class MemberClaimController extends Controller
 						'message' => 'Gagal callback ke Bank',
 					],
 
-					// =================================================
-					// INI RESPONSE ASLI BANK / CURL
-					// =================================================
 					'debug' => [
 						'http_code' => isset($apiResponse['http_code'])
 							? $apiResponse['http_code']
@@ -1061,9 +1017,6 @@ class MemberClaimController extends Controller
 				];
 			}
 
-			// =========================================================
-			// 15. CALLBACK BERHASIL
-			// =========================================================
 			return [
 				'Result' => [
 					'status' => isset($apiResponse['status'])
