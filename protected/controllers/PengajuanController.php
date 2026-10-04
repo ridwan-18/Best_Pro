@@ -1424,7 +1424,7 @@ class PengajuanController extends Controller
 			$member->no_ktp = $ktp;
 			$member->pekerjaan = $pekerjaan;
 			$member->id_transaksi = $idTransaksi;
-			$member->id_pengajuan = $idPengajuan;
+			// $member->id_pengajuan = $idPengajuan;
 			$member->kode_broker = $kodeBroker;
 			$member->kode_cabang = $kodeCabang;
 			$member->nomor_akad = $nomorAkad;
