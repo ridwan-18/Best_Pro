@@ -413,12 +413,15 @@ class PengajuanController extends Controller
 			$tglAkhir = null;
 		}
 		
-		$policybyproduk =
-			Policy::findOne([
-				'produk_code' =>
-					$pekerjaan,
-			]);
-
+		// $policybyproduk =
+			// Policy::findOne([
+				// 'produk_code' =>
+					// $pekerjaan,
+			// ]);
+		
+		$policybyproduk = Policy::find()
+		->where(['like', 'produk_code', $pekerjaan])
+		->one();	
 		
 		if (!$policybyproduk) {
 			return [
@@ -1070,9 +1073,13 @@ class PengajuanController extends Controller
 			];
 		}
 
-		$policybyproduk = Policy::findOne([
-			'produk_code' => $pekerjaan,
-		]);
+		// $policybyproduk = Policy::findOne([
+			// 'produk_code' => $pekerjaan,
+		// ]);
+		
+		$policybyproduk = Policy::find()
+		->where(['like', 'produk_code', $pekerjaan])
+		->one();	
 	
 	
 		//kondisi kode pekerjaan
@@ -1746,15 +1753,9 @@ class PengajuanController extends Controller
 		}
 
 
-		/*
-		 * =========================
-		 * CARI POLICY BERDASARKAN PEKERJAAN
-		 * =========================
-		 */
-
-		$policybyproduk = Policy::findOne([
-			'produk_code' => $pekerjaan,
-		]);
+		$policybyproduk = Policy::find()
+		->where(['like', 'produk_code', $pekerjaan])
+		->one();	
 
 		if (!$policybyproduk) {
 
@@ -1767,12 +1768,6 @@ class PengajuanController extends Controller
 			];
 		}
 
-
-		/*
-		 * =========================
-		 * QUOTATION TC
-		 * =========================
-		 */
 
 		$quotationtc = QuotationTc::findOne([
 			'quotation_id' =>
@@ -1794,11 +1789,6 @@ class PengajuanController extends Controller
 		}
 
 
-		/*
-		 * =========================
-		 * VALIDASI USIA
-		 * =========================
-		 */
 
 		$termYear =
 			$tenorPertanggungan / 12;
@@ -1872,13 +1862,6 @@ class PengajuanController extends Controller
 			];
 		}
 
-
-		/*
-		 * =========================
-		 * VALIDASI PLAFOND
-		 * =========================
-		 */
-
 		if ($plafond > $maxup) {
 
 			Yii::$app->response->statusCode = 200;
@@ -1894,13 +1877,6 @@ class PengajuanController extends Controller
 				]
 			];
 		}
-
-
-		/*
-		 * =========================
-		 * VALIDASI DOKUMEN CBC
-		 * =========================
-		 */
 
 		$cekdokumen =
 			map_member_dokumen_medis::find()
@@ -1931,12 +1907,6 @@ class PengajuanController extends Controller
 		}
 
 
-		/*
-		 * =========================
-		 * QUOTATION
-		 * =========================
-		 */
-
 		$quotation = Quotation::findOne([
 			'id' =>
 				$policybyproduk->quotation_id,
@@ -1954,12 +1924,6 @@ class PengajuanController extends Controller
 			];
 		}
 
-
-		/*
-		 * =========================
-		 * UW LIMIT
-		 * =========================
-		 */
 
 		$quotationUwLimit =
 			QuotationUwLimit::find()
@@ -2005,11 +1969,6 @@ class PengajuanController extends Controller
 			$quotationUwLimit->medical_code;
 
 
-		/*
-		 * =========================
-		 * CEK MEMBER INFORCE
-		 * =========================
-		 */
 
 		$existingMember =
 			Member::find()
@@ -2085,12 +2044,6 @@ class PengajuanController extends Controller
 		}
 
 
-		/*
-		 * =========================
-		 * PERSONAL NUMBER
-		 * =========================
-		 */
-
 		$personalNo =
 			Personal::generatePersonalNo(
 				$nama,
@@ -2100,12 +2053,6 @@ class PengajuanController extends Controller
 		$batchNo =
 			$idPengajuan;
 
-
-		/*
-		 * =========================
-		 * HITUNG PREMI
-		 * =========================
-		 */
 
 		if ($nominalPremi <= 0) {
 
@@ -2118,13 +2065,6 @@ class PengajuanController extends Controller
 		$nettPremium =
 			round($nominalPremi, 0);
 
-
-		/*
-		 * =========================
-		 * JSON POLIS
-		 * =========================
-		 */
-
 		$polisJiwaJson =
 			json_encode(
 				$polisJiwa,
@@ -2132,19 +2072,8 @@ class PengajuanController extends Controller
 			);
 
 
-		/*
-		 * ==================================================
-		 * MULAI PROSES DATABASE
-		 * ==================================================
-		 */
-
 		try {
 
-			/*
-			 * =========================
-			 * PERSONAL
-			 * =========================
-			 */
 
 			$personal =
 				new Personal();
@@ -2175,13 +2104,6 @@ class PengajuanController extends Controller
 			}
 
 
-			/*
-			 * =========================
-			 * CARI MEMBER LAMA
-			 * BERDASARKAN OLD NOMOR AKAD
-			 * =========================
-			 */
-
 			$member_old =
 				Member::findOne([
 					'nomor_akad' =>
@@ -2203,22 +2125,11 @@ class PengajuanController extends Controller
 			}
 
 
-			/*
-			 * ==================================================
-			 * TRANSACTION RESTITUSI + DOKUMEN
-			 * ==================================================
-			 */
-
 			$transaction =
 				Yii::$app->db->beginTransaction();
 
 			try {
 
-				/*
-				 * =========================
-				 * CARI / BUAT RESTITUSI
-				 * =========================
-				 */
 
 				$check_member =
 					Restitusi::findOne([
@@ -2239,12 +2150,6 @@ class PengajuanController extends Controller
 						true;
 				}
 
-
-				/*
-				 * =========================
-				 * ISI DATA RESTITUSI
-				 * =========================
-				 */
 
 				$check_member->id_transaksi =
 					$member_old->id_transaksi;
@@ -2303,13 +2208,6 @@ class PengajuanController extends Controller
 				$check_member->status_restitusi =
 					'1';
 
-
-				/*
-				 * =========================
-				 * CREATED / UPDATED
-				 * =========================
-				 */
-
 				if ($isNewRestitusi) {
 
 					$check_member->created_at =
@@ -2328,12 +2226,6 @@ class PengajuanController extends Controller
 				}
 
 
-				/*
-				 * =========================
-				 * SAVE RESTITUSI
-				 * =========================
-				 */
-
 				if (!$check_member->save()) {
 
 					throw new \Exception(
@@ -2345,11 +2237,6 @@ class PengajuanController extends Controller
 				}
 
 
-				/*
-				 * ==================================================
-				 * CARI FILE RESTITUSI DI SFTP BANK
-				 * ==================================================
-				 */
 
 				$countDokumen =
 					map_member_dokumen_medis::find()
@@ -2393,35 +2280,14 @@ class PengajuanController extends Controller
 					'.zip';
 
 
-				/*
-				 * =========================
-				 * DOWNLOAD SFTP
-				 * =========================
-				 */
-
 				$sftpResult =
 					$this->downloadFileFromBankSftp(
 						$fileName
 					);
 
-
-				/*
-				 * =========================
-				 * BUAT MAPPING DOKUMEN
-				 * =========================
-				 */
-
 				$dokumenMedis =
 					new map_member_dokumen_medis();
 
-
-				/*
-				 * PERHATIKAN:
-				 * Di kode lama Anda menggunakan
-				 * $nomorAkad.
-				 *
-				 * Saya pertahankan sesuai kode Anda.
-				 */
 
 				$dokumenMedis->id_loan =
 					$oldNomorAkad;
@@ -2467,12 +2333,6 @@ class PengajuanController extends Controller
 					1;
 
 
-				/*
-				 * =========================
-				 * SAVE DOKUMEN
-				 * =========================
-				 */
-
 				if (!$dokumenMedis->save()) {
 
 					throw new \Exception(
@@ -2483,21 +2343,8 @@ class PengajuanController extends Controller
 					);
 				}
 
-
-				/*
-				 * =========================
-				 * COMMIT
-				 * =========================
-				 */
-
 				$transaction->commit();
 
-
-				/*
-				 * =========================
-				 * LOG
-				 * =========================
-				 */
 
 				Yii::info(
 					'Mapping dokumen Restitusi berhasil disimpan. ' .
@@ -2520,11 +2367,6 @@ class PengajuanController extends Controller
 
 			} catch (\Exception $e) {
 
-				/*
-				 * =========================
-				 * ROLLBACK
-				 * =========================
-				 */
 
 				if (
 					isset($transaction) &&
@@ -2555,12 +2397,6 @@ class PengajuanController extends Controller
 			}
 
 
-			/*
-			 * ==================================================
-			 * CARI MEMBER YANG AKAN DIUPDATE
-			 * ==================================================
-			 */
-
 			$member =
 				Member::findOne([
 					'ktp' => $ktp,
@@ -2585,12 +2421,6 @@ class PengajuanController extends Controller
 			}
 
 
-			/*
-			 * =========================
-			 * VALIDASI PREMI
-			 * =========================
-			 */
-
 			if (
 				(float)$nominalPremi !=
 				(float)$member->gross_premium
@@ -2608,12 +2438,6 @@ class PengajuanController extends Controller
 				];
 			}
 
-
-			/*
-			 * ==================================================
-			 * RUNNING MEMBER NUMBER
-			 * ==================================================
-			 */
 
 			$existingMemberDesc = Member::find()
 		   ->where([
@@ -2791,12 +2615,6 @@ class PengajuanController extends Controller
 				$polisJiwaJson;
 
 
-			/*
-			 * =========================
-			 * SAVE MEMBER
-			 * =========================
-			 */
-
 			if (!$member->save()) {
 
 				throw new \Exception(
@@ -2807,12 +2625,6 @@ class PengajuanController extends Controller
 				);
 			}
 
-
-			/*
-			 * =========================
-			 * GENERATE SERTIFIKAT
-			 * =========================
-			 */
 
 			$sertifikat =
 				$this->generateSertifikat(
@@ -2845,24 +2657,12 @@ class PengajuanController extends Controller
 		}
 
 
-		/*
-		 * ==================================================
-		 * DOKUMEN MEDIS
-		 * ==================================================
-		 */
-
 		$dokument =
 			Dokumen_Medis::getAll([
 				'medis' =>
 					$medicalCode
 			]);
 
-
-		/*
-		 * ==================================================
-		 * RESPONSE SUCCESS
-		 * ==================================================
-		 */
 
 		return [
 			'Result' => [
