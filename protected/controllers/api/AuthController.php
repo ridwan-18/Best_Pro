@@ -61,8 +61,11 @@ class AuthController extends Controller
 
         // Validasi client
         if (
-            $clientId !== 'BRKSH2HDEV' ||
-            $clientSecret !== 'BRKSH2HDEV'
+            // $clientId !== 'BRKSH2HDEV' ||
+            // $clientSecret !== 'BRKSH2HDEV'
+			
+			 $clientId !== 'BRKSH2HPROD' ||
+            $clientSecret !== 'BRKSH2HPROD'
         ) 
 		{
             return [
@@ -87,8 +90,11 @@ class AuthController extends Controller
 
         // Validasi username dan password
         if (
-            $username !== 'devbrks' ||
-            $password !== 'BRKSH2H2341'
+            // $username !== 'devbrks' ||
+            // $password !== 'BRKSH2H2341'
+			
+			$username !== 'brksprod' ||
+            $password !== 'R3l1@nc32013'
         ) 
 		{
             return [

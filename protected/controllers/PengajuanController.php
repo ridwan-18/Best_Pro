@@ -3649,11 +3649,18 @@ class PengajuanController extends Controller
 		Yii::$app->response->format =
 			\yii\web\Response::FORMAT_JSON;
 
-		$host = '202.152.22.234';
+		// $host = '202.152.22.234';
+		// $port = 22;
+		// $username = 'reliance';
+		// $password = 'reliance@brks2026';
+		
+		
+		//prod
+		$host = '10.119.1.21';
 		$port = 22;
 		$username = 'reliance';
-		$password = 'reliance@brks2026';
-		
+		$password = 'Rel!@nc3FTpBRK$';
+		$remotePath = '/RLC/outgoing/';
 		
 		
 			// host : sftp://web.bestpro-id.com
@@ -7253,21 +7260,21 @@ if (file_exists($zipPath)) {
 			);
 		}
 
-
-		$sftpHost =
-			'202.152.22.234';
-
-		$sftpPort =
-			22;
-
-		$sftpUsername =
-			'reliance';
-
-		$sftpPassword =
-			'reliance@brks2026';
-
-		$sftpIncomingPath =
-			'/incoming';
+		//dev//
+		// $sftpHost ='202.152.22.234';
+		// $sftpPort =22;
+		// $sftpUsername ='reliance';
+		// $sftpPassword ='reliance@brks2026';
+		// $sftpIncomingPath ='/incoming';
+		//dev
+		
+		//prod
+		$sftpHost ='10.119.1.21';
+		$sftpPort =22;
+		$sftpUsername ='reliance';
+		$sftpPassword ='Rel!@nc3FTpBRK$';
+		$sftpIncomingPath ='/RLC/incoming';
+		//
 
 
 		$sftp =
@@ -7443,20 +7450,11 @@ if (file_exists($zipPath)) {
 			// 3. KONFIGURASI SFTP
 			// =========================================================
 
-			$sftpHost =
-				'202.152.22.234';
-
-			$sftpPort =
-				22;
-
-			$sftpUsername =
-				'reliance';
-
-			$sftpPassword =
-				'reliance@brks2026';
-
-			$sftpIncomingPath =
-				'/Incoming';
+			$sftpHost ='10.119.1.21';
+			$sftpPort =22;
+			$sftpUsername ='reliance';
+			$sftpPassword ='Rel!@nc3FTpBRK$';
+			$sftpIncomingPath ='/RLC/incoming';
 
 
 			// =========================================================
