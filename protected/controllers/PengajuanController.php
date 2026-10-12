@@ -3479,11 +3479,22 @@ class PengajuanController extends Controller
 
 	private function downloadFileFromBankSftp($fileName)
 	{
-		$host = '202.152.22.234';
+		//dev
+		// $host = '202.152.22.234';
+		// $port = 22;
+		// $username = 'reliance';
+		// $password = 'reliance@brks2026';
+		// $remotePath = '/outgoing/' . $fileName;
+		//
+		
+		
+		//prod
+		$host = '10.119.1.21';
 		$port = 22;
 		$username = 'reliance';
-		$password = 'reliance@brks2026';
-		$remotePath = '/outgoing/' . $fileName;
+		$password = 'Rel!@nc3FTpBRK$';
+		$remotePath = '/RLC/outgoing/' . $fileName;
+		//
 
 		$localDir = Yii::getAlias('@runtime/cbc');
 
