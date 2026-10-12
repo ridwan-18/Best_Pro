@@ -376,15 +376,33 @@ class MemberClaim extends \yii\db\ActiveRecord
 	
 	public function callAPIPostMemberLoginRiau()
 	{
-		$url = 'http://202.152.22.234:5005/token';
-
+		//dev//
+		// $url = 'http://202.152.22.234:5005/token';
+		//
+		
+		//prod //
+		$url = 'http://10.119.1.21:5005/token';
+		//
+		
+		//dev//	
+		// $data = [
+			// 'client_id'     => 'SIAP',
+			// 'client_secret' => '62bb0a61-1eaf-489e-b3f2-6a60ff8c8ffa',
+			// 'username'      => 'reliance',
+			// 'password'      => 'Brk$reliance',
+			// 'grand_type'    => 'password',
+		// ];
+		//
+		
+		//prod
 		$data = [
-			'client_id'     => 'SIAP',
-			'client_secret' => '62bb0a61-1eaf-489e-b3f2-6a60ff8c8ffa',
+			'client_id'     => 'siap',
+			'client_secret' => '8fd80e2b-f859-4f60-bcfa-734d35d179b4',
 			'username'      => 'reliance',
-			'password'      => 'Brk$reliance',
+			'password'      => 'Brk$Rel!@nc3',
 			'grand_type'    => 'password',
 		];
+		//
 
 		$jsonData = json_encode($data);
 
@@ -415,9 +433,6 @@ class MemberClaim extends \yii\db\ActiveRecord
 		curl_close($ch);
 
 
-		// ==========================================
-		// CURL ERROR
-		// ==========================================
 		if ($curlNo !== 0) {
 
 			return [
@@ -430,10 +445,6 @@ class MemberClaim extends \yii\db\ActiveRecord
 			];
 		}
 
-
-		// ==========================================
-		// DEBUG RESPONSE RAW
-		// ==========================================
 		Yii::error(
 			"===== DEBUG TOKEN BANK =====\n" .
 			"HTTP CODE : " . $httpCode . "\n" .
@@ -441,10 +452,6 @@ class MemberClaim extends \yii\db\ActiveRecord
 			'api'
 		);
 
-
-		// ==========================================
-		// JSON DECODE
-		// ==========================================
 		$response = json_decode($body, true);
 
 
@@ -462,19 +469,6 @@ class MemberClaim extends \yii\db\ActiveRecord
 		}
 
 
-		// ==========================================
-		// AMBIL TOKEN
-		// RESPONSE BANK:
-		//
-		// {
-		//   "result": {
-		//      "pesan": "BERHASIL",
-		//      "kode": "00",
-		//      "token": "JWT..."
-		//   }
-		// }
-		// ==========================================
-
 		$token = null;
 
 		if (
@@ -485,10 +479,6 @@ class MemberClaim extends \yii\db\ActiveRecord
 			$token = $response['result']['token'];
 		}
 
-
-		// ==========================================
-		// DEBUG TOKEN
-		// ==========================================
 		Yii::error(
 			"===== HASIL PARSING TOKEN =====\n" .
 			"TOKEN ADA : " . (!empty($token) ? 'YA' : 'TIDAK') . "\n" .
@@ -504,14 +494,6 @@ class MemberClaim extends \yii\db\ActiveRecord
 			'api'
 		);
 
-
-		// ==========================================
-		// RETURN
-		// PENTING:
-		// TOKEN HARUS DI LEVEL INI
-		//
-		// $loginResponse['token']
-		// ==========================================
 
 		return [
 			'success' => !empty($token),
@@ -539,21 +521,17 @@ class MemberClaim extends \yii\db\ActiveRecord
 	}
 	
 	
-	public function callAPIPostDebitur(
-    $token,
-    $model,
-    $document = null,
-    $klaim = null
-	) 
+	public function callAPIPostDebitur($token,$model,$document = null,$klaim = null) 
 	{
-		// =========================================================
-		// URL BANK
-		// =========================================================
-		$url = 'http://202.152.22.234:5008/callback/debitur';
+		
+		//dev//
+		// $url = 'http://202.152.22.234:5008/callback/debitur';
+		//
+		
+		//prod//
+		$url = 'http://10.119.1.21:9095/callback/debitur';
+		//
 
-		// =========================================================
-		// VALIDASI TOKEN
-		// =========================================================
 		if (empty($token)) {
 
 			return [
@@ -567,9 +545,6 @@ class MemberClaim extends \yii\db\ActiveRecord
 			];
 		}
 
-		// =========================================================
-		// VALIDASI MEMBER
-		// =========================================================
 		if (!$model) {
 
 			return [
@@ -583,9 +558,6 @@ class MemberClaim extends \yii\db\ActiveRecord
 			];
 		}
 
-		// =========================================================
-		// VALIDASI CLAIM
-		// =========================================================
 		if (!$klaim) {
 
 			return [
@@ -599,13 +571,6 @@ class MemberClaim extends \yii\db\ActiveRecord
 			];
 		}
 
-		// =========================================================
-		// BUAT PAYLOAD
-		//
-		// PERHATIKAN:
-		// SEMUA DATA CLAIM MENGGUNAKAN $klaim
-		// BUKAN $claim
-		// =========================================================
 		$payload = [
 			'nama' => (string) $model->nama,
 
@@ -646,9 +611,6 @@ class MemberClaim extends \yii\db\ActiveRecord
 			'kode_cabang' => (string) $klaim->kode_cabang,
 		];
 
-		// =========================================================
-		// JSON ENCODE
-		// =========================================================
 		$jsonPayload = json_encode(
 			$payload,
 			JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE
@@ -669,9 +631,6 @@ class MemberClaim extends \yii\db\ActiveRecord
 			];
 		}
 
-		// =========================================================
-		// LOG REQUEST KE BANK
-		// =========================================================
 		Yii::error(
 			"========== CALLBACK DEBITUR KE BANK ==========\n" .
 			"URL:\n" .
@@ -684,9 +643,6 @@ class MemberClaim extends \yii\db\ActiveRecord
 			'api'
 		);
 
-		// =========================================================
-		// CURL
-		// =========================================================
 		$ch = curl_init();
 
 		curl_setopt_array($ch, [
@@ -718,14 +674,8 @@ class MemberClaim extends \yii\db\ActiveRecord
 			CURLOPT_SSL_VERIFYHOST => false,
 		]);
 
-		// =========================================================
-		// EKSEKUSI
-		// =========================================================
 		$body = curl_exec($ch);
 
-		// =========================================================
-		// AMBIL INFORMASI CURL
-		// =========================================================
 		$httpCode = curl_getinfo(
 			$ch,
 			CURLINFO_HTTP_CODE
@@ -739,9 +689,6 @@ class MemberClaim extends \yii\db\ActiveRecord
 
 		curl_close($ch);
 
-		// =========================================================
-		// LOG RESPONSE ASLI BANK
-		// =========================================================
 		Yii::error(
 			"========== RESPONSE ASLI BANK ==========\n" .
 			"HTTP CODE : " . $httpCode . "\n" .
@@ -753,9 +700,6 @@ class MemberClaim extends \yii\db\ActiveRecord
 			'api'
 		);
 
-		// =========================================================
-		// CURL ERROR
-		// =========================================================
 		if ($body === false || $curlNo !== 0) {
 
 			return [
@@ -779,9 +723,6 @@ class MemberClaim extends \yii\db\ActiveRecord
 			];
 		}
 
-		// =========================================================
-		// RESPONSE KOSONG
-		// =========================================================
 		if (trim((string) $body) === '') {
 
 			return [
@@ -805,17 +746,11 @@ class MemberClaim extends \yii\db\ActiveRecord
 			];
 		}
 
-		// =========================================================
-		// JSON DECODE
-		// =========================================================
 		$response = json_decode(
 			$body,
 			true
 		);
 
-		// =========================================================
-		// JSON INVALID
-		// =========================================================
 		if ($response === null && json_last_error() !== JSON_ERROR_NONE) {
 
 			return [
@@ -841,21 +776,6 @@ class MemberClaim extends \yii\db\ActiveRecord
 			];
 		}
 
-		// =========================================================
-		// CARI RESULT
-		//
-		// FORMAT 1:
-		// {
-		//   "Result": {...}
-		// }
-		//
-		// FORMAT 2:
-		// {
-		//   "response": {
-		//      "Result": {...}
-		//   }
-		// }
-		// =========================================================
 		$result = null;
 
 		if (
@@ -874,9 +794,6 @@ class MemberClaim extends \yii\db\ActiveRecord
 			$result = $response['response']['Result'];
 		}
 
-		// =========================================================
-		// RESULT TIDAK DITEMUKAN
-		// =========================================================
 		if ($result === null) {
 
 			return [
@@ -900,9 +817,6 @@ class MemberClaim extends \yii\db\ActiveRecord
 			];
 		}
 
-		// =========================================================
-		// AMBIL RESULT
-		// =========================================================
 		$kodeResponse = isset($result['kode_response'])
 			? (string) $result['kode_response']
 			: '';
@@ -915,9 +829,6 @@ class MemberClaim extends \yii\db\ActiveRecord
 			? (string) $result['message']
 			: 'Response dari Bank';
 
-		// =========================================================
-		// TENTUKAN SUCCESS
-		// =========================================================
 		$success = (
 			$httpCode >= 200 &&
 			$httpCode < 300 &&
@@ -925,9 +836,6 @@ class MemberClaim extends \yii\db\ActiveRecord
 			$statusResponse === '200'
 		);
 
-		// =========================================================
-		// LOG HASIL PARSING
-		// =========================================================
 		Yii::error(
 			"========== HASIL PARSING BANK ==========\n" .
 			"HTTP CODE      : " . $httpCode . "\n" .
@@ -939,9 +847,6 @@ class MemberClaim extends \yii\db\ActiveRecord
 			'api'
 		);
 
-		// =========================================================
-		// RETURN
-		// =========================================================
 		return [
 			'success' => $success,
 

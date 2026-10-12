@@ -63,7 +63,8 @@ class AuthController extends Controller
         if (
             $clientId !== 'BRKSH2HDEV' ||
             $clientSecret !== 'BRKSH2HDEV'
-        ) {
+        ) 
+		{
             return [
                 'Result' => [
                     'status' => '401',
@@ -88,7 +89,8 @@ class AuthController extends Controller
         if (
             $username !== 'devbrks' ||
             $password !== 'BRKSH2H2341'
-        ) {
+        ) 
+		{
             return [
                 'Result' => [
                     'status' => '401',
@@ -116,7 +118,7 @@ class AuthController extends Controller
     }
 
     private function generateToken($username, $clientId, $scope)
-{
+	{
     $header = [
         'typ' => 'JWT',
         'alg' => 'HS256'
@@ -173,5 +175,5 @@ class AuthController extends Controller
         . $encodedPayload
         . '.'
         . $encodedSignature;
-}
+	}
 }

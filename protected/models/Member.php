@@ -991,15 +991,34 @@ class Member extends \yii\db\ActiveRecord
 	
 	public function callAPIPostMemberLoginRiau()
 	{
-		$url = 'http://202.152.22.234:5005/token';
-
+		//dev
+		// $url = 'http://202.152.22.234:5005/token';
+		//
+		
+		//prod//
+		$url = 'http://10.119.1.21:5005/token';
+		//
+		
+		
+		//dev
+		// $data = [
+			// 'client_id'     => 'SIAP',
+			// 'client_secret' => '62bb0a61-1eaf-489e-b3f2-6a60ff8c8ffa',
+			// 'username'      => 'reliance',
+			// 'password'      => 'Brk$reliance',
+			// 'grand_type'    => 'password',
+		// ];
+		//
+		
+		//prod
 		$data = [
-			'client_id'     => 'SIAP',
-			'client_secret' => '62bb0a61-1eaf-489e-b3f2-6a60ff8c8ffa',
+			'client_id'     => 'siap',
+			'client_secret' => '8fd80e2b-f859-4f60-bcfa-734d35d179b4',
 			'username'      => 'reliance',
-			'password'      => 'Brk$reliance',
+			'password'      => 'Brk$Rel!@nc3',
 			'grand_type'    => 'password',
 		];
+		//
 
 		$jsonData = json_encode($data);
 
@@ -1029,10 +1048,6 @@ class Member extends \yii\db\ActiveRecord
 
 		curl_close($ch);
 
-
-		// ==========================================
-		// CURL ERROR
-		// ==========================================
 		if ($curlNo !== 0) {
 
 			return [
@@ -1045,10 +1060,6 @@ class Member extends \yii\db\ActiveRecord
 			];
 		}
 
-
-		// ==========================================
-		// DEBUG RESPONSE RAW
-		// ==========================================
 		Yii::error(
 			"===== DEBUG TOKEN BANK =====\n" .
 			"HTTP CODE : " . $httpCode . "\n" .
@@ -1056,10 +1067,6 @@ class Member extends \yii\db\ActiveRecord
 			'api'
 		);
 
-
-		// ==========================================
-		// JSON DECODE
-		// ==========================================
 		$response = json_decode($body, true);
 
 
@@ -1077,19 +1084,6 @@ class Member extends \yii\db\ActiveRecord
 		}
 
 
-		// ==========================================
-		// AMBIL TOKEN
-		// RESPONSE BANK:
-		//
-		// {
-		//   "result": {
-		//      "pesan": "BERHASIL",
-		//      "kode": "00",
-		//      "token": "JWT..."
-		//   }
-		// }
-		// ==========================================
-
 		$token = null;
 
 		if (
@@ -1100,10 +1094,6 @@ class Member extends \yii\db\ActiveRecord
 			$token = $response['result']['token'];
 		}
 
-
-		// ==========================================
-		// DEBUG TOKEN
-		// ==========================================
 		Yii::error(
 			"===== HASIL PARSING TOKEN =====\n" .
 			"TOKEN ADA : " . (!empty($token) ? 'YA' : 'TIDAK') . "\n" .
@@ -1120,13 +1110,6 @@ class Member extends \yii\db\ActiveRecord
 		);
 
 
-		// ==========================================
-		// RETURN
-		// PENTING:
-		// TOKEN HARUS DI LEVEL INI
-		//
-		// $loginResponse['token']
-		// ==========================================
 
 		return [
 			'success' => !empty($token),
@@ -1155,7 +1138,14 @@ class Member extends \yii\db\ActiveRecord
 
 	public function callAPIPostConfirmationDocumentRiau($token, $model,$document)
 	{
-		$url = 'http://202.152.22.234:5008/callback/document';
+		
+		// dev//
+		// $url = 'http://202.152.22.234:5008/callback/document';
+		//
+		
+		//prod
+		$url = 'http://10.119.1.21:9095/callback/document';
+		//
 
 		if (empty($token)) {
 			throw new \Exception('Token Bank kosong');
@@ -1269,13 +1259,17 @@ class Member extends \yii\db\ActiveRecord
 	
 	public function callAPIPostDebitur($token, $model, $document = null, $restitusi = null)
 	{
-		$url = 'http://202.152.22.234:5008/callback/debitur';
+		
+		// dev//
+		// $url = 'http://202.152.22.234:5008/callback/debitur';
+		//dev//
+		
+		//prod
+		$url = 'http://10.119.1.21:9095/callback/debitur';
+		//
 
 		try {
 
-			// =========================================================
-			// 1. DEBUG PARAMETER AWAL
-			// =========================================================
 			Yii::error(
 				"========================================\n" .
 				"DEBUG callAPIPostDebitur - START\n" .
@@ -1288,10 +1282,6 @@ class Member extends \yii\db\ActiveRecord
 				'api'
 			);
 
-
-			// =========================================================
-			// 2. VALIDASI
-			// =========================================================
 			if (empty($token)) {
 				throw new \Exception('Token Bank kosong');
 			}
@@ -1304,10 +1294,6 @@ class Member extends \yii\db\ActiveRecord
 				throw new \Exception('Data restitusi/debitur tidak ditemukan');
 			}
 
-
-			// =========================================================
-			// 3. DEBUG DATA MEMBER
-			// =========================================================
 			Yii::error(
 				"===== DEBUG MODEL MEMBER =====\n" .
 				"Nama           : " . var_export($model->nama, true) . "\n" .
@@ -1323,10 +1309,6 @@ class Member extends \yii\db\ActiveRecord
 				'api'
 			);
 
-
-			// =========================================================
-			// 4. DEBUG DATA RESTITUSI
-			// =========================================================
 			Yii::error(
 				"===== DEBUG MODEL RESTITUSI =====\n" .
 				"ID Transaksi       : " . var_export($restitusi->id_transaksi, true) . "\n" .
@@ -1344,10 +1326,6 @@ class Member extends \yii\db\ActiveRecord
 				'api'
 			);
 
-
-			// =========================================================
-			// 5. DEBUG DOCUMENT
-			// =========================================================
 			$statusDokumen = '1';
 			$keterangan = '';
 
@@ -1370,10 +1348,6 @@ class Member extends \yii\db\ActiveRecord
 				);
 			}
 
-
-			// =========================================================
-			// 6. VALIDASI STATUS BAYAR
-			// =========================================================
 			$statusBayar = (string) $restitusi->status_bayar;
 
 			Yii::error(
@@ -1435,10 +1409,6 @@ class Member extends \yii\db\ActiveRecord
 				'kode_cabang' => $restitusi->kode_cabang,
 			];
 
-
-			// =========================================================
-			// 8. DEBUG PAYLOAD ARRAY
-			// =========================================================
 			Yii::error(
 				"========================================\n" .
 				"DEBUG PAYLOAD ARRAY\n" .
@@ -1447,19 +1417,11 @@ class Member extends \yii\db\ActiveRecord
 				'api'
 			);
 
-
-			// =========================================================
-			// 9. JSON ENCODE
-			// =========================================================
 			$jsonData = json_encode(
 				$payload,
 				JSON_UNESCAPED_UNICODE
 			);
 
-
-			// =========================================================
-			// 10. CEK JSON ERROR
-			// =========================================================
 			if ($jsonData === false) {
 
 				Yii::error(
@@ -1474,10 +1436,6 @@ class Member extends \yii\db\ActiveRecord
 				);
 			}
 
-
-			// =========================================================
-			// 11. DEBUG JSON FINAL
-			// =========================================================
 			Yii::error(
 				"========================================\n" .
 				"DEBUG JSON YANG DIKIRIM KE BANK\n" .
@@ -1487,10 +1445,6 @@ class Member extends \yii\db\ActiveRecord
 				'api'
 			);
 
-
-			// =========================================================
-			// 12. CURL
-			// =========================================================
 			$ch = curl_init();
 
 			curl_setopt_array($ch, [
@@ -1515,10 +1469,6 @@ class Member extends \yii\db\ActiveRecord
 				CURLOPT_HEADER => false,
 			]);
 
-
-			// =========================================================
-			// 13. EXECUTE CURL
-			// =========================================================
 			$body = curl_exec($ch);
 
 			$httpCode = curl_getinfo(
@@ -1532,10 +1482,6 @@ class Member extends \yii\db\ActiveRecord
 
 			curl_close($ch);
 
-
-			// =========================================================
-			// 14. DEBUG RESPONSE BANK
-			// =========================================================
 			Yii::error(
 				"========================================\n" .
 				"DEBUG RESPONSE BANK\n" .
@@ -1549,10 +1495,6 @@ class Member extends \yii\db\ActiveRecord
 				'api'
 			);
 
-
-			// =========================================================
-			// 15. CURL ERROR
-			// =========================================================
 			if ($curlNo !== 0) {
 
 				return [
@@ -1570,10 +1512,6 @@ class Member extends \yii\db\ActiveRecord
 				];
 			}
 
-
-			// =========================================================
-			// 16. DECODE RESPONSE
-			// =========================================================
 			$response = json_decode($body, true);
 
 				Yii::error(
@@ -1586,10 +1524,6 @@ class Member extends \yii\db\ActiveRecord
 					'api'
 				);
 
-
-				// =========================================================
-				// 17. JIKA RESPONSE BUKAN JSON
-				// =========================================================
 				if (!is_array($response)) {
 
 					return [
@@ -1602,10 +1536,6 @@ class Member extends \yii\db\ActiveRecord
 					];
 				}
 
-
-				// =========================================================
-				// 18. AMBIL RESULT
-				// =========================================================
 				if (isset($response['Result']) && is_array($response['Result'])) {
 
 					$result = $response['Result'];
@@ -1616,10 +1546,6 @@ class Member extends \yii\db\ActiveRecord
 					$result = $response;
 				}
 
-
-				// =========================================================
-				// 19. AMBIL CODE RESPONSE
-				// =========================================================
 				$kodeResponse = isset($result['kode_response'])
 					? (string) $result['kode_response']
 					: null;
@@ -1632,10 +1558,6 @@ class Member extends \yii\db\ActiveRecord
 					? $result['message']
 					: null;
 
-
-				// =========================================================
-				// 20. DEBUG CODE BANK
-				// =========================================================
 				Yii::error(
 					"===== HASIL RESPONSE BANK =====\n" .
 					"HTTP CODE     : " . var_export($httpCode, true) . "\n" .
@@ -1646,10 +1568,6 @@ class Member extends \yii\db\ActiveRecord
 					'api'
 				);
 
-
-				// =========================================================
-				// 21. SUCCESS
-				// =========================================================
 				$success = (
 					$httpCode >= 200 &&
 					$httpCode < 300 &&
@@ -1657,10 +1575,6 @@ class Member extends \yii\db\ActiveRecord
 					$statusResponse === '200'
 				);
 
-
-				// =========================================================
-				// 22. RETURN
-				// =========================================================
 				return [
 					'success' => $success,
 
