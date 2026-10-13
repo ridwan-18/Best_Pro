@@ -1232,8 +1232,8 @@ class DataProduksiController  extends Controller
 				'id' => Yii::$app->request->post('batch_id'),
 			]);
 		}
-
-
+		$extra_premi = Yii::$app->request->post('extra_premium'); 
+		$nett_premium = $model->gross_premium + $extra_premium;	
 		$dateTime = new \DateTime();
 		$currentDateTime = $dateTime->format('Y-m-d H:i:s');
 
@@ -1241,6 +1241,7 @@ class DataProduksiController  extends Controller
 		$model->updated_at = $currentDateTime;
 		$model->updated_by = Yii::$app->user->identity->id;
 		$model->extra_premium = Yii::$app->request->post('extra_premium');
+		$model->nett_premium = $nett_premium ;
 		if (!$model->save(false)) {
 			Yii::$app->session->setFlash('error', "Error while saving");
 			return $this->redirect([
