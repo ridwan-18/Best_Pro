@@ -1233,7 +1233,7 @@ class DataProduksiController  extends Controller
 			]);
 		}
 		$extra_premi = Yii::$app->request->post('extra_premium'); 
-		$nett_premium = $model->gross_premium + $extra_premium;	
+		$nett_premium = $model->gross_premium + $extra_premi;	
 		$dateTime = new \DateTime();
 		$currentDateTime = $dateTime->format('Y-m-d H:i:s');
 
