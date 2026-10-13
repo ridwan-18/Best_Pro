@@ -240,6 +240,10 @@ class BatchByPeserta extends \yii\db\ActiveRecord
 				$table . '.gross_premium',
 				$table . '.medical_code',
 				$table . '.extra_premium',
+				$table . '.age',
+				$table . '.term',
+				$table . '.rate_premi',
+				$table . '.nett_premium',
 			])
 			->asArray();
 

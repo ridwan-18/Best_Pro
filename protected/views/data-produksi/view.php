@@ -371,8 +371,6 @@ $this->title = 'View Member - ' . Yii::$app->name;
                                         <th>Sum Insured</th>
                                         <th>Rate Premi</th>
                                         <th>Gross Premium</th>
-                                        <th>Percentage Disc (%)</th>
-                                        <th>Disc Premium</th>
                                         <th>Nett Premium</th>
                                         <th>Medical Code</th>
                                         <th>Status</th>
@@ -384,8 +382,6 @@ $this->title = 'View Member - ' . Yii::$app->name;
                                         <th>EM Premium</th>
                                         <th>EM Notes</th>
                                         <th>UW Notes</th>
-										<th>Upload FIle SPK</th>
-										<th>Download FIle SPK</th>
                                         <th width="1">Action</th>
                                     </tr>
                                 </thead>
@@ -415,8 +411,6 @@ $this->title = 'View Member - ' . Yii::$app->name;
                                                 <td><?= $member['term']; ?></td>
                                                 <td><?= number_format($member['sum_insured']); ?></td>
                                                 <td><?= $member['rate_premi']; ?></td>
-                                                <td><?= number_format($member['gross_premium']); ?></td>
-                                                <td><?= $member['percentage_discount']; ?></td>
                                                 <td><?= number_format($member['discount_premium']); ?></td>
                                                 <td><?= number_format($member['nett_premium']); ?></td>
                                                 <td><?= $member['medical_code']; ?></td>
@@ -439,37 +433,6 @@ $this->title = 'View Member - ' . Yii::$app->name;
                                                 <td><?= number_format($member['em_premium']); ?></td>
                                                 <td><?= nl2br($member['em_notes']); ?></td>
                                                 <td><?= nl2br($member['uw_notes']); ?></td>
-												
-												
-												 <td>
-												 
-												  <?php if ($member['medical_code']=='NM') { ?>
-												 
-												
-												<?= Html::beginForm(['member/upload-existing'], 'post', [$member['id'] => 'member-upload-form', 'enctype' => 'multipart/form-data']) ?>
-												<?= Html::input('hidden', 'id', $member['id'], [
-                                                                'id' => 'id',
-                                                                'required' => 'required',
-                                                            ]) ?>
-												<?= Html::input('hidden', 'batch_id', $batch->id) ?>
-														
-															<?= Html::input('file', 'files_medis', null, ['class' => 'form-control', 'required' => true]) ?>
-												
-												
-													
-														<?= Html::submitButton('<i class="fa fa-upload"></i> Upload', ['class' => 'btn btn-primary waves-effect waves-light', 'id' => 'upload-btn']) ?>
-												
-												<?= Html::endForm() ?>
-											
-											<?php } ?>
-												 </td>
-												 
-												 
-												   <td>
-												   <a download href="<?= Url::base() . '/images/penghantar_medis/' . $member['file_medis']; ?>"><?= $member['file_medis']; ?></a>
-												   </td>
-												 
-                                                <td>
 												 
                                                     <div class="btn-group mb-2">
                                                         <?= Html::a('<i class="fa fa-pencil"></i>', 'javascript:void(0)', [
