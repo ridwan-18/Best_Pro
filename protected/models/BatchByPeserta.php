@@ -219,7 +219,7 @@ class BatchByPeserta extends \yii\db\ActiveRecord
 	public static function getAllProductionParticipant($paramsGetAllProduksi = [])
 	{
 		$table = self::tableName();
-		$personalTable = Personal::tableName();
+		$cabangTable = Personal::tableName();
 		$userTable = User::tableName();
 
 		$query = self::find()
