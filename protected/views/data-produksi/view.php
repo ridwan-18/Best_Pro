@@ -433,6 +433,9 @@ $this->title = 'View Member - ' . Yii::$app->name;
                                                 <td><?= number_format($member['em_premium']); ?></td>
                                                 <td><?= nl2br($member['em_notes']); ?></td>
                                                 <td><?= nl2br($member['uw_notes']); ?></td>
+												
+												 
+                                                <td>
 												 
                                                     <div class="btn-group mb-2">
                                                         <?= Html::a('<i class="fa fa-pencil"></i>', 'javascript:void(0)', [
