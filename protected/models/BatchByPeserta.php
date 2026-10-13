@@ -219,7 +219,7 @@ class BatchByPeserta extends \yii\db\ActiveRecord
 	public static function getAllProductionParticipant($paramsGetAllProduksi = [])
 	{
 		$table = self::tableName();
-		$cabangTable = Personal::tableName();
+		$cabangTable = Cabang::tableName();
 		$userTable = User::tableName();
 
 		$query = self::find()
@@ -244,7 +244,15 @@ class BatchByPeserta extends \yii\db\ActiveRecord
 				$table . '.term',
 				$table . '.rate_premi',
 				$table . '.nett_premium',
+
+				// Data dari tabel cabang
+				$cabangTable . '.kode_kantor AS kode_kantor',
+				$cabangTable . '.nama_kantor AS nama_kantor',
 			])
+			->leftJoin(
+				$cabangTable,
+				$table . '.kode_cabang = ' . $cabangTable . '.kode_kantor'
+			)
 			->asArray();
 
 		/*
@@ -259,7 +267,7 @@ class BatchByPeserta extends \yii\db\ActiveRecord
 		}
 
 		/*
-		 * FILTER ID MEMBER
+		 * Filter ID Member
 		 */
 		if (
 			isset($paramsGetAllProduksi['member_id']) &&
@@ -272,7 +280,7 @@ class BatchByPeserta extends \yii\db\ActiveRecord
 		}
 
 		/*
-		 * Filter policy
+		 * Filter Policy
 		 */
 		if (
 			isset($paramsGetAllProduksi['policy_no']) &&
@@ -284,7 +292,7 @@ class BatchByPeserta extends \yii\db\ActiveRecord
 		}
 
 		/*
-		 * Filter batch
+		 * Filter Batch
 		 */
 		if (
 			isset($paramsGetAllProduksi['batch_no']) &&
@@ -296,7 +304,7 @@ class BatchByPeserta extends \yii\db\ActiveRecord
 		}
 
 		/*
-		 * Filter status
+		 * Filter Status
 		 */
 		if (
 			isset($paramsGetAllProduksi['status']) &&
@@ -320,19 +328,20 @@ class BatchByPeserta extends \yii\db\ActiveRecord
 		}
 
 		/*
-		 * Filter username
+		 * Filter Username
 		 */
 		if (
 			isset($paramsGetAllProduksi['username']) &&
 			$paramsGetAllProduksi['username'] !== ''
 		) {
+			// Catatan: filter ini memerlukan JOIN tabel user.
 			$query->andWhere([
 				$userTable . '.username' => $paramsGetAllProduksi['username']
 			]);
 		}
 
 		/*
-		 * Filter tanggal
+		 * Filter Tanggal
 		 */
 		if (
 			!empty($paramsGetAllProduksi['start_date']) &&

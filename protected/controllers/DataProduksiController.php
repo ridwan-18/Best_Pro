@@ -32,6 +32,7 @@ use Da\QrCode\QrCode;
 use yii\helpers\Url;
 use app\models\BatchByPeserta;
 use app\models\map_member_dokumen_medis;
+use app\models\Cabang;
 /**
  * MemberController implements the CRUD actions for BatchByPeserta model.
  */

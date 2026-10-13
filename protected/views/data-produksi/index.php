@@ -147,7 +147,7 @@ $this->title = 'Data Produksi - ' . Yii::$app->name;
 										 <td><?= number_format($model['gross_premium']); ?></td>
 										 <td><?= number_format($model['sum_insured']); ?></td>
 										<td><?= $model['status']; ?></td>
-										<td><?= $model['username']; ?></td>
+										<td><?= $model['nama_kantor']; ?></td>
 										 <td>
                                             <div class="btn-group mb-2">
                                                 <?= Html::a(
