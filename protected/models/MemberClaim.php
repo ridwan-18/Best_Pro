@@ -381,7 +381,7 @@ class MemberClaim extends \yii\db\ActiveRecord
 		//
 		
 		//prod //
-		$url = 'http://10.119.1.21:5005/token';
+		$url = 'http://10.119.1.22:5005/token';
 		//
 		
 		//dev//	
@@ -529,7 +529,7 @@ class MemberClaim extends \yii\db\ActiveRecord
 		//
 		
 		//prod//
-		$url = 'http://10.119.1.21:9095/callback/debitur';
+		$url = 'http://10.119.1.22:9095/callback/debitur';
 		//
 
 		if (empty($token)) {

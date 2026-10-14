@@ -3489,7 +3489,7 @@ class PengajuanController extends Controller
 		
 		
 		//prod
-		$host = '10.119.1.21';
+		$host = '10.119.1.22';
 		$port = 22;
 		$username = 'reliance';
 		$password = 'Rel!@nc3FTpBRK$';
@@ -3656,7 +3656,7 @@ class PengajuanController extends Controller
 		
 		
 		//prod
-		$host = '10.119.1.21';
+		$host = '10.119.1.22';
 		$port = 22;
 		$username = 'reliance';
 		$password = 'Rel!@nc3FTpBRK$';
@@ -7269,7 +7269,7 @@ if (file_exists($zipPath)) {
 		//dev
 		
 		//prod
-		$sftpHost ='10.119.1.21';
+		$sftpHost ='10.119.1.22';
 		$sftpPort =22;
 		$sftpUsername ='reliance';
 		$sftpPassword ='Rel!@nc3FTpBRK$';
@@ -7450,7 +7450,7 @@ if (file_exists($zipPath)) {
 			// 3. KONFIGURASI SFTP
 			// =========================================================
 
-			$sftpHost ='10.119.1.21';
+			$sftpHost ='10.119.1.22';
 			$sftpPort =22;
 			$sftpUsername ='reliance';
 			$sftpPassword ='Rel!@nc3FTpBRK$';

@@ -996,7 +996,7 @@ class Member extends \yii\db\ActiveRecord
 		//
 		
 		//prod//
-		$url = 'http://10.119.1.21:5005/token';
+		$url = 'http://10.119.1.22:5005/token';
 		//
 		
 		
@@ -1144,7 +1144,7 @@ class Member extends \yii\db\ActiveRecord
 		//
 		
 		//prod
-		$url = 'http://10.119.1.21:9095/callback/document';
+		$url = 'http://10.119.1.22:9095/callback/document';
 		//
 
 		if (empty($token)) {
@@ -1265,7 +1265,7 @@ class Member extends \yii\db\ActiveRecord
 		//dev//
 		
 		//prod
-		$url = 'http://10.119.1.21:9095/callback/debitur';
+		$url = 'http://10.119.1.22:9095/callback/debitur';
 		//
 
 		try {
