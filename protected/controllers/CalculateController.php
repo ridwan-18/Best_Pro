@@ -282,16 +282,16 @@ class CalculateController extends Controller
 		}
 		
 		
-		// $policybyproduk =
-			// Policy::findOne([
-				// 'produk_code' =>
-					// $pekerjaan,
-			// ]);
+		$policybyproduk =
+			Policy::findOne([
+				'produk_code' =>
+					$pekerjaan,
+			]);
 			
 			
-		$policybyproduk = Policy::find()
-		->where(['like', 'produk_code', $pekerjaan])
-		->one();	
+		// $policybyproduk = Policy::find()
+		// ->where(['like', 'produk_code', $pekerjaan])
+		// ->one();	
 
 		if (!$policybyproduk) {
 
