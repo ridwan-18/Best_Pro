@@ -221,6 +221,7 @@ class BatchByPeserta extends \yii\db\ActiveRecord
 		$table = self::tableName();
 		$cabangTable = Cabang::tableName();
 		$userTable = User::tableName();
+		$dokument= map_member_dokumen_medis ::tableName();
 
 		$query = self::find()
 			->select([
@@ -248,10 +249,15 @@ class BatchByPeserta extends \yii\db\ActiveRecord
 				// Data dari tabel cabang
 				$cabangTable . '.kode_kantor AS kode_kantor',
 				$cabangTable . '.nama_kantor AS nama_kantor',
-			])
+				$dokument . '.approve',
+			 ])
 			->leftJoin(
 				$cabangTable,
 				$table . '.kode_cabang = ' . $cabangTable . '.kode_kantor'
+			)
+			->leftJoin(
+				$dokument,
+				$table . '.id_pengajuan = ' . $dokument . '.id_loan'
 			)
 			->asArray();
 
