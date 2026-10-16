@@ -831,39 +831,49 @@ class PengajuanController extends Controller
 				'medis' => $medicalCode
 			]);
 		$fileNik = $ktp;
-		$fileTanggal = date(
-			'dmy',
-			strtotime($tglBuka)
-		);
+		$fileTanggal = date('dmy',strtotime($tglBuka));
 		$codeDoc = '001';
 		$fileBenefit = $benefit;
 		
-		$countDokumen = \app\models\map_member_dokumen_medis::find()
-			->where([
-				'id_loan' => $idPengajuan,
-				'jenis_dokumen' => 'Pengajuan',
-			])
-			->count();
+		// $countDokumen = \app\models\map_member_dokumen_medis::find()
+			// ->where([
+				// 'id_loan' => $idPengajuan,
+				// 'jenis_dokumen' => 'Pengajuan',
+			// ])
+			// ->count();
 		
 		
 
-		$sequence = str_pad(
-			$countDokumen + 1,
-			2,
-			'0',
-			STR_PAD_LEFT
-		);	
+		// $sequence = str_pad(
+			// $countDokumen + 1,
+			// 2,
+			// '0',
+			// STR_PAD_LEFT
+		// );	
 		
-		$fileName =
+		
+		
+		// $fileName =
+			// $fileNik . '_' .
+			// $fileTanggal . '_' .
+			// $codeDoc . '_' .
+			// $fileBenefit . '_' .
+			// $sequence .
+			// '.zip';
+			
+		$filePrefix =
 			$fileNik . '_' .
 			$fileTanggal . '_' .
 			$codeDoc . '_' .
-			$fileBenefit . '_' .
-			$sequence .
-			'.zip';
-			
-			
-		$sftpResult = $this->downloadFileFromBankSftp($fileName);
+			$fileBenefit;
+
+		// Cari file berdasarkan prefix
+		$sftpResult = $this->downloadFileFromBankSftp($filePrefix);
+		
+
+		
+		// $sftpResult = $this->downloadFileFromBankSftp($fileName);
+		
 
 		$dokumenMedis = new \app\models\map_member_dokumen_medis();
 
@@ -2271,6 +2281,7 @@ class PengajuanController extends Controller
 					(string)$benefit;
 
 
+
 				$fileName =
 					$norek . '_' .
 					$noakad . '_' .
@@ -3477,7 +3488,7 @@ class PengajuanController extends Controller
 	}
 
 
-	private function downloadFileFromBankSftp($fileName)
+	private function downloadFileFromBankSftp($filePrefix)
 	{
 		//dev
 		// $host = '202.152.22.234';
@@ -3493,7 +3504,9 @@ class PengajuanController extends Controller
 		$port = 22;
 		$username = 'reliance';
 		$password = 'Rel!@nc3FTpBRK$';
-		$remotePath = '/RLC/outgoing/' . $fileName;
+		// $remotePath = '/RLC/outgoing/' . $fileName;
+		$remoteDir = '/RLC/outgoing/';
+
 		//
 
 		$localDir = Yii::getAlias('@runtime/cbc');
@@ -3507,13 +3520,7 @@ class PengajuanController extends Controller
 			}
 		}
 
-		$localPath =
-			$localDir .
-			DIRECTORY_SEPARATOR .
-			$fileName;
-
 		try {
-
 			if (!function_exists('ssh2_connect')) {
 				return [
 					'success' => false,
@@ -3521,11 +3528,7 @@ class PengajuanController extends Controller
 				];
 			}
 
-	
-			$connection = \ssh2_connect(
-				$host,
-				$port
-			);
+			$connection = \ssh2_connect($host, $port);
 
 			if (!$connection) {
 				return [
@@ -3534,13 +3537,11 @@ class PengajuanController extends Controller
 				];
 			}
 
-			if (
-				!\ssh2_auth_password(
-					$connection,
-					$username,
-					$password
-				)
-			) {
+			if (!\ssh2_auth_password(
+				$connection,
+				$username,
+				$password
+			)) {
 				return [
 					'success' => false,
 					'message' => 'Gagal authentication SFTP Bank'
@@ -3556,52 +3557,93 @@ class PengajuanController extends Controller
 				];
 			}
 
-			// Path file remote
-			$remoteFile =
-				'ssh2.sftp://' .
-				intval($sftp) .
-				$remotePath;
+			// Buka direktori SFTP
+			$remoteDirUrl = 'ssh2.sftp://' .
+							intval($sftp) .
+							$remoteDir;
 
-			// Cek file
-			if (!file_exists($remoteFile)) {
+			$handle = opendir($remoteDirUrl);
+
+			if ($handle === false) {
 				return [
 					'success' => false,
-					'message' =>
-						'File belum tersedia di SFTP Bank: ' .
-						$remotePath
+					'message' => 'Gagal membaca direktori SFTP: ' . $remoteDir
 				];
 			}
 
-			// Ambil isi file
+			$matches = [];
+
+			// Cari file berdasarkan prefix tanpa sequence
+			while (($file = readdir($handle)) !== false) {
+				if (preg_match(
+					'/^' . preg_quote($filePrefix, '/') . '_\d+\.zip$/i',
+					$file
+				)) {
+					$matches[] = $file;
+				}
+			}
+
+			closedir($handle);
+
+			if (empty($matches)) {
+				return [
+					'success' => false,
+					'message' => 'File tidak ditemukan dengan prefix: ' .
+								 $filePrefix
+				];
+			}
+
+			// Urutkan berdasarkan sequence terbesar
+			usort($matches, function ($a, $b) {
+				preg_match('/_(\d+)\.zip$/i', $a, $ma);
+				preg_match('/_(\d+)\.zip$/i', $b, $mb);
+
+				return (int)$mb[1] <=> (int)$ma[1];
+			});
+
+			// Ambil file dengan sequence terbesar
+			$fileName = $matches[0];
+
+			$remotePath = $remoteDir . $fileName;
+
+			$remoteFile = 'ssh2.sftp://' .
+						  intval($sftp) .
+						  $remotePath;
+
+			$localPath = $localDir .
+						 DIRECTORY_SEPARATOR .
+						 $fileName;
+
+			// Baca file dari SFTP
+			if (!file_exists($remoteFile)) {
+				return [
+					'success' => false,
+					'message' => 'File tidak tersedia: ' . $remotePath
+				];
+			}
+
 			$content = file_get_contents($remoteFile);
 
 			if ($content === false) {
 				return [
 					'success' => false,
-					'message' =>
-						'Gagal membaca file dari SFTP Bank'
+					'message' => 'Gagal membaca file dari SFTP Bank'
 				];
 			}
 
-			// Simpan file lokal
-			$saved = file_put_contents(
-				$localPath,
-				$content
-			);
+			// Simpan hasil download ke server aplikasi
+			$saved = file_put_contents($localPath, $content);
 
 			if ($saved === false) {
 				return [
 					'success' => false,
-					'message' =>
-						'Gagal menyimpan file CBC ke lokal'
+					'message' => 'Gagal menyimpan file CBC ke lokal'
 				];
 			}
 
 			Yii::info(
 				'File CBC berhasil didownload: ' .
-				$remotePath .
-				' -> ' .
-				$localPath,
+				$remotePath . ' -> ' . $localPath,
 				'cbc-sftp'
 			);
 
@@ -3610,14 +3652,13 @@ class PengajuanController extends Controller
 				'file_name' => $fileName,
 				'remote_path' => $remotePath,
 				'local_path' => $localPath,
-				'size' => $saved
+				'size' => $saved,
+				'matches' => $matches
 			];
 
 		} catch (\Throwable $e) {
-
 			Yii::error(
-				'SFTP CBC Error: ' .
-				$e->getMessage(),
+				'SFTP CBC Error: ' . $e->getMessage(),
 				'cbc-sftp'
 			);
 
@@ -3627,6 +3668,7 @@ class PengajuanController extends Controller
 			];
 		}
 	}
+
 	
 	public function actionCheckPhp()
 	{
