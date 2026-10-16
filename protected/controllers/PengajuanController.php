@@ -917,7 +917,7 @@ class PengajuanController extends Controller
 					'status' => '200',
 					'kode_response' => '00',
 					'message' => 'Pengajuan berhasil, dokumen belum tersedia di SFTP Bank',
-					'status_dokumen' => 0,
+					'status_dokumen' => 1,
 					'premi_disetujui' => $nettPremium,
 					'coverage' => (string)$coverage,
 					'keterangan' => $sftpResult['message'],
@@ -3739,10 +3739,15 @@ class PengajuanController extends Controller
 				)
 			);
 
+			// $outgoingPath =
+				// 'ssh2.sftp://' .
+				// intval($sftp) .
+				// '/outgoing';
+				
 			$outgoingPath =
-				'ssh2.sftp://' .
-				intval($sftp) .
-				'/outgoing';
+			'ssh2.sftp://' .
+			intval($sftp) .
+			'/RLC/outgoing';
 
 			$outgoingExists = is_dir($outgoingPath);
 
