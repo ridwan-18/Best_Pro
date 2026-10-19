@@ -6858,6 +6858,7 @@ if (file_exists($zipPath)) {
 
 
 		// Extra
+		
 		$rightY += 6;
 
 		$pdf->SetXY(
@@ -6878,11 +6879,21 @@ if (file_exists($zipPath)) {
 			':',
 			0
 		);
+		
+		$extra_premium =
+			!empty($member->extra_premium)
+				? number_format(
+					$member->extra_premium,
+					0,
+					',',
+					'.'
+				)
+				: '0';
 
 		$pdf->Cell(
 			50,
 			5,
-			'-',
+			$extra_premium,
 			0
 		);
 
