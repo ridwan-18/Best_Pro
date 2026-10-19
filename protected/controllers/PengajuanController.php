@@ -1366,7 +1366,7 @@ class PengajuanController extends Controller
 				];
 			}
 			
-			if ($nominalPremi != $member->gross_premium) {
+			if ($nominalPremi != $member->nett_premium) {
 
 				Yii::$app->response->statusCode = 200;
 
@@ -1378,6 +1378,8 @@ class PengajuanController extends Controller
 					]
 				];
 			}
+			
+			$extra_premi=$member->extra_premium;
 			
 			$existingMemberDesc = Member::find()
 		   ->where([
@@ -1530,7 +1532,7 @@ class PengajuanController extends Controller
 					),
 
 					'tarif_extra_premi' => 0,
-					'jumlah_extra_premi' => 0,
+					'jumlah_extra_premi' => $extra_premi,
 				],
 
 				'polis_pembiayaan' => null,
@@ -4506,11 +4508,21 @@ class PengajuanController extends Controller
 			':',
 			0
 		);
+		
+		$extra_premium =
+			!empty($member->extra_premium)
+				? number_format(
+					$member->extra_premium,
+					0,
+					',',
+					'.'
+				)
+				: '0';
 
 		$pdf->Cell(
 			50,
 			5,
-			'-',
+			$extra_premium,
 			0
 		);
 
