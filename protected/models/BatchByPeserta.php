@@ -245,11 +245,13 @@ class BatchByPeserta extends \yii\db\ActiveRecord
 				$table . '.term',
 				$table . '.rate_premi',
 				$table . '.nett_premium',
+				$table . '.pekerjaan',
 
 				// Data dari tabel cabang
 				$cabangTable . '.kode_kantor AS kode_kantor',
 				$cabangTable . '.nama_kantor AS nama_kantor',
 				$dokument . '.approve',
+				$dokument . '.keterangan',
 			 ])
 			->leftJoin(
 				$cabangTable,

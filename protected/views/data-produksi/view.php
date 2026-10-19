@@ -359,6 +359,7 @@ $this->title = 'View Member - ' . Yii::$app->name;
                                 <thead>
                                     <tr>
                                         <th width="1">#</th>
+										<th>Kode Pekerjaan</th>
 										<th>Id Loan</th>
                                         <th>Member No</th>
                                         <th>Name</th>
@@ -399,6 +400,7 @@ $this->title = 'View Member - ' . Yii::$app->name;
                                                 }
                                                 ?>>
                                                 <td><?= $i; ?></td>
+												 <td><?= $member['pekerjaan']; ?></td>
 												 <td><?= $member['id_loan']; ?></td>
                                                 <td><?= $member['member_no']; ?></td>
                                                 <td><?= $member['nama']; ?></td>
@@ -707,6 +709,7 @@ $this->title = 'View Member - ' . Yii::$app->name;
                             <td>Action</td>
 							<td>Keterangan</td>
                             <td>Status</td>
+							 <td>Status Keterangan</td>
                         </tr>
                     </thead>
 
@@ -781,6 +784,10 @@ $this->title = 'View Member - ' . Yii::$app->name;
 
                                 <td>
                                     <?= Html::encode($cd['approve']); ?>
+                                </td>
+								
+								 <td>
+                                    <?= Html::encode($cd['keterangan']); ?>
                                 </td>
 
                             </tr>
