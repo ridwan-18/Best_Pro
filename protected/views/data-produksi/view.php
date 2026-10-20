@@ -377,12 +377,8 @@ $this->title = 'View Member - ' . Yii::$app->name;
                                         <th>Status</th>
                                         <th>Member Status</th>
                                         <th>Acc. Status</th>
-                                        <th>Percent Extra Premium (%)</th>
                                         <th>Extra Premium</th>
-                                        <th>Percent EM (%)</th>
                                         <th>EM Premium</th>
-                                        <th>EM Notes</th>
-                                        <th>UW Notes</th>
                                         <th width="1">Action</th>
                                     </tr>
                                 </thead>
@@ -429,13 +425,8 @@ $this->title = 'View Member - ' . Yii::$app->name;
                                                     endif;
                                                     ?>
                                                 </td>
-                                                <td><?= $member['percentage_extra_premium']; ?></td>
                                                 <td><?= number_format($member['extra_premium']); ?></td>
-                                                <td><?= $member['percentage_em']; ?></td>
                                                 <td><?= number_format($member['em_premium']); ?></td>
-                                                <td><?= nl2br($member['em_notes']); ?></td>
-                                                <td><?= nl2br($member['uw_notes']); ?></td>
-												
 												 
                                                 <td>
 												 
