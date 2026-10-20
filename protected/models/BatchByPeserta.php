@@ -338,7 +338,7 @@ class BatchByPeserta extends \yii\db\ActiveRecord
 			$paramsGetAllProduksi['approve'] !== ''
 		) {
 			$query->andWhere([
-				$table . '.dokument' => $paramsGetAllProduksi['approve']
+				$dokument . '.approve' => $paramsGetAllProduksi['approve']
 			]);
 		}
 
