@@ -33,6 +33,7 @@ use yii\helpers\Url;
 use app\models\BatchByPeserta;
 use app\models\map_member_dokumen_medis;
 use app\models\Cabang;
+use app\models\ReportBilling;
 /**
  * MemberController implements the CRUD actions for BatchByPeserta model.
  */
@@ -83,11 +84,11 @@ class ReportBillingController  extends Controller
 			
 		];
 
-		$totalModel = BatchByPeserta::countAllDataproduksi($paramsGetAllProduksi);
+		$totalModel = ReportBilling::countAllDataproduksi($paramsGetAllProduksi);
 
 		$pagination = new Pagination([
 			'totalCount' => $totalModel,
-			'pageSize' => BatchByPeserta::PAGE_SIZE,
+			'pageSize' => ReportBilling::PAGE_SIZE,
 			'pageSizeParam' => false,
 		]);
 
@@ -97,7 +98,7 @@ class ReportBillingController  extends Controller
 			'sort' => SORT_DESC,
 		]);
 
-		$models = BatchByPeserta::getAllProductionParticipant($paramsGetAllProduksi);
+		$models = ReportBilling::getAllProductionParticipant($paramsGetAllProduksi);
 		
 		$members = Member::getAll([
 			'policy_no' => $models->policy_no,
