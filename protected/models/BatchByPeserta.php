@@ -31,7 +31,7 @@ class BatchByPeserta extends \yii\db\ActiveRecord
     const STATUS_PENDING = 'PENDING';
     const STATUS_CLOSED = 'CLOSED';
 
-    const PAGE_SIZE = 10;
+    const PAGE_SIZE = 20;
 
     /**
      * {@inheritdoc}
