@@ -105,7 +105,7 @@ $this->title = 'Data Produksi - ' . Yii::$app->name;
                         <thead>
                             <tr>
                                 <th width="1">No</th>
-                                <th>Policy No</th>
+								<th>Produk</th>
 								<th>Batch No</th>
 								<th>Nama Peserta</th>
 								<th>Tanggal Lahir</th>
@@ -128,7 +128,7 @@ $this->title = 'Data Produksi - ' . Yii::$app->name;
                             ?>
                                     <tr>
                                         <td><?= $i; ?></td>
-                                        <td><?= $model['policy_no']; ?></td>
+										  <td><?= $model['produk']; ?></td>
                                         <td><?= $model['batch_no']; ?></td>
 										<td><?= $model['nama']; ?></td>
 										<td><?= $model['tgl_lahir']; ?></td>
