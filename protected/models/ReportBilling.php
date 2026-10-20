@@ -441,8 +441,8 @@ class ReportBilling extends \yii\db\ActiveRecord
 				'total_pengajuan' => new \yii\db\Expression(
 					'COUNT(DISTINCT m.id)'
 				),
-				'disetujui' => new \yii\db\Expression(
-					"SUM(CASE WHEN LOWER(m.status) = 'disetujui'
+				'Inforce' => new \yii\db\Expression(
+					"SUM(CASE WHEN LOWER(m.status) = 'Inforce'
 					THEN 1 ELSE 0 END)"
 				),
 				'pending' => new \yii\db\Expression(
