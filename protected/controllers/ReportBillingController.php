@@ -104,11 +104,18 @@ class ReportBillingController  extends Controller
 			'policy_no' => $models->policy_no,
 			'batch_no' => $models->batch_no,
 		]);
+		
+		
+		
+		$summary =ReportBilling::getSummaryProduction($paramsGetAllProduksi);
+
+
 
 		return $this->render('index', [
 			'models' => $models,
 			'pagination' => $pagination,
 			'members' => $members,
+			'summary' => $summary,
 		]);
 	}
 
