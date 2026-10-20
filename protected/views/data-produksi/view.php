@@ -400,7 +400,7 @@ $this->title = 'View Member - ' . Yii::$app->name;
                                                 }
                                                 ?>>
                                                 <td><?= $i; ?></td>
-												 <td><?= $member['pekerjaan']; ?></td>
+												 <td><?= $member['produk']; ?></td>
 												 <td><?= $member['id_loan']; ?></td>
                                                 <td><?= $member['member_no']; ?></td>
                                                 <td><?= $member['nama']; ?></td>
