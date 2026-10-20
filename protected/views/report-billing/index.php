@@ -320,7 +320,7 @@ $filters = [
             <div class="card-box">
                 <div class="row align-items-center">
                     <div class="col-8">
-                        <p class="text-muted mb-1">Ditolak</p>
+                        <p class="text-muted mb-1">Cancel</p>
                         <h3 class="mb-0 text-danger">
                             <?= $formatNumber($ditolak) ?>
                         </h3>
