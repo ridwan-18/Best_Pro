@@ -344,7 +344,7 @@ class BatchByPeserta extends \yii\db\ActiveRecord
 		) {
 			// Catatan: filter ini memerlukan JOIN tabel user.
 			$query->andWhere([
-				$cabangTable . '.user' => $paramsGetAllProduksi['nama_kantor']
+				$cabangTable . '.nama_kantor' => $paramsGetAllProduksi['nama_kantor']
 			]);
 		}
 
