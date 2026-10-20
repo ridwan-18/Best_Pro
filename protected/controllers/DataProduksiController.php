@@ -78,6 +78,8 @@ class DataProduksiController  extends Controller
 			'end_date' => Yii::$app->request->get('end_date'),
 			'id_loan' => Yii::$app->request->get('id_loan'),
 			'nama_kantor' => Yii::$app->request->get('nama_kantor'),
+			'approve' => Yii::$app->request->get('approve'),
+			'nama' => Yii::$app->request->get('nama'),
 			
 		];
 

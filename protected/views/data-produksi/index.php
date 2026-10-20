@@ -22,6 +22,18 @@ $this->title = 'Data Produksi - ' . Yii::$app->name;
                 <div class="modal-body">
                     <?= Html::beginForm(['data-produksi/index'], 'get', ['id' => 'member-search-form']) ?>
                     <div class="row">
+					
+					
+					<div class="col-md-6">
+                            <div class="form-group">
+                                <label for="nama">Nama</label>
+                                <?= Html::input('text', 'nama', Yii::$app->request->get('nama'), [
+                                    'class' => 'form-control',
+                                    'id' => 'nama',
+                                ]) ?>
+                            </div>
+                        </div>
+					
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label for="status">Status Kepesertaan</label>
@@ -31,6 +43,18 @@ $this->title = 'Data Produksi - ' . Yii::$app->name;
                                 ]) ?>
                             </div>
                         </div>
+						
+						 <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="approve">Status Dokument</label>
+                                <?= Html::input('text', 'approve', Yii::$app->request->get('approve'), [
+                                    'class' => 'form-control',
+                                    'id' => 'approve',
+                                ]) ?>
+                            </div>
+                        </div>
+						
+						
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label for="batch_no">Batch No</label>
@@ -51,6 +75,7 @@ $this->title = 'Data Produksi - ' . Yii::$app->name;
                             ]) ?>
                         </div>
                     </div>
+					
                     <div class="col-md-6">
                         <div class="form-group">
                             <label for="end_date">End Date</label>

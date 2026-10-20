@@ -323,6 +323,24 @@ class BatchByPeserta extends \yii\db\ActiveRecord
 				$table . '.status' => $paramsGetAllProduksi['status']
 			]);
 		}
+		
+		if (
+			isset($paramsGetAllProduksi['nama']) &&
+			$paramsGetAllProduksi['nama'] !== ''
+		) {
+			$query->andWhere([
+				$table . '.nama' => $paramsGetAllProduksi['nama']
+			]);
+		}
+		
+		if (
+			isset($paramsGetAllProduksi['approve']) &&
+			$paramsGetAllProduksi['approve'] !== ''
+		) {
+			$query->andWhere([
+				$table . '.approve' => $paramsGetAllProduksi['approve']
+			]);
+		}
 
 		/*
 		 * Filter ID Loan
