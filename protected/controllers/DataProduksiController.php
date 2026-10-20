@@ -77,7 +77,7 @@ class DataProduksiController  extends Controller
 			'start_date' => Yii::$app->request->get('start_date'),
 			'end_date' => Yii::$app->request->get('end_date'),
 			'id_loan' => Yii::$app->request->get('id_loan'),
-			'username' => Yii::$app->request->get('username'),
+			'nama_kantor' => Yii::$app->request->get('nama_kantor'),
 			
 		];
 

@@ -31,7 +31,15 @@ $this->title = 'Data Produksi - ' . Yii::$app->name;
                                 ]) ?>
                             </div>
                         </div>
-                     
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="batch_no">Batch No</label>
+                                <?= Html::input('text', 'batch_no', Yii::$app->request->get('batch_no'), [
+                                    'class' => 'form-control',
+                                    'id' => 'batch_no',
+                                ]) ?>
+                            </div>
+                        </div>
 						
 						
 						<div class="col-md-6">
@@ -53,7 +61,6 @@ $this->title = 'Data Produksi - ' . Yii::$app->name;
                         </div>
                     </div>
 						
-					
 						
 					 <div class="col-md-6">
                             <div class="form-group">
