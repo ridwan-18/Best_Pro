@@ -22,7 +22,7 @@ $username = $identity->username;
             src="<?= $baseUrl ?>/theme/assets/images/logo.png"
             alt="Logo"
             height="35"
-            style="opacity: 0.5;"
+            style="opacity: 0.2;"
         >
     </a>
 </div>
