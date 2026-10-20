@@ -201,12 +201,14 @@ $username = $identity->username;
 
                                 <?php if ($role == User::ROLE_SUPERADMIN): ?>
 
-                                    <a class="dropdown-item" href="<?= $baseUrl ?>/report-billing">
-                                        Billing
-                                    </a>
+                                  
 
                                     <a class="dropdown-item" href="<?= $baseUrl ?>/data-produksi">
                                         Data Produksi
+                                    </a>
+									
+									  <a class="dropdown-item" href="<?= $baseUrl ?>/report-billing">
+                                        Summary Produksi
                                     </a>
 
                                     <a class="dropdown-item" href="<?= $baseUrl ?>/restitusi">
@@ -217,9 +219,6 @@ $username = $identity->username;
                                         Member Claim
                                     </a>
 									
-									 <a class="dropdown-item" href="<?= $baseUrl ?>/summary-produksi">
-                                        Summary Produksi
-                                    </a>
 
                                 <?php else: ?>
 
