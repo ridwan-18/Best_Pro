@@ -135,13 +135,6 @@ $this->title = 'Data Produksi - ' . Yii::$app->name;
 								<th>Nama Peserta</th>
 								<th>Tanggal Lahir</th>
                                 <th>Nomor Peserta</th>
-                                <th>Start Date</th>
-                                <th>End Date</th>
-								<th>Premi</th>
-								<th>Uang Pertanggungan</th>
-								<th>Status Peserta</th>
-								<th>Status Dokument</th>
-								<th>User</th>
 								<th width="1">Action</th>
                             </tr>
                         </thead>
@@ -158,13 +151,7 @@ $this->title = 'Data Produksi - ' . Yii::$app->name;
 										<td><?= $model['nama']; ?></td>
 										<td><?= $model['tgl_lahir']; ?></td>
 										 <td><?= $model['member_no']; ?></td>
-										 <td><?= Utils::convertDateTodMy($model['start_date']); ?></td>
-										 <td><?= Utils::convertDateTodMy($model['end_date']); ?></td>
-										 <td><?= number_format($model['gross_premium']); ?></td>
-										 <td><?= number_format($model['sum_insured']); ?></td>
-										<td><?= $model['status']; ?></td>
-										<td><?= $model['approve']; ?></td>
-										<td><?= $model['nama_kantor']; ?></td>
+										
 										 <td>
                                             <div class="btn-group mb-2">
                                                 <?= Html::a(
