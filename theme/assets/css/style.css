@@ -6112,10 +6112,13 @@ table.nowrap td  {
 }
 
 .navbar-nav .nav-link {
+    font-family: "Inter", sans-serif;
     color: #fcfdff !important;
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 500;
     padding: 22px 15px;
+    letter-spacing: 0.2px;
+    transition: color 0.2s ease;
 }
 
 .navbar-nav .nav-link:hover {
