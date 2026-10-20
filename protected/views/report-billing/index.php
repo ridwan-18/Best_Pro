@@ -111,7 +111,7 @@ $this->title = 'Data Produksi - ' . Yii::$app->name;
     </div>
     <div class="row mb-4">
         <div class="col-md-6">
-            <h2 class="p-0 m-0">Data Produksi</h2>
+            <h2 class="p-0 m-0">Summary Produksi</h2>
         </div>
         <div class="col-md-6 text-right">
             <?= Html::a('<i class="fa fa-search"></i> Search', 'javascript:void(0)', [
@@ -130,11 +130,12 @@ $this->title = 'Data Produksi - ' . Yii::$app->name;
                         <thead>
                             <tr>
                                 <th width="1">No</th>
-								<th>Produk</th>
-								<th>Batch No</th>
-								<th>Nama Peserta</th>
-								<th>Tanggal Lahir</th>
-                                <th>Nomor Peserta</th>
+								<th>Total Pengajuan</th>
+								<th>Disetujui</th>
+								<th>Pending</th>
+								<th>Ditolak</th>
+                                <th>Total Gross Premium</th>
+								  th>Total net premium</th>
 								<th width="1">Action</th>
                             </tr>
                         </thead>
@@ -151,6 +152,7 @@ $this->title = 'Data Produksi - ' . Yii::$app->name;
 										<td><?= $model['nama']; ?></td>
 										<td><?= $model['tgl_lahir']; ?></td>
 										 <td><?= $model['member_no']; ?></td>
+										 	 <td><?= $model['member_no']; ?></td>
 										
 										 <td>
                                             <div class="btn-group mb-2">
