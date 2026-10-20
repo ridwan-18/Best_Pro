@@ -12,7 +12,7 @@ $request = Yii::$app->request;
 $totalPengajuan = (int) ($summary['total_pengajuan'] ?? 0);
 $disetujui = (int) ($summary['Inforce'] ?? 0);
 $pending = (int) ($summary['pending'] ?? 0);
-$ditolak = (int) ($summary['ditolak'] ?? 0);
+$ditolak = (int) ($summary['cancel'] ?? 0);
 
 $totalGrossPremium = (float) ($summary['total_gross_premium'] ?? 0);
 $totalNetPremium = (float) ($summary['total_net_premium'] ?? 0);

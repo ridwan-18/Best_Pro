@@ -449,8 +449,8 @@ class ReportBilling extends \yii\db\ActiveRecord
 					"SUM(CASE WHEN LOWER(m.status) = 'pending'
 					THEN 1 ELSE 0 END)"
 				),
-				'ditolak' => new \yii\db\Expression(
-					"SUM(CASE WHEN LOWER(m.status) = 'ditolak'
+				'cancel' => new \yii\db\Expression(
+					"SUM(CASE WHEN LOWER(m.status) = 'cancel'
 					THEN 1 ELSE 0 END)"
 				),
 				'total_gross_premium' => new \yii\db\Expression(
