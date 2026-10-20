@@ -216,19 +216,15 @@ $username = $identity->username;
                                     <a class="dropdown-item" href="<?= $baseUrl ?>/member-claim">
                                         Member Claim
                                     </a>
+									
+									 <a class="dropdown-item" href="<?= $baseUrl ?>/data-produksi">
+                                        Summary Produksi
+                                    </a>
 
                                 <?php else: ?>
 
                                     <a class="dropdown-item" href="<?= $baseUrl ?>/data-produksi">
                                         Data Produksi
-                                    </a>
-
-                                <?php endif; ?>
-								
-								  <?php else: ?>
-
-                                    <a class="dropdown-item" href="<?= $baseUrl ?>/data-produksi">
-                                        Summary Produksi
                                     </a>
 
                                 <?php endif; ?>
