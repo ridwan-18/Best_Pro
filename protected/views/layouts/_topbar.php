@@ -224,6 +224,14 @@ $username = $identity->username;
                                     </a>
 
                                 <?php endif; ?>
+								
+								  <?php else: ?>
+
+                                    <a class="dropdown-item" href="<?= $baseUrl ?>/data-produksi">
+                                        Summary Produksi
+                                    </a>
+
+                                <?php endif; ?>
 
                             </div>
                         </li>
