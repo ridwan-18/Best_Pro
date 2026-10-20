@@ -16,16 +16,15 @@ $username = $identity->username;
     <div class="container-fluid">
 
         <!-- Logo -->
-    <div class="col-lg-2 col-md-2 col-sm-12 p-0">
-    <a class="navbar-brand" href="<?= $baseUrl ?>/">
-        <img
-            src="<?= $baseUrl ?>/theme/assets/images/logo.png"
-            alt="Logo"
-            height="35"
-            style="opacity: 0.2;"
-        >
-    </a>
-</div>
+        <div class="col-lg-2 col-md-2 col-sm-12 p-0">
+            <a class="navbar-brand" href="<?= $baseUrl ?>/">
+                <img
+                    src="<?= $baseUrl ?>/theme/assets/images/logo.png"
+                    alt="Logo"
+                    height="35"
+                >
+            </a>
+        </div>
 
         <!-- Menu -->
         <div class="col-lg-8 col-md-8 col-sm-12 p-0">
