@@ -10,7 +10,7 @@ $this->title = 'Summary Produksi - ' . Yii::$app->name;
 $request = Yii::$app->request;
 
 $totalPengajuan = (int) ($summary['total_pengajuan'] ?? 0);
-$disetujui = (int) ($summary['disetujui'] ?? 0);
+$disetujui = (int) ($summary['Inforce'] ?? 0);
 $pending = (int) ($summary['pending'] ?? 0);
 $ditolak = (int) ($summary['ditolak'] ?? 0);
 
