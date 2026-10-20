@@ -1,4 +1,4 @@
-```php
+
 <?php
 
 use app\models\User;
@@ -12,7 +12,7 @@ $role = $identity->role;
 $username = $identity->username;
 ?>
 
-<nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+<nav class="navbar navbar-expand-lg navbar-light bg-black shadow-sm">
     <div class="container-fluid">
 
         <!-- Logo -->
@@ -343,4 +343,3 @@ $username = $identity->username;
 
     </div>
 </nav>
-```
