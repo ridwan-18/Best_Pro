@@ -339,12 +339,12 @@ class BatchByPeserta extends \yii\db\ActiveRecord
 		 * Filter Username
 		 */
 		if (
-			isset($paramsGetAllProduksi['username']) &&
-			$paramsGetAllProduksi['username'] !== ''
+			isset($paramsGetAllProduksi['nama_kantor']) &&
+			$paramsGetAllProduksi['nama_kantor'] !== ''
 		) {
 			// Catatan: filter ini memerlukan JOIN tabel user.
 			$query->andWhere([
-				$userTable . '.username' => $paramsGetAllProduksi['username']
+				$cabangTable . '.nama_kantor' => $paramsGetAllProduksi['nama_kantor']
 			]);
 		}
 

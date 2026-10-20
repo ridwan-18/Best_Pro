@@ -31,15 +31,7 @@ $this->title = 'Data Produksi - ' . Yii::$app->name;
                                 ]) ?>
                             </div>
                         </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="batch_no">Batch No</label>
-                                <?= Html::input('text', 'batch_no', Yii::$app->request->get('batch_no'), [
-                                    'class' => 'form-control',
-                                    'id' => 'batch_no',
-                                ]) ?>
-                            </div>
-                        </div>
+                     
 						
 						
 						<div class="col-md-6">
@@ -62,22 +54,13 @@ $this->title = 'Data Produksi - ' . Yii::$app->name;
                     </div>
 						
 					
-					 <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="id_loan">ID Loan</label>
-                                <?= Html::input('text', 'id_loan', Yii::$app->request->get('id_loan'), [
-                                    'class' => 'form-control',
-                                    'id' => 'id_loan',
-                                ]) ?>
-                            </div>
-                        </div>
 						
 					 <div class="col-md-6">
                             <div class="form-group">
-                                <label for="username">Cabang</label>
-                                <?= Html::input('text', 'username', Yii::$app->request->get('username'), [
+                                <label for="nama_kantor">Cabang</label>
+                                <?= Html::input('text', 'nama_kantor', Yii::$app->request->get('nama_kantor'), [
                                     'class' => 'form-control',
-                                    'id' => 'username',
+                                    'id' => 'nama_kantor',
                                 ]) ?>
                             </div>
                         </div>	

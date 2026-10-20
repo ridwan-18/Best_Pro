@@ -1428,9 +1428,9 @@ class PengajuanController extends Controller
 			$member->total_si = $plafonPertanggungan;
 			$member->total_premium = $nettPremium;
 			$member->rate_premi = $ratePolis;
-			$member->gross_premium = $nettPremium;
-			$member->basic_premium = $nettPremium;
-			$member->nett_premium = $nettPremium;
+			// $member->gross_premium = $nettPremium;
+			// $member->basic_premium = $nettPremium;
+			// $member->nett_premium = $nettPremium;
 			$member->medical_code = $medicalCode;
 			$member->status ='Inforce';
 			$member->member_status ='Inforce';
