@@ -217,7 +217,7 @@ $username = $identity->username;
                                         Member Claim
                                     </a>
 									
-									 <a class="dropdown-item" href="<?= $baseUrl ?>/data-produksi">
+									 <a class="dropdown-item" href="<?= $baseUrl ?>/summary-produksi">
                                         Summary Produksi
                                     </a>
 
