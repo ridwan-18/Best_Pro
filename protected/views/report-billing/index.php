@@ -452,8 +452,9 @@ $filters = [
 
 
 
+
 <style>
-    /* Semua teks Summary Produksi */
+    /* Semua teks Summary Produksi: putih dan tebal */
     .summary-produksi-index,
     .summary-produksi-index h1,
     .summary-produksi-index h2,
@@ -465,50 +466,83 @@ $filters = [
     .summary-produksi-index th,
     .summary-produksi-index td,
     .summary-produksi-index strong,
-    .summary-produksi-index .text-muted {
+    .summary-produksi-index .text-muted,
+    .summary-produksi-index a,
+    .summary-produksi-index span {
         color: #ffffff !important;
+        font-weight: 700 !important;
     }
 
     /* Teks modal filter */
     #search-modal .modal-title,
     #search-modal .modal-body,
-    #search-modal .modal-body label {
+    #search-modal .modal-body label,
+    #search-modal .modal-header .close {
         color: #ffffff !important;
+        font-weight: 700 !important;
+    }
+
+    /* Input filter */
+    #search-modal .form-control {
+        color: #ffffff !important;
+        background-color: #343a40 !important;
+        border-color: #6c757d !important;
+        font-weight: 700 !important;
     }
 
     /* Placeholder input */
-    #search-modal .form-control {
-        color: #ffffff !important;
-        background-color: #343a40;
-        border-color: #6c757d;
-    }
-
     #search-modal .form-control::placeholder {
         color: #cccccc !important;
         opacity: 1;
+        font-weight: 700 !important;
     }
 
     /* Dropdown filter */
     #search-modal select option {
-        color: #ffffff;
-        background-color: #343a40;
+        color: #ffffff !important;
+        background-color: #343a40 !important;
+        font-weight: 700 !important;
     }
 
     /* Header tabel */
     .summary-produksi-index .thead-light th {
         color: #ffffff !important;
         background-color: #343a40 !important;
+        font-weight: 700 !important;
     }
 
-    /* Border tabel */
-    .summary-produksi-index .table-bordered th,
-    .summary-produksi-index .table-bordered td {
+    /* Isi dan border tabel */
+    .summary-produksi-index .table th,
+    .summary-produksi-index .table td {
+        color: #ffffff !important;
+        font-weight: 700 !important;
         border-color: #666666 !important;
+    }
+
+    /* Angka status */
+    .summary-produksi-index .text-success,
+    .summary-produksi-index .text-warning,
+    .summary-produksi-index .text-danger,
+    .summary-produksi-index .text-primary {
+        color: #ffffff !important;
+        font-weight: 700 !important;
+    }
+
+    /* Ikon */
+    .summary-produksi-index i {
+        font-weight: 700 !important;
     }
 
     /* Tombol close modal */
     #search-modal .close {
         color: #ffffff !important;
-        opacity: 1;
+        opacity: 1 !important;
+        font-weight: 700 !important;
+    }
+
+    /* Tombol filter dan detail */
+    .summary-produksi-index .btn {
+        font-weight: 700 !important;
     }
 </style>
+
