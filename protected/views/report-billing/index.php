@@ -236,9 +236,7 @@ $filters = [
     <div class="row mb-4">
         <div class="col-md-6">
             <h2 class="m-0">Summary Produksi</h2>
-            <p class="text-muted mt-1">
-                Ringkasan produksi peserta asuransi
-            </p>
+           
         </div>
 
         <div class="col-md-6 text-right">
@@ -544,5 +542,30 @@ $filters = [
     .summary-produksi-index .btn {
         font-weight: 700 !important;
     }
+	
+	
+	
+/* Garis tabel dibuat lebih tebal dan jelas */
+.summary-produksi-index .table-bordered {
+    border: 2px solid #ffffff !important;
+    border-collapse: collapse !important;
+}
+
+.summary-produksi-index .table-bordered th,
+.summary-produksi-index .table-bordered td {
+    border: 2px solid #ffffff !important;
+}
+
+/* Garis bagian header dan footer */
+.summary-produksi-index .table-bordered thead th,
+.summary-produksi-index .table-bordered tfoot th {
+    border: 2px solid #ffffff !important;
+}
+
+/* Garis tetap terlihat pada hover */
+.summary-produksi-index .table-hover tbody tr:hover td {
+    border-color: #ffffff !important;
+}
+
 </style>
 
