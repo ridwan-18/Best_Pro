@@ -449,3 +449,66 @@ $filters = [
     </div>
 
 </div>
+
+
+
+<style>
+    /* Semua teks Summary Produksi */
+    .summary-produksi-index,
+    .summary-produksi-index h1,
+    .summary-produksi-index h2,
+    .summary-produksi-index h3,
+    .summary-produksi-index h4,
+    .summary-produksi-index h5,
+    .summary-produksi-index p,
+    .summary-produksi-index label,
+    .summary-produksi-index th,
+    .summary-produksi-index td,
+    .summary-produksi-index strong,
+    .summary-produksi-index .text-muted {
+        color: #ffffff !important;
+    }
+
+    /* Teks modal filter */
+    #search-modal .modal-title,
+    #search-modal .modal-body,
+    #search-modal .modal-body label {
+        color: #ffffff !important;
+    }
+
+    /* Placeholder input */
+    #search-modal .form-control {
+        color: #ffffff !important;
+        background-color: #343a40;
+        border-color: #6c757d;
+    }
+
+    #search-modal .form-control::placeholder {
+        color: #cccccc !important;
+        opacity: 1;
+    }
+
+    /* Dropdown filter */
+    #search-modal select option {
+        color: #ffffff;
+        background-color: #343a40;
+    }
+
+    /* Header tabel */
+    .summary-produksi-index .thead-light th {
+        color: #ffffff !important;
+        background-color: #343a40 !important;
+    }
+
+    /* Border tabel */
+    .summary-produksi-index .table-bordered th,
+    .summary-produksi-index .table-bordered td {
+        border-color: #666666 !important;
+    }
+
+    /* Tombol close modal */
+    #search-modal .close {
+        color: #ffffff !important;
+        opacity: 1;
+    }
+</style>
