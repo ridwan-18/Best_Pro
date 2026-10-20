@@ -135,7 +135,7 @@ $this->title = 'Data Produksi - ' . Yii::$app->name;
 								<th>Pending</th>
 								<th>Ditolak</th>
                                 <th>Total Gross Premium</th>
-								  th>Total net premium</th>
+								  <th>Total net premium</th>
 								<th width="1">Action</th>
                             </tr>
                         </thead>
