@@ -710,6 +710,13 @@ $this->title = 'View Member - ' . Yii::$app->name;
                     <?php if (!empty($filecbc)): ?>
 
                         <?php foreach ($filecbc as $cd): ?>
+						
+						<?php
+echo '<pre>';
+var_dump($cd['no_ktp'] ?? null);
+var_dump($member['no_ktp'] ?? null);
+echo '</pre>';
+?>
 
                             <?php
                             // NIK dari data CBC
