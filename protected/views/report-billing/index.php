@@ -663,7 +663,7 @@ $filters = [
                 <div class="premium-summary-content">
                     <span>Total Nett Premium</span>
                     <strong><?= $formatRupiah($totalNetPremium) ?></strong>
-                    <small>Premi bersih / dibayarkan</small>
+                    <small>Premi gross + extra premi</small>
                 </div>
             </div>
         </div>
@@ -826,7 +826,7 @@ $filters = [
                         </li>
                         <li>
                             Gross Premium dan Net Premium mengikuti
-                            hasil perhitungan pada controller.
+                            hasil filter.
                         </li>
                     </ul>
 
