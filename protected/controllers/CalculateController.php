@@ -406,14 +406,14 @@ class CalculateController extends Controller
 			];
 		}
 		
-		$quotationUwLimit = QuotationUwLimit::find()
-						->where(['quotation_id' => $policybyproduk->quotation_id])
-						->andWhere(['<=', 'min_age', $age])
-						->andWhere(['>=', 'max_age', $age])
-						->andWhere(['<=', 'min_si', $uangPertanggungan])
-						->andWhere(['>=', 'max_si', $uangPertanggungan])
-						->one();
-		$medicalCode = $quotationUwLimit->medical_code;				
+		// $quotationUwLimit = QuotationUwLimit::find()
+						// ->where(['quotation_id' => $policybyproduk->quotation_id])
+						// ->andWhere(['<=', 'min_age', $age])
+						// ->andWhere(['>=', 'max_age', $age])
+						// ->andWhere(['<=', 'min_si', $uangPertanggungan])
+						// ->andWhere(['>=', 'max_si', $uangPertanggungan])
+						// ->one();
+		// $medicalCode = $quotationUwLimit->medical_code;				
 
 		$term = (int)$tenor;
 
@@ -471,7 +471,7 @@ class CalculateController extends Controller
 				'asuransi_jiwa' => [
 					'premi' => (string)$roundPremi,
 					'rate' => $rate,
-					'medicalCode' => $medicalCode
+					// 'medicalCode' => $medicalCode
 				]
 			]
 		];
