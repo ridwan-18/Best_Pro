@@ -530,6 +530,144 @@ $filters = [
     </div>
 
 
+
+    <!-- ======================================================
+         DASHBOARD GRAFIK
+    ======================================================= -->
+    <?php
+    $statusTotal = max(1, $totalPengajuan);
+    $persenInforce = min(100, round(($disetujui / $statusTotal) * 100, 1));
+    $persenPending = min(100, round(($pending / $statusTotal) * 100, 1));
+    $persenCancel = min(100, round(($ditolak / $statusTotal) * 100, 1));
+
+    $premiumMax = max(1, $totalGrossPremium, $extra_premium, $totalNetPremium);
+    $grossWidth = min(100, round(($totalGrossPremium / $premiumMax) * 100, 1));
+    $extraWidth = min(100, round(($extra_premium / $premiumMax) * 100, 1));
+    $netWidth = min(100, round(($totalNetPremium / $premiumMax) * 100, 1));
+    ?>
+
+    <div class="row dashboard-charts">
+        <div class="col-lg-6 col-md-12">
+            <div class="card-box dashboard-panel">
+                <div class="dashboard-panel-heading">
+                    <div>
+                        <h4 class="header-title"><i class="fa fa-pie-chart"></i> Komposisi Status Pengajuan</h4>
+                        <p class="dashboard-muted">Ringkasan status berdasarkan data hasil filter.</p>
+                    </div>
+                </div>
+
+                <div class="status-chart-layout">
+                    <div class="status-donut"
+                         style="--inforce: <?= $persenInforce ?>; --pending: <?= $persenPending ?>; --cancel: <?= $persenCancel ?>;">
+                        <div class="status-donut-center">
+                            <strong><?= $formatNumber($totalPengajuan) ?></strong>
+                            <span>Total Pengajuan</span>
+                        </div>
+                    </div>
+
+                    <div class="status-legend">
+                        <div class="legend-item">
+                            <span class="legend-dot dot-inforce"></span>
+                            <span>Disetujui / Inforce</span>
+                            <strong><?= $formatNumber($disetujui) ?></strong>
+                            <small><?= $persenInforce ?>%</small>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-dot dot-pending"></span>
+                            <span>Pending</span>
+                            <strong><?= $formatNumber($pending) ?></strong>
+                            <small><?= $persenPending ?>%</small>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-dot dot-cancel"></span>
+                            <span>Cancel</span>
+                            <strong><?= $formatNumber($ditolak) ?></strong>
+                            <small><?= $persenCancel ?>%</small>
+                        </div>
+                    </div>
+                </div>
+                <p class="dashboard-chart-note">Persentase dihitung dari Total Pengajuan.</p>
+            </div>
+        </div>
+
+        <div class="col-lg-6 col-md-12">
+            <div class="card-box dashboard-panel">
+                <div class="dashboard-panel-heading">
+                    <div>
+                        <h4 class="header-title"><i class="fa fa-bar-chart"></i> Perbandingan Premi</h4>
+                        <p class="dashboard-muted">Perbandingan nilai premi dalam Rupiah.</p>
+                    </div>
+                </div>
+
+                <div class="premium-chart">
+                    <div class="premium-chart-item">
+                        <div class="premium-chart-label">
+                            <span><i class="premium-dot gross-dot"></i> Gross Premium</span>
+                            <strong><?= $formatRupiah($totalGrossPremium) ?></strong>
+                        </div>
+                        <div class="premium-track">
+                            <div class="premium-bar gross-bar" style="width: <?= $grossWidth ?>%;"></div>
+                        </div>
+                    </div>
+
+                    <div class="premium-chart-item">
+                        <div class="premium-chart-label">
+                            <span><i class="premium-dot extra-dot"></i> Extra Premium</span>
+                            <strong><?= $formatRupiah($extra_premium) ?></strong>
+                        </div>
+                        <div class="premium-track">
+                            <div class="premium-bar extra-bar" style="width: <?= $extraWidth ?>%;"></div>
+                        </div>
+                    </div>
+
+                    <div class="premium-chart-item">
+                        <div class="premium-chart-label">
+                            <span><i class="premium-dot net-dot"></i> Net Premium / Dibayarkan</span>
+                            <strong><?= $formatRupiah($totalNetPremium) ?></strong>
+                        </div>
+                        <div class="premium-track">
+                            <div class="premium-bar net-bar" style="width: <?= $netWidth ?>%;"></div>
+                        </div>
+                    </div>
+                </div>
+                <p class="dashboard-chart-note">Panjang batang dibandingkan dengan nilai premi terbesar pada ringkasan ini.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="row dashboard-premium-cards">
+        <div class="col-lg-4 col-md-4 col-sm-12">
+            <div class="premium-summary-card gross-summary">
+                <div class="premium-summary-icon"><i class="fa fa-money"></i></div>
+                <div class="premium-summary-content">
+                    <span>Total Gross Premium</span>
+                    <strong><?= $formatRupiah($totalGrossPremium) ?></strong>
+                    <small>Premi bruto</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 col-md-4 col-sm-12">
+            <div class="premium-summary-card extra-summary">
+                <div class="premium-summary-icon"><i class="fa fa-plus-circle"></i></div>
+                <div class="premium-summary-content">
+                    <span>Total Extra Premium</span>
+                    <strong><?= $formatRupiah($extra_premium) ?></strong>
+                    <small>Premi tambahan</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 col-md-4 col-sm-12">
+            <div class="premium-summary-card net-summary">
+                <div class="premium-summary-icon"><i class="fa fa-credit-card"></i></div>
+                <div class="premium-summary-content">
+                    <span>Total Premium Dibayarkan</span>
+                    <strong><?= $formatRupiah($totalNetPremium) ?></strong>
+                    <small>Premi bersih / dibayarkan</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- ======================================================
          TABEL REPORTING
     ======================================================= -->
@@ -1116,4 +1254,198 @@ $filters = [
     }
 
 }
+
+
+/* ======================================================
+   DASHBOARD PRODUKSI
+====================================================== */
+.summary-produksi-index .dashboard-panel {
+    background: #292e33;
+    border: 1px solid #454d55;
+    border-radius: 12px;
+    min-height: 340px;
+    padding: 22px;
+}
+.summary-produksi-index .dashboard-panel-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 22px;
+}
+.summary-produksi-index .dashboard-panel .header-title {
+    margin: 0 0 8px;
+    font-size: 17px;
+}
+.summary-produksi-index .dashboard-muted,
+.summary-produksi-index .dashboard-chart-note {
+    color: #c2c8ce !important;
+    font-size: 12px;
+    margin: 0;
+}
+.summary-produksi-index .status-chart-layout {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    gap: 24px;
+    flex-wrap: wrap;
+}
+.summary-produksi-index .status-donut {
+    width: 190px;
+    height: 190px;
+    flex: 0 0 190px;
+    border-radius: 50%;
+    background: conic-gradient(
+        #25b887 0 calc(var(--inforce) * 1%),
+        #f2b84b calc(var(--inforce) * 1%) calc((var(--inforce) + var(--pending)) * 1%),
+        #e35d6a calc((var(--inforce) + var(--pending)) * 1%) 100%
+    );
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+.summary-produksi-index .status-donut:before {
+    content: "";
+    position: absolute;
+    width: 128px;
+    height: 128px;
+    border-radius: 50%;
+    background: #292e33;
+}
+.summary-produksi-index .status-donut-center {
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+.summary-produksi-index .status-donut-center strong {
+    font-size: 25px;
+    line-height: 1.3;
+}
+.summary-produksi-index .status-donut-center span {
+    color: #c2c8ce !important;
+    font-size: 11px;
+}
+.summary-produksi-index .status-legend {
+    flex: 1;
+    min-width: 190px;
+}
+.summary-produksi-index .legend-item {
+    display: grid;
+    grid-template-columns: 12px minmax(100px, 1fr) auto auto;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 0;
+    border-bottom: 1px solid #454d55;
+    font-size: 12px;
+}
+.summary-produksi-index .legend-item:last-child { border-bottom: 0; }
+.summary-produksi-index .legend-item strong { font-size: 13px; }
+.summary-produksi-index .legend-item small {
+    color: #c2c8ce !important;
+    min-width: 38px;
+    text-align: right;
+}
+.summary-produksi-index .legend-dot,
+.summary-produksi-index .premium-dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+}
+.summary-produksi-index .dot-inforce { background: #25b887; }
+.summary-produksi-index .dot-pending { background: #f2b84b; }
+.summary-produksi-index .dot-cancel { background: #e35d6a; }
+.summary-produksi-index .dashboard-chart-note { margin-top: 20px; }
+.summary-produksi-index .premium-chart { padding-top: 5px; }
+.summary-produksi-index .premium-chart-item { margin-bottom: 26px; }
+.summary-produksi-index .premium-chart-label {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 10px;
+    font-size: 12px;
+}
+.summary-produksi-index .premium-chart-label span { white-space: normal; }
+.summary-produksi-index .premium-chart-label strong {
+    text-align: right;
+    font-size: 12px;
+    overflow-wrap: anywhere;
+}
+.summary-produksi-index .premium-dot { margin-right: 7px; }
+.summary-produksi-index .gross-dot { background: #4c9aff; }
+.summary-produksi-index .extra-dot { background: #a78bfa; }
+.summary-produksi-index .net-dot { background: #25b887; }
+.summary-produksi-index .premium-track {
+    height: 12px;
+    border-radius: 20px;
+    background: #41474e;
+    overflow: hidden;
+}
+.summary-produksi-index .premium-bar {
+    height: 100%;
+    min-width: 0;
+    border-radius: 20px;
+}
+.summary-produksi-index .gross-bar { background: #4c9aff; }
+.summary-produksi-index .extra-bar { background: #a78bfa; }
+.summary-produksi-index .net-bar { background: #25b887; }
+.summary-produksi-index .dashboard-premium-cards { margin-top: 0; }
+.summary-produksi-index .premium-summary-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    min-height: 115px;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 10px;
+    border: 1px solid #454d55;
+    background: #292e33;
+}
+.summary-produksi-index .premium-summary-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    flex: 0 0 48px;
+    border-radius: 12px;
+    font-size: 22px;
+    background: #343a40;
+}
+.summary-produksi-index .gross-summary .premium-summary-icon { color: #4c9aff; }
+.summary-produksi-index .extra-summary .premium-summary-icon { color: #a78bfa; }
+.summary-produksi-index .net-summary .premium-summary-icon { color: #25b887; }
+.summary-produksi-index .premium-summary-content {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    gap: 5px;
+}
+.summary-produksi-index .premium-summary-content span {
+    color: #c2c8ce !important;
+    font-size: 12px;
+}
+.summary-produksi-index .premium-summary-content strong {
+    font-size: 18px;
+    overflow-wrap: anywhere;
+}
+.summary-produksi-index .premium-summary-content small {
+    color: #aeb6be !important;
+    font-size: 11px;
+}
+@media screen and (max-width: 767px) {
+    .summary-produksi-index .dashboard-panel { padding: 16px; }
+    .summary-produksi-index .status-donut {
+        width: 160px; height: 160px; flex-basis: 160px;
+    }
+    .summary-produksi-index .status-donut:before {
+        width: 108px; height: 108px;
+    }
+    .summary-produksi-index .premium-chart-label { flex-direction: column; gap: 5px; }
+    .summary-produksi-index .premium-chart-label strong { text-align: left; }
+}
+
 </style>
