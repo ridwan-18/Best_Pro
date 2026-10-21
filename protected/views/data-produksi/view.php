@@ -688,19 +688,6 @@ $this->title = 'View Member - ' . Yii::$app->name;
 
 
 
-<?php
-
-use yii\helpers\Html;
-use yii\helpers\Url;
-
-?>
-
-<?php if (Yii::$app->session->hasFlash('error')): ?>
-    <div class="alert alert-danger">
-        <?= Html::encode(Yii::$app->session->getFlash('error')); ?>
-    </div>
-<?php endif; ?>
-
 <div class="card-box">
     <div class="row mt-4">
         <div class="col-md-12">
