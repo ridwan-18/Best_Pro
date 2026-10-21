@@ -687,14 +687,6 @@ $this->title = 'View Member - ' . Yii::$app->name;
 
 
 
-
-
-<?php
-
-use yii\helpers\Html;
-use yii\helpers\Url;
-?>
-
 <div class="card-box">
     <div class="row mt-4">
         <div class="col-md-12">
