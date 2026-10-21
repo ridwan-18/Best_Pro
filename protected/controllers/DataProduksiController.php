@@ -1717,84 +1717,159 @@ exit;
 	
 	
 	
+	
 	public function actionDownloadDokumen()
 	{
-		if (!Yii::$app->request->isPost) {
+		$request = Yii::$app->request;
+
+		// Download wajib menggunakan POST.
+		if (!$request->isPost) {
 			throw new \yii\web\BadRequestHttpException(
 				'Request harus menggunakan POST.'
 			);
 		}
 
-		$noKtp = trim(Yii::$app->request->post('no_ktp', ''));
-		$tglBuka = trim(Yii::$app->request->post('tgl_buka', ''));
+		// Ambil parameter dari form.
+		$noKtp = trim(
+			(string) $request->post('no_ktp', '')
+		);
+
+		$tglBuka = trim(
+			(string) $request->post('tgl_buka', '')
+		);
+
+		// Validasi NIK.
+		if (!preg_match('/^[0-9]{16}$/', $noKtp)) {
+			Yii::error([
+				'error' => 'NIK tidak valid',
+				'no_ktp' => $noKtp,
+				'panjang' => strlen($noKtp),
+			], 'cbc-sftp');
+
+			throw new \yii\web\BadRequestHttpException(
+				'Nomor KTP harus terdiri dari 16 digit angka.'
+			);
+		}
+
+		// Validasi format tanggal dd-mm-yyyy.
+		if (!preg_match('/^[0-9]{2}-[0-9]{2}-[0-9]{4}$/', $tglBuka)) {
+			Yii::error([
+				'error' => 'Format tanggal tidak valid',
+				'tgl_buka' => $tglBuka,
+			], 'cbc-sftp');
+
+			throw new \yii\web\BadRequestHttpException(
+				'Tanggal dokumen harus berformat dd-mm-yyyy.'
+			);
+		}
+
+		// Pastikan tanggal benar-benar valid.
+		$tanggal = \DateTime::createFromFormat(
+			'!d-m-Y',
+			$tglBuka
+		);
+
+		$dateErrors = \DateTime::getLastErrors();
 
 		if (
-			!preg_match('/^\d{16}$/', $noKtp) ||
-			!preg_match('/^\d{2}-\d{2}-\d{4}$/', $tglBuka)
+			$tanggal === false ||
+			(
+				$dateErrors !== false &&
+				(
+					$dateErrors['warning_count'] > 0 ||
+					$dateErrors['error_count'] > 0
+				)
+			) ||
+			$tanggal->format('d-m-Y') !== $tglBuka
 		) {
 			throw new \yii\web\BadRequestHttpException(
-				'Nomor KTP atau tanggal dokumen tidak valid.'
+				'Tanggal dokumen tidak valid.'
 			);
 		}
 
-		// Format tanggal sesuai nama file Bank: ddmmyy.
-		$tanggal = \DateTime::createFromFormat('d-m-Y', $tglBuka);
-
-		if (!$tanggal || $tanggal->format('d-m-Y') !== $tglBuka) {
-			throw new \yii\web\BadRequestHttpException(
-				'Format tanggal dokumen tidak valid.'
-			);
-		}
-
+		// Konversi tanggal ke ddmmyy.
+		// Contoh: 21-10-2026 menjadi 211026.
 		$tanggalFile = $tanggal->format('dmy');
 
-		// Contoh:
-		// 1471110606590001_211026_001_2
-		$filePrefix = $noKtp . '_' . $tanggalFile . '_001_2';
+		// Susun prefix nama file Bank.
+		// Format:
+		// nik_ddmmyy_codedoc_benefit_sequence.zip
+		//
+		// Prefix tanpa sequence digunakan agar fungsi SFTP
+		// dapat mencari file dengan sequence yang sesuai.
+		$filePrefix = $noKtp . '_' .
+					  $tanggalFile . '_001_2';
 
-		// Cari file langsung dari SFTP Bank.
-		// Tidak bergantung pada kolom $cd['files'].
-		$result = $this->downloadFileFromBankSftp($filePrefix);
+		Yii::info([
+			'no_ktp' => $noKtp,
+			'tgl_buka' => $tglBuka,
+			'tanggal_file' => $tanggalFile,
+			'file_prefix' => $filePrefix,
+		], 'cbc-sftp');
 
-		if (empty($result['success'])) {
-			Yii::error(
-				'Download dokumen CBC gagal. Prefix: ' .
-				$filePrefix . '. Pesan: ' .
-				($result['message'] ?? 'Unknown error'),
-				'cbc-sftp'
-			);
+		// Cari dan download file dari SFTP Bank.
+		// Gunakan fungsi downloadFileFromBankSftp() yang
+		// sudah tersedia di controller Anda.
+		$result = $this->downloadFileFromBankSftp(
+			$filePrefix
+		);
+
+		// Periksa hasil proses SFTP.
+		if (
+			!is_array($result) ||
+			empty($result['success'])
+		) {
+			$message = is_array($result)
+				? (
+					$result['message'] ??
+					'Dokumen CBC tidak ditemukan di SFTP Bank.'
+				)
+				: 'Respons download dari SFTP tidak valid.';
+
+			Yii::error([
+				'file_prefix' => $filePrefix,
+				'message' => $message,
+			], 'cbc-sftp');
 
 			Yii::$app->session->setFlash(
 				'error',
-				$result['message'] ??
-				'Dokumen CBC tidak ditemukan di SFTP Bank.'
+				$message
 			);
 
 			return $this->redirect(
-				Yii::$app->request->referrer ?: ['index']
+				$request->referrer ?: ['index']
 			);
 		}
 
+		// Ambil lokasi file yang sudah diunduh.
 		$localPath = $result['local_path'] ?? '';
 		$fileName = $result['file_name'] ?? '';
 
+		// Pastikan file tersedia dan bisa dibaca.
 		if (
-			!$localPath ||
-			!$fileName ||
+			empty($localPath) ||
+			empty($fileName) ||
 			!is_file($localPath) ||
 			!is_readable($localPath)
 		) {
+			Yii::error([
+				'file_prefix' => $filePrefix,
+				'local_path' => $localPath,
+				'file_name' => $fileName,
+				'message' => 'File lokal tidak tersedia atau tidak terbaca.',
+			], 'cbc-sftp');
+
 			Yii::$app->session->setFlash(
 				'error',
-				'File CBC berhasil dicari, tetapi tidak dapat dibaca.'
+				'File CBC ditemukan, tetapi tidak dapat dibaca.'
 			);
 
 			return $this->redirect(
-				Yii::$app->request->referrer ?: ['index']
+				$request->referrer ?: ['index']
 			);
 		}
 
-		// Download file ZIP ke komputer pengguna.
+		// Kirim ZIP ke browser pengguna.
 		return Yii::$app->response->sendFile(
 			$localPath,
 			basename($fileName),
@@ -1804,6 +1879,7 @@ exit;
 			]
 		);
 	}
+
 
 
 

@@ -688,6 +688,13 @@ $this->title = 'View Member - ' . Yii::$app->name;
 
 
 
+
+<?php
+
+use yii\helpers\Html;
+use yii\helpers\Url;
+?>
+
 <div class="card-box">
     <div class="row mt-4">
         <div class="col-md-12">
@@ -702,7 +709,7 @@ $this->title = 'View Member - ' . Yii::$app->name;
                             <th>Keterangan</th>
                             <th>Status</th>
                             <th>Status Keterangan</th>
-                            <th>Download Dokument</th>
+                            <th>Download Dokumen</th>
                         </tr>
                     </thead>
 
@@ -712,18 +719,42 @@ $this->title = 'View Member - ' . Yii::$app->name;
 
                         <?php foreach ($filecbc as $cd): ?>
 
+                            <?php
+                            // NIK dari data CBC
+                            $noKtp = trim(
+                                (string) ($cd['no_ktp'] ?? '')
+                            );
+
+                            // Tanggal buka dari data member
+                            $tanggalBuka = '';
+
+                            if (!empty($member['start_date'])) {
+                                $timestamp = strtotime(
+                                    $member['start_date']
+                                );
+
+                                if ($timestamp !== false) {
+                                    $tanggalBuka = date(
+                                        'd-m-Y',
+                                        $timestamp
+                                    );
+                                }
+                            }
+                            ?>
+
                             <tr>
                                 <td>CBC</td>
 
                                 <td>
                                     <?php if (!empty($cd['files'])): ?>
 
-                                        <a
-                                            download
-                                            href="<?= Yii::$app->request->baseUrl . '/protected/runtime/cbc/' . $cd['files']; ?>"
-                                        >
-                                            <?= Html::encode($cd['files']); ?>
-                                        </a>
+                                        <?= Html::a(
+                                            Html::encode($cd['files']),
+                                            Yii::$app->request->baseUrl .
+                                            '/protected/runtime/cbc/' .
+                                            rawurlencode($cd['files']),
+                                            ['download' => true]
+                                        ); ?>
 
                                     <?php else: ?>
 
@@ -743,15 +774,20 @@ $this->title = 'View Member - ' . Yii::$app->name;
                                             'approve' => 'Approve',
                                             'DITOLAK' => 'DITOLAK',
                                             'diproses' => 'DIPROSES',
-                                            'menunggu' => 'Menunggu kelengkapan dokumen',
+                                            'menunggu' =>
+                                                'Menunggu kelengkapan dokumen',
                                         ],
                                         [
-                                            'class' => 'form-control action-dropdown',
+                                            'class' =>
+                                                'form-control action-dropdown',
+
                                             'data-url' => Url::to([
                                                 'data-produksi/approvedoc',
                                                 'id_loan' => $cd['id_loan'],
                                             ]),
-                                            'data-id-loan' => $cd['id_loan'],
+
+                                            'data-id-loan' =>
+                                                $cd['id_loan'],
                                         ]
                                     ); ?>
                                 </td>
@@ -761,8 +797,12 @@ $this->title = 'View Member - ' . Yii::$app->name;
                                         'keterangan',
                                         '',
                                         [
-                                            'class' => 'form-control keterangan-input',
-                                            'placeholder' => 'Masukkan keterangan',
+                                            'class' =>
+                                                'form-control keterangan-input',
+
+                                            'placeholder' =>
+                                                'Masukkan keterangan',
+
                                             'autocomplete' => 'off',
                                         ]
                                     ); ?>
@@ -785,40 +825,33 @@ $this->title = 'View Member - ' . Yii::$app->name;
                                         ['data-produksi/download-dokumen'],
                                         'post',
                                         [
-                                            'style' => 'display:inline-block;',
+                                            'style' =>
+                                                'display:inline-block;',
                                         ]
                                     ); ?>
 
-                                        <?= Html::hiddenInput(
-                                            'no_ktp',
-                                            $cd['no_ktp'] ?? ''
-                                        ); ?>
+                                    <?= Html::hiddenInput(
+                                        'no_ktp',
+                                        $noKtp
+                                    ); ?>
 
-                                        <?php
-										$tanggalBuka = '';
+                                    <?= Html::hiddenInput(
+                                        'tgl_buka',
+                                        $tanggalBuka
+                                    ); ?>
 
-										if (!empty($member['start_date'])) {
-											$timestamp = strtotime($member['start_date']);
+                                    <?= Html::submitButton(
+                                        '<i class="fa fa-download"></i> Download Dokumen',
+                                        [
+                                            'class' =>
+                                                'btn btn-primary btn-sm',
 
-											if ($timestamp !== false) {
-												$tanggalBuka = date('d-m-Y', $timestamp);
-											}
-										}
-										?>
+                                            'encode' => false,
 
-										<?= Html::hiddenInput(
-											'tgl_buka',
-											$tanggalBuka
-										); ?>
-
-                                        <?= Html::submitButton(
-                                            '<i class="fa fa-download"></i> Download Dokument',
-                                            [
-                                                'class' => 'btn btn-primary btn-sm',
-                                                'encode' => false,
-                                                'title' => 'Cari file CBC langsung dari SFTP Bank',
-                                            ]
-                                        ); ?>
+                                            'title' =>
+                                                'Download CBC dari SFTP Bank',
+                                        ]
+                                    ); ?>
 
                                     <?= Html::endForm(); ?>
                                 </td>
@@ -843,6 +876,7 @@ $this->title = 'View Member - ' . Yii::$app->name;
         </div>
     </div>
 </div>
+
 
 
 
