@@ -1811,14 +1811,28 @@ class DataProduksiController  extends Controller
 				->orderBy(['id' => SORT_DESC])
 				->one();
 
-			if ($result !== null && $document !== null) {
-				$document->files = $result;
+			// Simpan nama file ZIP jika download berhasil.
+			if (
+				is_array($result) &&
+				!empty($result['success']) &&
+				$document !== null
+			) 
+			{
+				// Ambil nama file lengkap beserta ekstensi .zip.
+				$fileName = basename(
+					$result['file_name'] ?? ''
+				);
 
-				if (!$document->save(false)) {
-					Yii::error(
-						'Gagal update field files pada map_member_dokumen_medis. ID: ' . $document->id,
-						__METHOD__
-					);
+				if ($fileName !== '') {
+					$document->files = $fileName;
+
+					if (!$document->save(false)) {
+						Yii::error([
+							'message' => 'Gagal update field files.',
+							'id' => $document->id,
+							'files' => $document->files,
+						], 'cbc-sftp');
+					}
 				}
 			}
 
