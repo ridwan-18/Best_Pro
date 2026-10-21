@@ -334,7 +334,8 @@ $filters = [
                 '<i class="fa fa-refresh"></i> Reset',
                 ['index'],
                 [
-                    'class' => 'btn btn-light',
+                    'class' => 'btn',
+					'style' => 'background-color: #FFF3CD; border-color: #FFE69C; color: #664D03;',
                 ]
             ) ?>
 
@@ -622,7 +623,7 @@ $filters = [
 
                     <div class="premium-chart-item">
                         <div class="premium-chart-label">
-                            <span><i class="premium-dot net-dot"></i> Net Premium / Dibayarkan</span>
+                            <span><i class="premium-dot net-dot"></i> Nett Premium </span>
                             <strong><?= $formatRupiah($totalNetPremium) ?></strong>
                         </div>
                         <div class="premium-track">
@@ -660,7 +661,7 @@ $filters = [
             <div class="premium-summary-card net-summary">
                 <div class="premium-summary-icon"><i class="fa fa-credit-card"></i></div>
                 <div class="premium-summary-content">
-                    <span>Total Premium Dibayarkan</span>
+                    <span>Total Nett Premium</span>
                     <strong><?= $formatRupiah($totalNetPremium) ?></strong>
                     <small>Premi bersih / dibayarkan</small>
                 </div>
@@ -716,7 +717,7 @@ $filters = [
                                 <th class="text-right">Cancel</th>
                                 <th class="text-right">Total Gross Premium</th>
 								<th class="text-right">Total Extra Premium</th>
-                                <th class="text-right">Total Premium Dibayarakan</th>
+                                <th class="text-right">Total Nett Premium</th>
                                 <th class="text-center no-print">Action</th>
                             </tr>
                         </thead>
