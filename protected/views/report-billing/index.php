@@ -9,11 +9,6 @@ $this->title = 'Summary Produksi - ' . Yii::$app->name;
 
 $request = Yii::$app->request;
 
-/*
-|--------------------------------------------------------------------------
-| DATA SUMMARY
-|--------------------------------------------------------------------------
-*/
 
 $totalPengajuan = (int) ($summary['total_pengajuan'] ?? 0);
 $disetujui = (int) ($summary['Inforce'] ?? 0);
@@ -24,11 +19,6 @@ $totalGrossPremium = (float) ($summary['total_gross_premium'] ?? 0);
 $totalNetPremium = (float) ($summary['total_net_premium'] ?? 0);
 $extra_premium = (float) ($summary['extra_premium'] ?? 0);
 
-/*
-|--------------------------------------------------------------------------
-| FORMAT ANGKA
-|--------------------------------------------------------------------------
-*/
 
 $formatNumber = function ($value) {
     return number_format((float) $value, 0, ',', '.');
@@ -38,11 +28,7 @@ $formatRupiah = function ($value) {
     return 'Rp ' . number_format((float) $value, 0, ',', '.');
 };
 
-/*
-|--------------------------------------------------------------------------
-| FILTER
-|--------------------------------------------------------------------------
-*/
+
 
 $filters = [
     'nama' => $request->get('nama', ''),
@@ -57,10 +43,6 @@ $filters = [
 ?>
 
 <div class="summary-produksi-index">
-
-    <!-- ======================================================
-         MODAL FILTER
-    ======================================================= -->
 
     <div
         class="modal fade"
@@ -292,10 +274,6 @@ $filters = [
     </div>
 
 
-    <!-- ======================================================
-         HEADER REPORTING
-    ======================================================= -->
-
     <div class="row mb-4 no-print">
 
         <div class="col-md-6">
@@ -346,11 +324,6 @@ $filters = [
 
     <?= Alert::widget() ?>
 
-
-    <!-- ======================================================
-         JUDUL CETAK
-    ======================================================= -->
-
     <div class="report-print-header">
 
         <h2>SUMMARY PRODUKSI</h2>
@@ -390,14 +363,9 @@ $filters = [
 
     </div>
 
-
-    <!-- ======================================================
-         KARTU RINGKASAN
-    ======================================================= -->
-
     <div class="row summary-cards">
 
-        <!-- TOTAL PENGAJUAN -->
+
 
         <div class="col-lg-3 col-md-6">
 
@@ -430,8 +398,6 @@ $filters = [
         </div>
 
 
-        <!-- DISETUJUI -->
-
         <div class="col-lg-3 col-md-6">
 
             <div class="card-box summary-card">
@@ -462,8 +428,6 @@ $filters = [
 
         </div>
 
-
-        <!-- PENDING -->
 
         <div class="col-lg-3 col-md-6">
 
@@ -496,7 +460,6 @@ $filters = [
         </div>
 
 
-        <!-- CANCEL -->
 
         <div class="col-lg-3 col-md-6">
 
@@ -530,11 +493,6 @@ $filters = [
 
     </div>
 
-
-
-    <!-- ======================================================
-         DASHBOARD GRAFIK
-    ======================================================= -->
     <?php
     $statusTotal = max(1, $totalPengajuan);
     $persenInforce = min(100, round(($disetujui / $statusTotal) * 100, 1));
@@ -669,9 +627,6 @@ $filters = [
         </div>
     </div>
 
-    <!-- ======================================================
-         TABEL REPORTING
-    ======================================================= -->
 
     <div class="row mt-3">
 
@@ -809,8 +764,6 @@ $filters = [
                 </div>
 
 
-                <!-- KETERANGAN -->
-
                 <div class="report-note">
 
                     <strong>Keterangan:</strong>
@@ -832,29 +785,6 @@ $filters = [
 
                 </div>
 
-
-                <!-- TANDA TANGAN CETAK -->
-
-                <div class="signature-section">
-
-                    <div class="signature-box">
-
-                        <p>Mengetahui,</p>
-
-                        <br><br><br>
-
-                        <p>
-                            <strong>
-                                __________________________
-                            </strong>
-                        </p>
-
-                        <p>Penanggung Jawab</p>
-
-                    </div>
-
-                </div>
-
             </div>
 
         </div>
@@ -864,15 +794,8 @@ $filters = [
 </div>
 
 
-<!-- ======================================================
-     CSS REPORTING
-======================================================= -->
-
 <style>
 
-/* ======================================================
-   TAMPILAN UTAMA
-======================================================= */
 
 .summary-produksi-index {
     font-family: "Roboto", Arial, sans-serif;
@@ -941,10 +864,6 @@ $filters = [
 }
 
 
-/* ======================================================
-   TOMBOL
-======================================================= */
-
 .summary-produksi-index .btn {
     font-weight: 700;
     margin-bottom: 4px;
@@ -959,9 +878,6 @@ $filters = [
 }
 
 
-/* ======================================================
-   TABEL REPORTING
-======================================================= */
 
 .summary-produksi-index .reporting-table {
     width: 100%;
@@ -1015,10 +931,6 @@ $filters = [
 }
 
 
-/* ======================================================
-   MODAL FILTER
-======================================================= */
-
 #search-modal .modal-content {
     background-color: #292e33;
     border: 1px solid #777777;
@@ -1059,10 +971,6 @@ $filters = [
 }
 
 
-/* ======================================================
-   KETERANGAN DAN TANDA TANGAN
-======================================================= */
-
 .summary-produksi-index .report-note {
     margin-top: 22px;
     padding: 15px;
@@ -1096,18 +1004,11 @@ $filters = [
 }
 
 
-/* ======================================================
-   HEADER CETAK
-======================================================= */
 
 .report-print-header {
     display: none;
 }
 
-
-/* ======================================================
-   RESPONSIVE
-======================================================= */
 
 @media screen and (max-width: 767px) {
 
@@ -1129,10 +1030,6 @@ $filters = [
 
 }
 
-
-/* ======================================================
-   PRINT REPORT
-======================================================= */
 
 @media print {
 
@@ -1257,9 +1154,6 @@ $filters = [
 }
 
 
-/* ======================================================
-   DASHBOARD PRODUKSI
-====================================================== */
 .summary-produksi-index .dashboard-panel {
     background: #292e33;
     border: 1px solid #454d55;
@@ -1448,5 +1342,38 @@ $filters = [
     .summary-produksi-index .premium-chart-label { flex-direction: column; gap: 5px; }
     .summary-produksi-index .premium-chart-label strong { text-align: left; }
 }
+
+.summary-produksi-index .card-box {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+.summary-produksi-index .summary-card:hover {
+    box-shadow: 0 6px 16px rgba(32, 201, 151, 0.4);
+    transform: translateY(-3px);
+    transition: all 0.3s ease;
+}
+
+.summary-produksi-index .btn-info:hover {
+    background-color: #17a2b8;
+    box-shadow: 0 4px 15px rgba(23, 162, 184, 0.5);
+    transition: background-color 0.3s ease;
+}
+
+.status-donut {
+    transition: background 1s ease;
+}
+
+.premium-bar {
+    transition: width 1s ease;
+}
+
+@media screen and (max-width: 767px) {
+    .summary-produksi-index .summary-cards > div {
+        width: 100%;
+        flex: unset;
+        margin-bottom: 20px;
+    }
+}
+
 
 </style>
