@@ -1652,9 +1652,9 @@ class DataProduksiController  extends Controller
 			);
 			
 			echo '<pre>';
-print_r($apiResponse);
-echo '</pre>';
-exit;
+			print_r($apiResponse);
+			echo '</pre>';
+			exit;
 
 			if (
 				isset($apiResponse['response']['Result'])
@@ -1787,25 +1787,8 @@ exit;
 			);
 		}
 
-		/*
-		 * Format tanggal untuk nama file Bank:
-		 * ddmmyy
-		 *
-		 * Contoh:
-		 * 21-10-2026 menjadi 211026.
-		 */
 		$tanggalFile = $tanggal->format('dmy');
 
-		/*
-		 * Format nama file:
-		 * nik_ddmmyy_codedoc_benefit_sequence.zip
-		 *
-		 * Prefix:
-		 * 3173010101900001_211026_001_2
-		 *
-		 * Sequence belum disertakan karena akan dicari
-		 * oleh fungsi downloadFileFromBankSftp().
-		 */
 		$filePrefix = $noKtp . '_' .
 					  $tanggalFile . '_001_2';
 
@@ -1817,8 +1800,27 @@ exit;
 
 		// Download file dari SFTP Bank.
 		$result = $this->downloadFileFromBankSftp(
-			$filePrefix
-		);
+				$filePrefix
+			);
+
+			$document = map_member_dokumen_medis::find()
+				->where([
+					'ktp' => $noKtp,
+					'jenis_dokumen' => 'pengajuan',
+				])
+				->orderBy(['id' => SORT_DESC])
+				->one();
+
+			if ($result !== null && $document !== null) {
+				$document->files = $result;
+
+				if (!$document->save(false)) {
+					Yii::error(
+						'Gagal update field files pada map_member_dokumen_medis. ID: ' . $document->id,
+						__METHOD__
+					);
+				}
+			}
 
 		// Jika file gagal ditemukan atau diunduh.
 		if (
@@ -1884,14 +1886,6 @@ exit;
 		);
 	}
 
-
-
-
-
-/**
- * Download file CBC dari SFTP Bank.
- * Pertahankan fungsi ini di controller yang sama.
- */
 	private function downloadFileFromBankSftp($filePrefix)
 	{
 		// Production
