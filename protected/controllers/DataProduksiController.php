@@ -1718,18 +1718,19 @@ exit;
 	
 	
 	
+	
 	public function actionDownloadDokumen()
 	{
 		$request = Yii::$app->request;
 
-		// Download wajib menggunakan POST.
+		// Request harus POST.
 		if (!$request->isPost) {
 			throw new \yii\web\BadRequestHttpException(
 				'Request harus menggunakan POST.'
 			);
 		}
 
-		// Ambil parameter dari form.
+		// Ambil NIK dan tanggal dari form.
 		$noKtp = trim(
 			(string) $request->post('no_ktp', '')
 		);
@@ -1738,12 +1739,11 @@ exit;
 			(string) $request->post('tgl_buka', '')
 		);
 
-		// Validasi NIK.
-		if (!preg_match('/^[0-9]{16}$/', $noKtp)) {
+		// Validasi NIK harus 16 digit.
+		if (!preg_match('/^[0-9]{16}$/D', $noKtp)) {
 			Yii::error([
 				'error' => 'NIK tidak valid',
-				'no_ktp' => $noKtp,
-				'panjang' => strlen($noKtp),
+				'panjang_nik' => strlen($noKtp),
 			], 'cbc-sftp');
 
 			throw new \yii\web\BadRequestHttpException(
@@ -1752,10 +1752,10 @@ exit;
 		}
 
 		// Validasi format tanggal dd-mm-yyyy.
-		if (!preg_match('/^[0-9]{2}-[0-9]{2}-[0-9]{4}$/', $tglBuka)) {
+		if (!preg_match('/^[0-9]{2}-[0-9]{2}-[0-9]{4}$/D', $tglBuka)) {
 			Yii::error([
 				'error' => 'Format tanggal tidak valid',
-				'tgl_buka' => $tglBuka,
+				'tanggal' => $tglBuka,
 			], 'cbc-sftp');
 
 			throw new \yii\web\BadRequestHttpException(
@@ -1763,7 +1763,7 @@ exit;
 			);
 		}
 
-		// Pastikan tanggal benar-benar valid.
+		// Validasi tanggal kalender.
 		$tanggal = \DateTime::createFromFormat(
 			'!d-m-Y',
 			$tglBuka
@@ -1787,34 +1787,40 @@ exit;
 			);
 		}
 
-		// Konversi tanggal ke ddmmyy.
-		// Contoh: 21-10-2026 menjadi 211026.
+		/*
+		 * Format tanggal untuk nama file Bank:
+		 * ddmmyy
+		 *
+		 * Contoh:
+		 * 21-10-2026 menjadi 211026.
+		 */
 		$tanggalFile = $tanggal->format('dmy');
 
-		// Susun prefix nama file Bank.
-		// Format:
-		// nik_ddmmyy_codedoc_benefit_sequence.zip
-		//
-		// Prefix tanpa sequence digunakan agar fungsi SFTP
-		// dapat mencari file dengan sequence yang sesuai.
+		/*
+		 * Format nama file:
+		 * nik_ddmmyy_codedoc_benefit_sequence.zip
+		 *
+		 * Prefix:
+		 * 3173010101900001_211026_001_2
+		 *
+		 * Sequence belum disertakan karena akan dicari
+		 * oleh fungsi downloadFileFromBankSftp().
+		 */
 		$filePrefix = $noKtp . '_' .
 					  $tanggalFile . '_001_2';
 
 		Yii::info([
-			'no_ktp' => $noKtp,
-			'tgl_buka' => $tglBuka,
+			'tanggal_buka' => $tglBuka,
 			'tanggal_file' => $tanggalFile,
 			'file_prefix' => $filePrefix,
 		], 'cbc-sftp');
 
-		// Cari dan download file dari SFTP Bank.
-		// Gunakan fungsi downloadFileFromBankSftp() yang
-		// sudah tersedia di controller Anda.
+		// Download file dari SFTP Bank.
 		$result = $this->downloadFileFromBankSftp(
 			$filePrefix
 		);
 
-		// Periksa hasil proses SFTP.
+		// Jika file gagal ditemukan atau diunduh.
 		if (
 			!is_array($result) ||
 			empty($result['success'])
@@ -1841,11 +1847,11 @@ exit;
 			);
 		}
 
-		// Ambil lokasi file yang sudah diunduh.
+		// Ambil lokasi file hasil download.
 		$localPath = $result['local_path'] ?? '';
 		$fileName = $result['file_name'] ?? '';
 
-		// Pastikan file tersedia dan bisa dibaca.
+		// Pastikan file tersedia dan dapat dibaca.
 		if (
 			empty($localPath) ||
 			empty($fileName) ||
@@ -1854,8 +1860,6 @@ exit;
 		) {
 			Yii::error([
 				'file_prefix' => $filePrefix,
-				'local_path' => $localPath,
-				'file_name' => $fileName,
 				'message' => 'File lokal tidak tersedia atau tidak terbaca.',
 			], 'cbc-sftp');
 
@@ -1869,7 +1873,7 @@ exit;
 			);
 		}
 
-		// Kirim ZIP ke browser pengguna.
+		// Kirim file ZIP ke komputer pengguna.
 		return Yii::$app->response->sendFile(
 			$localPath,
 			basename($fileName),
@@ -1879,6 +1883,7 @@ exit;
 			]
 		);
 	}
+
 
 
 

@@ -710,21 +710,20 @@ $this->title = 'View Member - ' . Yii::$app->name;
                     <?php if (!empty($filecbc)): ?>
 
                         <?php foreach ($filecbc as $cd): ?>
-						
-						<?php
-echo '<pre>';
-var_dump($cd['no_ktp'] ?? null);
-var_dump($member['no_ktp'] ?? null);
-echo '</pre>';
-?>
 
                             <?php
-                            // NIK dari data CBC
+                            /*
+                             * NIK diambil dari $member,
+                             * karena $cd['no_ktp'] bernilai NULL.
+                             */
                             $noKtp = trim(
-                                (string) ($cd['no_ktp'] ?? '')
+                                (string) ($member['no_ktp'] ?? '')
                             );
 
-                            // Tanggal buka dari data member
+                            /*
+                             * Tanggal buka diambil dari
+                             * $member['start_date'].
+                             */
                             $tanggalBuka = '';
 
                             if (!empty($member['start_date'])) {
@@ -752,7 +751,9 @@ echo '</pre>';
                                             Yii::$app->request->baseUrl .
                                             '/protected/runtime/cbc/' .
                                             rawurlencode($cd['files']),
-                                            ['download' => true]
+                                            [
+                                                'download' => true,
+                                            ]
                                         ); ?>
 
                                     <?php else: ?>
@@ -848,11 +849,12 @@ echo '</pre>';
                                             'encode' => false,
 
                                             'title' =>
-                                                'Download CBC dari SFTP Bank',
+                                                'Download CBC langsung dari SFTP Bank',
                                         ]
                                     ); ?>
 
                                     <?= Html::endForm(); ?>
+
                                 </td>
                             </tr>
 
