@@ -687,6 +687,20 @@ $this->title = 'View Member - ' . Yii::$app->name;
 
 
 
+
+<?php
+
+use yii\helpers\Html;
+use yii\helpers\Url;
+
+?>
+
+<?php if (Yii::$app->session->hasFlash('error')): ?>
+    <div class="alert alert-danger">
+        <?= Html::encode(Yii::$app->session->getFlash('error')); ?>
+    </div>
+<?php endif; ?>
+
 <div class="card-box">
     <div class="row mt-4">
         <div class="col-md-12">
@@ -712,29 +726,15 @@ $this->title = 'View Member - ' . Yii::$app->name;
                         <?php foreach ($filecbc as $cd): ?>
 
                             <tr>
-
-                                <td>
-                                    CBC
-                                </td>
+                                <td>CBC</td>
 
                                 <td>
                                     <?php if (!empty($cd['files'])): ?>
-
-                                        <a
-                                            href="<?= Yii::$app->request->baseUrl .
-                                                '/protected/runtime/cbc/' .
-                                                rawurlencode(basename($cd['files'])); ?>"
-                                            download
-                                        >
-                                            <?= Html::encode($cd['files']); ?>
-                                        </a>
-
+                                        <?= Html::encode($cd['files']); ?>
                                     <?php else: ?>
-
                                         <span class="text-muted">
-                                            File tidak tersedia
+                                            File belum tersedia
                                         </span>
-
                                     <?php endif; ?>
                                 </td>
 
@@ -751,12 +751,10 @@ $this->title = 'View Member - ' . Yii::$app->name;
                                         ],
                                         [
                                             'class' => 'form-control action-dropdown',
-
                                             'data-url' => Url::to([
                                                 'data-produksi/approvedoc',
                                                 'id_loan' => $cd['id_loan'],
                                             ]),
-
                                             'data-id-loan' => $cd['id_loan'],
                                         ]
                                     ); ?>
@@ -775,54 +773,59 @@ $this->title = 'View Member - ' . Yii::$app->name;
                                 </td>
 
                                 <td>
-                                    <?= Html::encode($cd['approve'] ?? '-'); ?>
+                                    <?= Html::encode(
+                                        $cd['approve'] ?? '-'
+                                    ); ?>
                                 </td>
 
                                 <td>
-                                    <?= Html::encode($cd['keterangan'] ?? '-'); ?>
+                                    <?= Html::encode(
+                                        $cd['keterangan'] ?? '-'
+                                    ); ?>
                                 </td>
 
                                 <td>
-                                    <?php if (!empty($cd['files'])): ?>
+                                    <?= Html::beginForm(
+                                        ['data-produksi/download-dokumen'],
+                                        'post',
+                                        [
+                                            'style' => 'display:inline-block;',
+                                        ]
+                                    ); ?>
 
-                                        <?= Html::beginForm(
-                                            ['data-produksi/download-dokumen'],
-                                            'post',
+                                        <?= Html::hiddenInput(
+                                            'no_ktp',
+                                            $cd['no_ktp'] ?? ''
+                                        ); ?>
+
+                                        <?php
+										$tanggalBuka = '';
+
+										if (!empty($member['start_date'])) {
+											$timestamp = strtotime($member['start_date']);
+
+											if ($timestamp !== false) {
+												$tanggalBuka = date('d-m-Y', $timestamp);
+											}
+										}
+										?>
+
+										<?= Html::hiddenInput(
+											'tgl_buka',
+											$tanggalBuka
+										); ?>
+
+                                        <?= Html::submitButton(
+                                            '<i class="fa fa-download"></i> Download Dokument',
                                             [
-                                                'style' => 'display:inline-block;',
+                                                'class' => 'btn btn-primary btn-sm',
+                                                'encode' => false,
+                                                'title' => 'Cari file CBC langsung dari SFTP Bank',
                                             ]
                                         ); ?>
 
-                                            <?= Html::hiddenInput(
-                                                'file_prefix',
-                                                basename($cd['files'])
-                                            ); ?>
-
-                                            <?= Html::submitButton(
-                                                '<i class="fa fa-download"></i> Download Dokument',
-                                                [
-                                                    'class' => 'btn btn-primary btn-sm',
-                                                    'encode' => false,
-                                                    'title' => 'Download dokumen CBC dari SFTP Bank',
-                                                ]
-                                            ); ?>
-
-                                        <?= Html::endForm(); ?>
-
-                                    <?php else: ?>
-
-                                        <button
-                                            type="button"
-                                            class="btn btn-secondary btn-sm"
-                                            disabled
-                                        >
-                                            <i class="fa fa-download"></i>
-                                            File tidak tersedia
-                                        </button>
-
-                                    <?php endif; ?>
+                                    <?= Html::endForm(); ?>
                                 </td>
-
                             </tr>
 
                         <?php endforeach; ?>
@@ -844,6 +847,7 @@ $this->title = 'View Member - ' . Yii::$app->name;
         </div>
     </div>
 </div>
+
 
 
 
