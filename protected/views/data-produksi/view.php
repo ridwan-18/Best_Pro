@@ -687,7 +687,7 @@ $this->title = 'View Member - ' . Yii::$app->name;
 
 
 
- <div class="card-box">
+<div class="card-box">
     <div class="row mt-4">
         <div class="col-md-12">
             <div class="table-responsive">
@@ -695,12 +695,13 @@ $this->title = 'View Member - ' . Yii::$app->name;
                 <table class="table table-hover nowrap m-0">
                     <thead>
                         <tr>
-                            <td>Nama Dokumen</td>
-                            <td>Files</td>
-                            <td>Action</td>
-							<td>Keterangan</td>
-                            <td>Status</td>
-							 <td>Status Keterangan</td>
+                            <th>Nama Dokumen</th>
+                            <th>Files</th>
+                            <th>Action</th>
+                            <th>Keterangan</th>
+                            <th>Status</th>
+                            <th>Status Keterangan</th>
+                            <th>Download Dokument</th>
                         </tr>
                     </thead>
 
@@ -720,8 +721,10 @@ $this->title = 'View Member - ' . Yii::$app->name;
                                     <?php if (!empty($cd['files'])): ?>
 
                                         <a
+                                            href="<?= Yii::$app->request->baseUrl .
+                                                '/protected/runtime/cbc/' .
+                                                rawurlencode(basename($cd['files'])); ?>"
                                             download
-                                            href="<?= Yii::$app->request->baseUrl . '/protected/runtime/cbc/' . $cd['files']; ?>"
                                         >
                                             <?= Html::encode($cd['files']); ?>
                                         </a>
@@ -734,51 +737,90 @@ $this->title = 'View Member - ' . Yii::$app->name;
 
                                     <?php endif; ?>
                                 </td>
-								
 
                                 <td>
-                                   
-								<?= Html::dropDownList(
-									'action',
-									null,
-									[
-										'' => 'Select Action',
-										'approve' => 'Approve',
-										'DITOLAK' => 'DITOLAK',
-										'diproses' => 'DIPROSES',
-										'menunggu' => 'Menunggu kelengkapan dokumen',
-									],
-									[
-										'class' => 'form-control action-dropdown',
+                                    <?= Html::dropDownList(
+                                        'action',
+                                        null,
+                                        [
+                                            '' => 'Select Action',
+                                            'approve' => 'Approve',
+                                            'DITOLAK' => 'DITOLAK',
+                                            'diproses' => 'DIPROSES',
+                                            'menunggu' => 'Menunggu kelengkapan dokumen',
+                                        ],
+                                        [
+                                            'class' => 'form-control action-dropdown',
 
-										'data-url' => \yii\helpers\Url::to([
-											'data-produksi/approvedoc',
-											'id_loan' => $cd['id_loan'],
-										]),
-										'data-id-loan' => $cd['id_loan'],
-									]
-								); ?>
+                                            'data-url' => Url::to([
+                                                'data-produksi/approvedoc',
+                                                'id_loan' => $cd['id_loan'],
+                                            ]),
 
+                                            'data-id-loan' => $cd['id_loan'],
+                                        ]
+                                    ); ?>
                                 </td>
-								
-								 <td>
-								<?= Html::textInput(
-										'keterangan',
-										'',
-										[
-											'class' => 'form-control keterangan-input',
-											'placeholder' => 'Masukkan keterangan',
-											'autocomplete' => 'off',
-										]
-									); ?>
-								</td>
 
                                 <td>
-                                    <?= Html::encode($cd['approve']); ?>
+                                    <?= Html::textInput(
+                                        'keterangan',
+                                        '',
+                                        [
+                                            'class' => 'form-control keterangan-input',
+                                            'placeholder' => 'Masukkan keterangan',
+                                            'autocomplete' => 'off',
+                                        ]
+                                    ); ?>
                                 </td>
-								
-								 <td>
-                                    <?= Html::encode($cd['keterangan']); ?>
+
+                                <td>
+                                    <?= Html::encode($cd['approve'] ?? '-'); ?>
+                                </td>
+
+                                <td>
+                                    <?= Html::encode($cd['keterangan'] ?? '-'); ?>
+                                </td>
+
+                                <td>
+                                    <?php if (!empty($cd['files'])): ?>
+
+                                        <?= Html::beginForm(
+                                            ['data-produksi/download-dokumen'],
+                                            'post',
+                                            [
+                                                'style' => 'display:inline-block;',
+                                            ]
+                                        ); ?>
+
+                                            <?= Html::hiddenInput(
+                                                'file_prefix',
+                                                basename($cd['files'])
+                                            ); ?>
+
+                                            <?= Html::submitButton(
+                                                '<i class="fa fa-download"></i> Download Dokument',
+                                                [
+                                                    'class' => 'btn btn-primary btn-sm',
+                                                    'encode' => false,
+                                                    'title' => 'Download dokumen CBC dari SFTP Bank',
+                                                ]
+                                            ); ?>
+
+                                        <?= Html::endForm(); ?>
+
+                                    <?php else: ?>
+
+                                        <button
+                                            type="button"
+                                            class="btn btn-secondary btn-sm"
+                                            disabled
+                                        >
+                                            <i class="fa fa-download"></i>
+                                            File tidak tersedia
+                                        </button>
+
+                                    <?php endif; ?>
                                 </td>
 
                             </tr>
@@ -788,7 +830,7 @@ $this->title = 'View Member - ' . Yii::$app->name;
                     <?php else: ?>
 
                         <tr>
-                            <td colspan="4" class="text-center">
+                            <td colspan="7" class="text-center">
                                 Tidak ada dokumen CBC
                             </td>
                         </tr>

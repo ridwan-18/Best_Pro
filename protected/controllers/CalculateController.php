@@ -421,13 +421,13 @@ class CalculateController extends Controller
 
 		$endAge = $age + $termYear;
 		
-		if ($endAge > 65) {
+		if ($endAge > $maxEndAge) {
 
-			Yii::$app->response->statusCode = 400;
+			Yii::$app->response->statusCode = 200;
 
 			return [
 				'Result' => [
-					'status' => '400',
+					'status' => '200',
 					'kode_response' => '04',
 					'message' => 'Usia pada akhir masa pertanggungan tidak boleh melebihi 65 tahun.'
 				]
@@ -443,11 +443,11 @@ class CalculateController extends Controller
 
 		if ($ratepremi === null) {
 
-			Yii::$app->response->statusCode = 400;
+			Yii::$app->response->statusCode = 200;
 
 			return [
 				'Result' => [
-					'status' => '400',
+					'status' => '200',
 					'kode_response' => '05',
 					'message' => 'Rate premi untuk tenor tersebut tidak ditemukan.'
 				]
