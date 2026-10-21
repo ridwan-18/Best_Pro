@@ -717,11 +717,20 @@ $this->title = 'View Member - ' . Yii::$app->name;
 
                                 <td>
                                     <?php if (!empty($cd['files'])): ?>
-                                        <?= Html::encode($cd['files']); ?>
+
+                                        <a
+                                            download
+                                            href="<?= Yii::$app->request->baseUrl . '/protected/runtime/cbc/' . $cd['files']; ?>"
+                                        >
+                                            <?= Html::encode($cd['files']); ?>
+                                        </a>
+
                                     <?php else: ?>
+
                                         <span class="text-muted">
-                                            File belum tersedia
+                                            File tidak tersedia
                                         </span>
+
                                     <?php endif; ?>
                                 </td>
 
