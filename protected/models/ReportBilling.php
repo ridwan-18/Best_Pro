@@ -459,6 +459,9 @@ class ReportBilling extends \yii\db\ActiveRecord
 				'total_net_premium' => new \yii\db\Expression(
 					'COALESCE(SUM(m.nett_premium), 0)'
 				),
+				'extra_premium' => new \yii\db\Expression(
+					'COALESCE(SUM(m.extra_premium), 0)'
+				),
 			]);
 
 		// Filter user login

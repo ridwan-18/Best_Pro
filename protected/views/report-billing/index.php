@@ -22,6 +22,7 @@ $ditolak = (int) ($summary['cancel'] ?? 0);
 
 $totalGrossPremium = (float) ($summary['total_gross_premium'] ?? 0);
 $totalNetPremium = (float) ($summary['total_net_premium'] ?? 0);
+$extra_premium = (float) ($summary['extra_premium'] ?? 0);
 
 /*
 |--------------------------------------------------------------------------
@@ -576,7 +577,8 @@ $filters = [
                                 <th class="text-right">Pending</th>
                                 <th class="text-right">Cancel</th>
                                 <th class="text-right">Total Gross Premium</th>
-                                <th class="text-right">Total Net Premium</th>
+								<th class="text-right">Total Extra Premium</th>
+                                <th class="text-right">Total Premium Dibayarakan</th>
                                 <th class="text-center no-print">Action</th>
                             </tr>
                         </thead>
@@ -610,6 +612,10 @@ $filters = [
                                 </td>
 
                                 <td class="text-right">
+                                    <?= $formatRupiah($extra_premium) ?>
+                                </td>
+								
+								<td class="text-right">
                                     <?= $formatRupiah($totalNetPremium) ?>
                                 </td>
 
@@ -643,6 +649,10 @@ $filters = [
 
                                 <th class="text-right">
                                     <?= $formatRupiah($totalGrossPremium) ?>
+                                </th>
+								
+								<th class="text-right">
+                                    <?= $formatRupiah($extra_premium) ?>
                                 </th>
 
                                 <th class="text-right">
