@@ -247,6 +247,8 @@ class BatchByPeserta extends \yii\db\ActiveRecord
 				$table . '.nett_premium',
 				$table . '.pekerjaan',
 				$table . '.produk',
+				$table . '.nomor_rekening',
+				$table . '.nomor_akad',
 
 				// Data dari tabel cabang
 				$cabangTable . '.kode_kantor AS kode_kantor',
