@@ -701,7 +701,8 @@ $this->title = 'View Member - ' . Yii::$app->name;
                             <th>Keterangan</th>
                             <th>Status</th>
                             <th>Status Keterangan</th>
-                            <th>Download Dokumen</th>
+                            <th>Download Dokumen CBC</th>
+							<th>Download Dokumen E-Certifikat</th>
                         </tr>
                     </thead>
 
@@ -712,18 +713,11 @@ $this->title = 'View Member - ' . Yii::$app->name;
                         <?php foreach ($filecbc as $cd): ?>
 
                             <?php
-                            /*
-                             * NIK diambil dari $member,
-                             * karena $cd['no_ktp'] bernilai NULL.
-                             */
+              
                             $noKtp = trim(
                                 (string) ($member['no_ktp'] ?? '')
                             );
 
-                            /*
-                             * Tanggal buka diambil dari
-                             * $member['start_date'].
-                             */
                             $tanggalBuka = '';
 
                             if (!empty($member['start_date'])) {
@@ -738,6 +732,11 @@ $this->title = 'View Member - ' . Yii::$app->name;
                                     );
                                 }
                             }
+							
+							$nomor_rekening = trim((string) ($member['nomor_rekening'] ?? ''));
+							$noAkad  = trim((string) ($member['nomor_akad'] ?? ''));
+							$noAkad = str_replace('.', '', $noAkad);
+							
                             ?>
 
                             <tr>
@@ -856,6 +855,47 @@ $this->title = 'View Member - ' . Yii::$app->name;
                                     <?= Html::endForm(); ?>
 
                                 </td>
+								
+								
+								 <td>
+                                    <?= Html::beginForm(
+                                        ['data-produksi/download-certifikat'],
+                                        'post',
+                                        [
+                                            'style' =>
+                                                'display:inline-block;',
+                                        ]
+                                    ); ?>
+
+                                    <?= Html::hiddenInput(
+                                        'nomor_rekening',
+                                        $nomorRekening
+                                    ); ?>
+
+                                    <?= Html::hiddenInput(
+                                        'nomor_akad',
+                                        $noAkad
+                                    ); ?>
+
+                                    <?= Html::submitButton(
+                                        '<i class="fa fa-download"></i> Download Certifikat',
+                                        [
+                                            'class' =>
+                                                'btn btn-primary btn-sm',
+
+                                            'encode' => false,
+
+                                            'title' =>
+                                                'Download Certifikat langsung dari SFTP Bank',
+                                        ]
+                                    ); ?>
+
+                                    <?= Html::endForm(); ?>
+
+                                </td>
+								
+								
+								
                             </tr>
 
                         <?php endforeach; ?>
