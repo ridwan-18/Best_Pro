@@ -12,56 +12,80 @@ $this->title = 'Login - ' . Yii::$app->name;
 <style>
     html,
     body {
-        width: 100%;
-        height: 100%;
+        width: 100% !important;
+        height: 100% !important;
+        min-height: 100% !important;
         margin: 0 !important;
         padding: 0 !important;
     }
 
     body {
-        overflow-x: hidden;
+        overflow: hidden !important;
     }
 
-    /* Full page */
+    /* Hilangkan batas layout utama BestPro */
+    body > .wrapper,
+    body > #wrapper,
+    .wrapper,
+    #wrapper,
+    .content-page,
+    .content-page > .content,
+    .container,
+    .container-fluid,
+    .main-content {
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
+        max-width: none !important;
+        min-height: 0 !important;
+    }
+
+    /* Background memenuhi seluruh viewport */
     .site-login {
         position: fixed !important;
-        inset: 0 !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
 
-        width: 100% !important;
+        width: 100vw !important;
         height: 100vh !important;
         min-height: 100vh !important;
-
-        display: flex !important;
-        justify-content: center !important;
-        align-items: center !important;
 
         margin: 0 !important;
         padding: 20px !important;
         box-sizing: border-box !important;
 
-        background: linear-gradient(135deg, #eef3fb, #dfe8f5);
-        overflow-y: auto;
-        z-index: 99999;
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+
+        background: linear-gradient(135deg, #edf2f9, #dce6f4);
+        overflow-y: auto !important;
+        z-index: 999999 !important;
     }
 
-    /* Kotak form di tengah */
+    /* Kotak form login */
     .site-login .login-card {
+        display: block !important;
+        position: relative !important;
+
+        top: auto !important;
+        left: auto !important;
+        right: auto !important;
+        float: none !important;
+        transform: none !important;
+
         width: 100% !important;
         max-width: 430px !important;
 
         margin: auto !important;
         padding: 0 !important;
 
-        float: none !important;
-        position: relative !important;
-        left: auto !important;
-        right: auto !important;
-        transform: none !important;
-
-        background: #fff;
+        background: #ffffff !important;
         border: none !important;
         border-radius: 14px !important;
-        box-shadow: 0 12px 40px rgba(30, 50, 80, 0.15);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12) !important;
         overflow: hidden;
     }
 
@@ -93,7 +117,6 @@ $this->title = 'Login - ' . Yii::$app->name;
     .site-login label {
         font-weight: 600;
         color: #344054;
-        margin-bottom: 8px;
     }
 
     .site-login .form-control {
@@ -101,17 +124,12 @@ $this->title = 'Login - ' . Yii::$app->name;
         height: 46px;
         border: 1px solid #dce2ea;
         border-radius: 7px;
-        padding: 10px 14px;
         box-shadow: none;
     }
 
     .site-login .form-control:focus {
         border-color: #2864dc;
-        box-shadow: 0 0 0 3px rgba(40, 100, 220, 0.1);
-    }
-
-    .site-login .form-group {
-        margin-bottom: 20px;
+        box-shadow: 0 0 0 3px rgba(40, 100, 220, 0.10);
     }
 
     .site-login .login-button {
@@ -120,13 +138,13 @@ $this->title = 'Login - ' . Yii::$app->name;
         border: none;
         border-radius: 7px;
         background: #2864dc;
-        color: #fff;
+        color: #ffffff;
         font-weight: 600;
     }
 
     .site-login .login-button:hover {
         background: #1e4fb5;
-        color: #fff;
+        color: #ffffff;
     }
 
     @media (max-width: 576px) {
@@ -143,8 +161,11 @@ $this->title = 'Login - ' . Yii::$app->name;
 <div class="site-login">
 
     <div class="card login-card">
+
         <div class="card-block">
+
             <div class="account-box">
+
                 <div class="card-box">
 
                     <div class="login-logo">
@@ -181,8 +202,11 @@ $this->title = 'Login - ' . Yii::$app->name;
                     <?php ActiveForm::end(); ?>
 
                 </div>
+
             </div>
+
         </div>
+
     </div>
 
 </div>
