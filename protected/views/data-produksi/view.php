@@ -869,7 +869,7 @@ $this->title = 'View Member - ' . Yii::$app->name;
 
                                     <?= Html::hiddenInput(
                                         'nomor_rekening',
-                                        $nomorRekening
+                                        $nomor_rekening
                                     ); ?>
 
                                     <?= Html::hiddenInput(
