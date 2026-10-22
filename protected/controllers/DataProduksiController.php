@@ -2103,7 +2103,7 @@ class DataProduksiController  extends Controller
 
 		// Prefix tanpa sequence.
 		$filePrefix = $nomorRekening . '_' .
-					  $noAkad . '_005_2';
+					  $noAkad . '_005_2'.zip;
 
 		Yii::info([
 			'nomor_rekening' => $nomorRekening,
@@ -2242,21 +2242,25 @@ class DataProduksiController  extends Controller
 
 			$matches = [];
 
-			// Cari ZIP dengan format:
-			// rekening_akad_005_2_sequence.zip
-			$pattern = '/^' .
-				preg_quote($filePrefix, '/') .
-				'_(\d+)\.zip$/i';
-
 			while (($file = readdir($handle)) !== false) {
-				if (preg_match($pattern, $file)) {
-					$matches[] = $file;
+
+
+				$pattern = '/^' .
+					preg_quote($filePrefix, '/') .
+					'(?:_(\d+))?\.zip$/i';
+
+				if (preg_match($pattern, $file, $match)) {
+					$matches[] = [
+						'name' => $file,
+						'sequence' => isset($match[1]) && $match[1] !== ''
+							? (int) $match[1]
+							: 0,
+					];
 				}
 			}
 
 			closedir($handle);
 
-			// File tidak ditemukan.
 			if (empty($matches)) {
 				return [
 					'success' => false,
@@ -2266,18 +2270,12 @@ class DataProduksiController  extends Controller
 			}
 
 			// Urutkan berdasarkan sequence terbesar.
-			usort($matches, function ($a, $b) use ($pattern) {
-				preg_match($pattern, $a, $ma);
-				preg_match($pattern, $b, $mb);
-
-				$sequenceA = isset($ma[1]) ? (int) $ma[1] : 0;
-				$sequenceB = isset($mb[1]) ? (int) $mb[1] : 0;
-
-				return $sequenceB <=> $sequenceA;
+			usort($matches, function ($a, $b) {
+				return $b['sequence'] <=> $a['sequence'];
 			});
 
-			// Ambil file dengan sequence terbesar.
-			$fileName = $matches[0];
+			// Ambil nama file yang ditemukan.
+			$fileName = $matches[0]['name'];
 
 			$remotePath = $remoteDir . $fileName;
 
