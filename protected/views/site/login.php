@@ -169,12 +169,10 @@ $this->title = 'Login - ' . Yii::$app->name;
                 <div class="card-box">
 
                     <div class="login-logo">
-                        <a href="<?= Url::to(['/site/login']) ?>">
-                            <img
-                                src="<?= Url::base() . '/theme/assets/images/logo.png' ?>"
-                                alt="Logo"
-                            >
-                        </a>
+                        <img
+                            src="<?= Url::base() ?>/theme/assets/images/logo.png"
+                            alt="Logo"
+                        >
                     </div>
 
                     <?= Alert::widget() ?>
