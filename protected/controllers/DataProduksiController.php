@@ -2103,7 +2103,7 @@ class DataProduksiController  extends Controller
 
 		// Prefix tanpa sequence.
 		$filePrefix = $nomorRekening . '_' .
-					  $noAkad . '_005_2'.zip;
+					  $noAkad . '_005_2';
 
 		Yii::info([
 			'nomor_rekening' => $nomorRekening,

@@ -1413,11 +1413,19 @@ class PengajuanController extends Controller
 				
 			$runningNo = $existingMemberTotal + 1;
 			
+			if (!empty($member->member_no)) 
+			{
+				$no_peserta = $member->member_no;
+
+			} 
+			else 
+			{
+				$no_peserta = Member::generateMemberNo($runningNo,$policybyproduk->policy_no);
+			}
 			
-			$no_peserta=Member::generateMemberNo($runningNo, $policybyproduk->policy_no);
+			// $no_peserta=Member::generateMemberNo($runningNo, $policybyproduk->policy_no);
 			$member->policy_no = $policybyproduk->policy_no;
 			$member->batch_no = $batchNo;
-			// $member->member_no = $memberNo;
 			$member->member_no = $no_peserta;
 			$member->personal_no = $personalNo;
 			$member->age = $age;
