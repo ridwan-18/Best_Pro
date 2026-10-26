@@ -1381,6 +1381,7 @@ class PengajuanController extends Controller
 			
 			$extra_premi=$member->extra_premium;
 			
+			
 			$existingMemberDesc = Member::find()
 		   ->where([
 			'policy_no' => $policybyproduk->policy_no,
@@ -1540,7 +1541,7 @@ class PengajuanController extends Controller
 					),
 
 					'tarif_extra_premi' => 0,
-					'jumlah_extra_premi' => $extra_premi,
+					'jumlah_extra_premi' => 0,
 				],
 
 				'polis_pembiayaan' => null,
