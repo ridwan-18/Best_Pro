@@ -1640,334 +1640,95 @@ $filters = [
 }
 </style>
 
-
-
-<!-- Custom UI refresh: place after the existing styles so these rules take precedence. -->
+<!-- REDESIGN SUMMARY PRODUKSI: visual layer only -->
 <style>
-/* ===== Summary Produksi: polished dashboard refresh ===== */
 .summary-produksi-index {
-    --sp-ink: #20334d;
-    --sp-muted: #718198;
-    --sp-border: #e4eaf2;
-    --sp-blue: #245b91;
-    --sp-canvas: #f3f6fb;
-    font-family: "Inter", "Segoe UI", Arial, sans-serif;
-    color: var(--sp-ink);
-    background: var(--sp-canvas);
-    padding: 22px;
-    border-radius: 18px;
+  --sp-ink:#eaf1ff; --sp-muted:#9eacc4; --sp-panel:#111d31; --sp-panel2:#15243b;
+  --sp-line:rgba(151,174,211,.17); --sp-blue:#55a6ff; --sp-green:#30d6a0;
+  --sp-purple:#ad91ff; --sp-orange:#ffbd69;
+  background:#081222 !important; color:var(--sp-ink) !important; padding:26px !important;
+  border-radius:22px !important; font-family:Inter,"Segoe UI",Arial,sans-serif !important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.035);
 }
 .summary-produksi-index > .row.mb-4.no-print {
-    margin: 0 0 24px !important;
-    padding: 26px 28px;
-    border-radius: 18px;
-    background: linear-gradient(125deg, #142b4a 0%, #245b91 62%, #347da4 100%);
-    box-shadow: 0 12px 28px rgba(26, 57, 91, .16);
-    align-items: center;
+  position:relative; overflow:hidden; margin:0 0 25px !important; padding:30px 32px !important;
+  border:1px solid rgba(110,166,255,.28); border-radius:22px !important;
+  background:radial-gradient(circle at 88% 0%,rgba(85,166,255,.28),transparent 34%),
+             linear-gradient(115deg,#142747 0%,#10203a 58%,#172d4b 100%) !important;
+  box-shadow:0 18px 45px rgba(0,0,0,.23) !important;
 }
-.summary-produksi-index .summary-title {
-    margin: 0 0 8px;
-    color: #fff !important;
-    font-size: 28px;
-    font-weight: 750;
-    letter-spacing: -.5px;
+.summary-produksi-index > .row.mb-4.no-print:after {
+  content:"PRODUCTION ANALYTICS"; position:absolute; right:28px; top:20px;
+  color:rgba(215,230,255,.23); font-size:10px; letter-spacing:3px; font-weight:800;
 }
-.summary-produksi-index .summary-subtitle {
-    margin: 0;
-    color: #dce9f7 !important;
-    font-size: 13px;
-    font-weight: 400;
+.summary-produksi-index .summary-title {color:#fff !important;font-size:30px !important;font-weight:800 !important;letter-spacing:-.8px;margin-bottom:8px !important}
+.summary-produksi-index .summary-subtitle {color:#b7c9e5 !important;font-size:13px !important;letter-spacing:.15px}
+.summary-produksi-index .summary-cards {display:grid !important;grid-template-columns:repeat(4,minmax(0,1fr));gap:17px;margin:0 0 22px !important}
+.summary-produksi-index .summary-cards > [class*="col-"] {width:auto !important;max-width:none !important;flex:none !important;padding:0 !important}
+.summary-produksi-index .summary-card {
+  position:relative; min-height:158px !important; padding:23px !important; overflow:hidden;
+  background:linear-gradient(145deg,#172740,#101b2e) !important; border:1px solid var(--sp-line) !important;
+  border-radius:18px !important; box-shadow:0 10px 24px rgba(0,0,0,.16) !important;
 }
+.summary-produksi-index .summary-card:before {content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--sp-blue)}
+.summary-produksi-index .summary-cards > div:nth-child(2) .summary-card:before {background:var(--sp-green)}
+.summary-produksi-index .summary-cards > div:nth-child(3) .summary-card:before {background:var(--sp-orange)}
+.summary-produksi-index .summary-cards > div:nth-child(4) .summary-card:before {background:#ff7e93}
+.summary-produksi-index .summary-card:after {content:"";position:absolute;right:-34px;bottom:-52px;width:135px;height:135px;border:1px solid rgba(125,174,255,.13);border-radius:50%;box-shadow:0 0 0 17px rgba(125,174,255,.025),0 0 0 35px rgba(125,174,255,.02)}
+.summary-produksi-index .summary-label {color:#9eacc4 !important;font-size:11px !important;font-weight:800 !important;letter-spacing:1.1px !important;text-transform:uppercase;margin-bottom:17px !important}
+.summary-produksi-index .summary-value {color:#f5f8ff !important;font-size:34px !important;font-weight:800 !important;letter-spacing:-1px;line-height:1.1}
+.summary-produksi-index .summary-icon {display:inline-flex;align-items:center;justify-content:center;width:48px;height:48px;background:rgba(85,166,255,.12);border:1px solid rgba(85,166,255,.2);border-radius:15px;color:var(--sp-blue) !important;font-size:22px !important}
 .summary-produksi-index .card-box,
 .summary-produksi-index .dashboard-panel,
 .summary-produksi-index .premium-summary-card,
 .summary-produksi-index .reporting-box {
-    background: #fff !important;
-    border: 1px solid var(--sp-border) !important;
-    border-radius: 15px !important;
-    box-shadow: 0 5px 18px rgba(31, 55, 85, .055) !important;
-    color: var(--sp-ink);
+  color:var(--sp-ink) !important;background:linear-gradient(145deg,#121f34,#0f1a2c) !important;
+  border:1px solid var(--sp-line) !important;border-radius:19px !important;
+  box-shadow:0 12px 30px rgba(0,0,0,.16) !important;
 }
-.summary-produksi-index .card-box {
-    padding: 22px;
-    margin-bottom: 20px;
-}
-.summary-produksi-index .summary-card {
-    min-height: 132px;
-    position: relative;
-    overflow: hidden;
-    transition: transform .2s ease, box-shadow .2s ease;
-}
-.summary-produksi-index .summary-card::after {
-    content: "";
-    position: absolute;
-    top: -28px;
-    right: -25px;
-    width: 108px;
-    height: 108px;
-    border-radius: 50%;
-    background: rgba(36, 91, 145, .07);
-    pointer-events: none;
-}
-.summary-produksi-index .summary-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 12px 26px rgba(31, 55, 85, .11) !important;
-}
-.summary-produksi-index .summary-label {
-    color: #718198 !important;
-    font-size: 11px;
-    font-weight: 750;
-    letter-spacing: .65px;
-    text-transform: uppercase;
-    margin-bottom: 12px;
-}
-.summary-produksi-index .summary-value {
-    color: #1b3452 !important;
-    font-size: 30px;
-    font-weight: 750;
-    line-height: 1.2;
-    overflow-wrap: anywhere;
-}
-.summary-produksi-index .summary-icon {
-    display: inline-block;
-    color: #3977b9 !important;
-    background: #edf5ff;
-    padding: 13px;
-    border-radius: 14px;
-    font-size: 24px !important;
-}
-.summary-produksi-index .header-title {
-    color: #1c3554 !important;
-    font-size: 17px;
-    font-weight: 750;
-}
-.summary-produksi-index p,
-.summary-produksi-index label,
-.summary-produksi-index th,
-.summary-produksi-index td,
-.summary-produksi-index strong,
-.summary-produksi-index .text-muted,
-.summary-produksi-index span {
-    color: #33445b !important;
-}
-.summary-produksi-index .dashboard-panel {
-    min-height: 340px;
-    padding: 24px;
-}
-.summary-produksi-index .dashboard-muted,
-.summary-produksi-index .dashboard-chart-note {
-    color: #78879a !important;
-}
-.summary-produksi-index .status-donut:before {
-    background: #fff;
-}
-.summary-produksi-index .status-donut-center strong {
-    color: #1b3452 !important;
-}
-.summary-produksi-index .status-donut-center span,
-.summary-produksi-index .legend-item small {
-    color: #78879a !important;
-}
-.summary-produksi-index .legend-item {
-    border-bottom-color: #edf1f6;
-}
-.summary-produksi-index .premium-track {
-    background: #edf1f6;
-}
-.summary-produksi-index .premium-summary-card {
-    min-height: 122px;
-    padding: 22px;
-    transition: transform .2s ease, box-shadow .2s ease;
-}
-.summary-produksi-index .premium-summary-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 24px rgba(31, 55, 85, .09) !important;
-}
-.summary-produksi-index .premium-summary-icon {
-    background: #f0f5fb;
-    border-radius: 14px;
-}
-.summary-produksi-index .premium-summary-content span,
-.summary-produksi-index .premium-summary-content small {
-    color: #77869a !important;
-}
-.summary-produksi-index .premium-summary-content strong {
-    color: #1b3452 !important;
-    font-size: 19px;
-    line-height: 1.35;
-}
-.summary-produksi-index .reporting-box {
-    padding: 25px;
-}
-.summary-produksi-index .reporting-table {
-    border: 1px solid #e0e7ef !important;
-    border-collapse: separate !important;
-    border-spacing: 0;
-    border-radius: 11px;
-    overflow: hidden;
-}
-.summary-produksi-index .reporting-table thead th {
-    background: #edf3fa !important;
-    color: #344b66 !important;
-    border: 1px solid #e0e7ef !important;
-    font-size: 10px;
-    font-weight: 800 !important;
-    letter-spacing: .45px;
-    text-transform: uppercase;
-    padding: 14px 10px;
-}
-.summary-produksi-index .reporting-table tbody td {
-    background: #fff !important;
-    color: #34445a !important;
-    border: 1px solid #e8edf3 !important;
-    font-size: 12px;
-    padding: 13px 10px;
-}
-.summary-produksi-index .reporting-table tbody tr:hover td {
-    background: #f7faff !important;
-    color: #1b3452 !important;
-}
-.summary-produksi-index .reporting-table tfoot th {
-    background: #edf3fa !important;
-    color: #1b3452 !important;
-    border: 1px solid #e0e7ef !important;
-    padding: 13px 10px;
-}
-.summary-produksi-index .report-badge {
-    background: #edf5ff;
-    border: 1px solid #d5e6fa;
-    color: #245c91 !important;
-    border-radius: 20px;
-    font-size: 11px;
-    letter-spacing: .35px;
-    padding: 8px 13px;
-}
-.summary-produksi-index .report-note {
-    background: #f8fafc;
-    border: 1px solid #e3eaf2;
-    border-radius: 11px;
-}
-.summary-produksi-index .report-note li {
-    color: #586a80 !important;
-}
-.summary-produksi-index .btn {
-    border-radius: 9px;
-    padding: 10px 15px;
-    font-size: 12px;
-    font-weight: 700;
-    box-shadow: none;
-    transition: transform .15s ease, box-shadow .15s ease, filter .15s ease;
-}
-.summary-produksi-index .btn:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 5px 12px rgba(30, 55, 90, .10);
-}
-.summary-produksi-index .btn-info {
-    background: #e8f2ff !important;
-    border-color: #cfe2fa !important;
-    color: #245b91 !important;
-}
-.summary-produksi-index .btn-success {
-    background: #e6f7ef !important;
-    border-color: #c5ead8 !important;
-    color: #18794e !important;
-}
-.summary-produksi-index .btn-primary {
-    background: #245b91 !important;
-    border-color: #245b91 !important;
-    color: #fff !important;
-}
-.summary-produksi-index .btn-secondary,
-.summary-produksi-index .btn-light,
-.summary-produksi-index a.btn[style] {
-    background: #fff3cd !important;
-    border-color: #ffe69c !important;
-    color: #664d03 !important;
-}
-#search-modal .modal-content {
-    background: #fff !important;
-    border: 1px solid #e0e7ef !important;
-    border-radius: 15px;
-    box-shadow: 0 18px 50px rgba(20, 43, 74, .18);
-    overflow: hidden;
-}
-#search-modal .modal-header,
-#search-modal .modal-body {
-    border-color: #e5ebf2 !important;
-}
-#search-modal .modal-title,
-#search-modal .modal-body label,
-#search-modal .modal-header .close {
-    color: #1c3554 !important;
-}
-#search-modal .form-control {
-    min-height: 40px;
-    background: #fff !important;
-    color: #243247 !important;
-    border: 1px solid #d7e0ea !important;
-    border-radius: 8px;
-    box-shadow: none;
-}
-#search-modal .form-control:focus {
-    border-color: #78a9dc !important;
-    box-shadow: 0 0 0 3px rgba(36, 91, 145, .10);
-}
-#search-modal .form-control::placeholder {
-    color: #94a1b2 !important;
-}
-#search-modal select option {
-    color: #243247;
-    background: #fff;
-}
-@media screen and (max-width: 767px) {
-    .summary-produksi-index {
-        padding: 10px;
-        border-radius: 12px;
-    }
-    .summary-produksi-index > .row.mb-4.no-print {
-        padding: 20px 16px;
-        border-radius: 13px;
-    }
-    .summary-produksi-index .summary-title {
-        font-size: 22px;
-    }
-    .summary-produksi-index .summary-value {
-        font-size: 25px;
-    }
-    .summary-produksi-index .dashboard-panel {
-        padding: 16px;
-    }
-    .summary-produksi-index .reporting-box {
-        padding: 15px;
-    }
-    .summary-produksi-index .reporting-table {
-        min-width: 1000px;
-    }
-}
-@media print {
-    .summary-produksi-index {
-        background: #fff !important;
-        color: #000 !important;
-        padding: 0 !important;
-        border-radius: 0 !important;
-    }
-    .summary-produksi-index > .row.mb-4.no-print {
-        display: none !important;
-    }
-    .summary-produksi-index .card-box,
-    .summary-produksi-index .dashboard-panel,
-    .summary-produksi-index .premium-summary-card,
-    .summary-produksi-index .reporting-box {
-        background: #fff !important;
-        border: 1px solid #bbb !important;
-        box-shadow: none !important;
-    }
-    .summary-produksi-index .reporting-table th,
-    .summary-produksi-index .reporting-table td {
-        color: #000 !important;
-        background: #fff !important;
-        border: 1px solid #777 !important;
-    }
-}
+.summary-produksi-index .dashboard-panel {min-height:350px;padding:26px !important;margin-bottom:20px}
+.summary-produksi-index .dashboard-panel-heading {padding-bottom:16px;border-bottom:1px solid var(--sp-line);margin-bottom:23px !important}
+.summary-produksi-index .header-title {color:#edf4ff !important;font-size:16px !important;font-weight:750 !important;letter-spacing:-.2px}
+.summary-produksi-index .dashboard-muted,.summary-produksi-index .dashboard-chart-note {color:var(--sp-muted) !important}
+.summary-produksi-index .status-donut:before {background:#111d31 !important}
+.summary-produksi-index .status-donut-center strong {color:#fff !important;font-size:27px}
+.summary-produksi-index .status-donut-center span,.summary-produksi-index .legend-item small {color:var(--sp-muted) !important}
+.summary-produksi-index .legend-item {border-bottom:1px solid var(--sp-line) !important;padding:11px 0}
+.summary-produksi-index .premium-track {background:#26364e !important;height:11px !important;border-radius:20px}
+.summary-produksi-index .premium-bar {border-radius:20px !important}
+.summary-produksi-index .gross-bar {background:linear-gradient(90deg,#3989ff,#67bcff) !important}
+.summary-produksi-index .extra-bar {background:linear-gradient(90deg,#8b70ff,#c0aaff) !important}
+.summary-produksi-index .net-bar {background:linear-gradient(90deg,#16b987,#5be5b7) !important}
+.summary-produksi-index .premium-summary-card {padding:23px !important;min-height:126px;margin-bottom:18px !important;gap:17px !important}
+.summary-produksi-index .premium-summary-icon {width:54px !important;height:54px !important;flex:0 0 54px !important;border-radius:16px !important;background:#1d304b !important;font-size:23px !important}
+.summary-produksi-index .gross-summary .premium-summary-icon {color:var(--sp-blue) !important}
+.summary-produksi-index .extra-summary .premium-summary-icon {color:var(--sp-purple) !important}
+.summary-produksi-index .net-summary .premium-summary-icon {color:var(--sp-green) !important}
+.summary-produksi-index .premium-summary-content span,.summary-produksi-index .premium-summary-content small {color:var(--sp-muted) !important}
+.summary-produksi-index .premium-summary-content strong {color:#f4f7ff !important;font-size:21px !important;font-weight:800}
+.summary-produksi-index .reporting-box {padding:25px !important;margin-bottom:22px}
+.summary-produksi-index .reporting-box .header-title {font-size:18px !important}
+.summary-produksi-index .reporting-table {border-collapse:separate !important;border-spacing:0 !important;border:1px solid var(--sp-line) !important;border-radius:12px !important;overflow:hidden;background:#0d192b !important}
+.summary-produksi-index .reporting-table thead th {background:#1b2d47 !important;color:#b9cce8 !important;border:0 !important;border-bottom:1px solid #344763 !important;padding:15px 13px !important;font-size:10px !important;letter-spacing:.8px;text-transform:uppercase;font-weight:800 !important}
+.summary-produksi-index .reporting-table tbody td {background:#101d30 !important;color:#dce6f6 !important;border:0 !important;border-bottom:1px solid rgba(151,174,211,.1) !important;padding:13px !important;font-size:12px !important;vertical-align:middle}
+.summary-produksi-index .reporting-table tbody tr:nth-child(even) td {background:#132239 !important}
+.summary-produksi-index .reporting-table tbody tr:hover td {background:#1b304d !important}
+.summary-produksi-index .reporting-table tfoot th {background:#1b2d47 !important;color:#fff !important;border:0 !important;padding:14px 13px !important}
+.summary-produksi-index p,.summary-produksi-index label,.summary-produksi-index th,.summary-produksi-index td,.summary-produksi-index strong,.summary-produksi-index .text-muted,.summary-produksi-index span {color:inherit}
+.summary-produksi-index .text-muted {color:var(--sp-muted) !important}
+.summary-produksi-index .btn {border-radius:10px !important;font-weight:700 !important;padding:10px 15px !important;box-shadow:none !important;transition:transform .18s ease,filter .18s ease}
+.summary-produksi-index .btn:hover {transform:translateY(-2px);filter:brightness(1.08)}
+.summary-produksi-index .btn-primary,.summary-produksi-index .btn-info {background:linear-gradient(120deg,#2879e8,#4a9dff) !important;border:0 !important;color:#fff !important}
+.summary-produksi-index .btn-success {background:linear-gradient(120deg,#119b70,#2fd4a0) !important;border:0 !important;color:#061b16 !important}
+.summary-produksi-index .btn-light,.summary-produksi-index .btn-default {background:#22344d !important;border:1px solid #344966 !important;color:#e5eefc !important}
+#search-modal .modal-content {background:#111d31 !important;color:#eaf1ff !important;border:1px solid #344966 !important;border-radius:18px !important;overflow:hidden}
+#search-modal .modal-header {background:#172943 !important;border-bottom:1px solid #344966 !important}
+#search-modal .modal-title,#search-modal .modal-body label,#search-modal .modal-header .close {color:#eef4ff !important}
+#search-modal .form-control {background:#0b1728 !important;color:#edf4ff !important;border:1px solid #344966 !important;border-radius:9px !important;min-height:42px}
+#search-modal .form-control::placeholder {color:#788ba8 !important}
+#search-modal select option {background:#0b1728;color:#edf4ff}
+@media(max-width:1100px){.summary-produksi-index .summary-cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:767px){.summary-produksi-index{padding:12px !important;border-radius:14px !important}.summary-produksi-index > .row.mb-4.no-print{padding:23px 19px !important}.summary-produksi-index > .row.mb-4.no-print:after{display:none}.summary-produksi-index .summary-title{font-size:24px !important}.summary-produksi-index .summary-cards{grid-template-columns:1fr;gap:12px}.summary-produksi-index .summary-card{min-height:125px !important}.summary-produksi-index .summary-value{font-size:29px !important}.summary-produksi-index .dashboard-panel{padding:17px !important}.summary-produksi-index .reporting-box{padding:14px !important}.summary-produksi-index .table-responsive{overflow-x:auto}}
+@media print{.summary-produksi-index{background:#fff !important;color:#000 !important;padding:0 !important}.summary-produksi-index > .row.mb-4.no-print{display:none !important}.summary-produksi-index .card-box,.summary-produksi-index .dashboard-panel,.summary-produksi-index .premium-summary-card,.summary-produksi-index .reporting-box{background:#fff !important;color:#000 !important;box-shadow:none !important;border:1px solid #999 !important}.summary-produksi-index .summary-title,.summary-produksi-index .summary-value,.summary-produksi-index .header-title,.summary-produksi-index p,.summary-produksi-index strong,.summary-produksi-index span,.summary-produksi-index th,.summary-produksi-index td{color:#000 !important}.summary-produksi-index .reporting-table td,.summary-produksi-index .reporting-table th{background:#fff !important;color:#000 !important;border:1px solid #999 !important}}
 </style>
 
