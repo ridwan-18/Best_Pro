@@ -1480,7 +1480,7 @@ class PengajuanController extends Controller
 				);
 			}
 			
-			$sertifikat = $this->generateSertifikat($member,$policybyproduk,$nettPremium);
+			// $sertifikat = $this->generateSertifikat($member,$policybyproduk,$nettPremium);
 
 			} catch (\Exception $e) {
 
@@ -1500,6 +1500,136 @@ class PengajuanController extends Controller
 				]
 			];
 		}
+		
+		$productcode = $policybyproduk->policy_no;
+		
+		$url = 'https://relipro-dev.asuransireliance.com:25443/api/ext/policy/ajri/submission';
+		// $url = 'https://relipro.reli.id/api/ext/policy/ajri/submission';
+		
+
+        $data = [
+            'ProductCode' => 'BRKS',
+            'MasterPolicyNumber' => $policybyproduk->policy_no,
+            'PolicyNumber' => $member->member_no,
+            'StartDate' => date('m/d/Y', strtotime($member->start_date)),
+            'EndDate' => date('m/d/Y', strtotime($member->end_date)),
+            'Tenor' => $member->term,
+            'SumInsured' => $member->sum_insured,
+            'ContractNumber' => $idTransaksi,
+            'HeightCm' => 0,
+            'WeightKg' => 0,
+            'SmokesPerDay' => 0,
+            'IsHealthy' => 'Y',
+            'ExtraNote' => '',
+            'ParticipantName' => $member->nama,
+            'ParticipantIdentityNumber' => $member->no_ktp,
+            'ParticipantGender' => 'M',
+            'ParticipantBirthPlace' => 'Jakarta',
+            // 'ParticipantBirthDate' => $personal_detail->birth_date,
+			'ParticipantBirthDate' => date('m/d/Y', strtotime($member->tgl_lahir)),
+            'ParticipantPhone' => '-',
+            'ParticipantEmail' => '-',
+            'ParticipantAddress' => '-',
+            'ParticipantProvinceName' => '-',
+            'ParticipantCityName' =>'-',
+            'ParticipantDistrictName' => '',
+            'ParticipantSubdistrictName' => '',
+            'ParticipantPostalCode' => '',
+            'PremiumRate' => $member->rate_premi,
+            'PremiumRateType' => 'PERCENTAGE',
+            'PremiumAmount' => $member->total_premium,
+            'ExtraPremiumPercentage' => $member->percentage_extra_premium,
+            'ExtraPremiumAmount' => $member->extra_premium,
+            'ExtraPremiumRemark' => '',
+            // 'URLPolicyCertificate' => 'https://h2h-ajri.reli.id/images/e_policy/' . $filename,
+            'URLPolicyCertificate' => '-',
+        ];
+
+        $ch = curl_init($url);
+
+			$headers = [
+				'Content-Type: application/json',
+				'x-api-key: buJffMcy',
+				'x-api-secret: yAbmdhub6RW8ffHgu7NZuqmtHrZeYB8U',
+				'Accept: application/json'
+			];
+
+			$requestBody = json_encode($data);
+
+			curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+			curl_setopt($ch, CURLOPT_POST, true);
+			curl_setopt($ch, CURLOPT_POSTFIELDS, $requestBody);
+			curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+
+			$response = curl_exec($ch);
+
+			$statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+			$curlErrorNo = curl_errno($ch);
+			$curlError = curl_error($ch);
+
+			curl_close($ch);
+
+			// DEBUG LANGSUNG DI WEB
+			echo '<pre>';
+
+			echo "URL REQUEST:\n";
+			echo htmlspecialchars($url, ENT_QUOTES, 'UTF-8');
+
+			echo "\n\nREQUEST DATA:\n";
+			echo htmlspecialchars(
+				json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES),
+				ENT_QUOTES,
+				'UTF-8'
+			);
+
+			echo "\n\nHTTP STATUS:\n";
+			echo $statusCode;
+
+			echo "\n\nCURL ERROR NUMBER:\n";
+			echo $curlErrorNo;
+
+			echo "\n\nCURL ERROR:\n";
+			echo htmlspecialchars($curlError, ENT_QUOTES, 'UTF-8');
+
+			echo "\n\nRAW RESPONSE:\n";
+			echo htmlspecialchars((string) $response, ENT_QUOTES, 'UTF-8');
+
+			echo "\n\nDECODE RESPONSE:\n";
+			echo htmlspecialchars(
+				json_encode(
+					json_decode((string) $response, true),
+					JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES
+				),
+				ENT_QUOTES,
+				'UTF-8'
+			);
+
+			echo '</pre>';
+
+			// Hentikan proses setelah debug
+			Yii::$app->end();
+
+		
+		 if (curl_errno($ch)) {
+            Yii::$app->response->statusCode = $statusCode;
+            return [
+                'is_success' => 0,
+                'message' => 'Error cURL: ' . curl_error($ch)
+            ];
+        }
+
+        $data = json_decode($response, true);
+		
+		// var_dump($data);
+		
+        if ($statusCode != 200) {
+            Yii::$app->response->statusCode = $statusCode;
+            return [
+                'is_success' => 0,
+                'message' => $data['Message']
+            ];
+        }
 
 		$dokument = Dokumen_Medis::getAll([
 			'medis' => $medicalCode
