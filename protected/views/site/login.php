@@ -503,7 +503,7 @@ $this->title = 'Login - ' . Yii::$app->name;
                             class="lamp-button lamp-on-button"
                             id="lampOn"
                         >
-                            Nyalakan lampu
+                            On
                         </button>
 
                         <button
@@ -511,7 +511,7 @@ $this->title = 'Login - ' . Yii::$app->name;
                             class="lamp-button lamp-off-button"
                             id="lampOff"
                         >
-                            Matikan lampu
+                            Off
                         </button>
 
                     </div>
