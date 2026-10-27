@@ -1379,7 +1379,7 @@ class PengajuanController extends Controller
 				];
 			}
 			
-			$extra_premi=$member->extra_premium;
+			$extra_premi = $member->extra_premium ?? 0;
 			
 			
 			$existingMemberDesc = Member::find()
@@ -1541,7 +1541,7 @@ class PengajuanController extends Controller
 					),
 
 					'tarif_extra_premi' => 0,
-					'jumlah_extra_premi' => 0,
+					'jumlah_extra_premi' => $extra_premi,
 				],
 
 				'polis_pembiayaan' => null,
