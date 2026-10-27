@@ -87,8 +87,7 @@ $this->title = 'Login - ' . Yii::$app->name;
     }
 
     /* KARTU LOGIN */
-    .site-login .login-card {
-        display: block !important;
+    .login-card {
         position: relative !important;
 
         width: 100% !important;
@@ -171,20 +170,19 @@ $this->title = 'Login - ' . Yii::$app->name;
         isolation: isolate;
 
         text-align: center;
-
         margin: 0 0 25px;
         padding: 12px 0 5px;
     }
 
-    /* CAHAYA LAMPU */
-    .lamp-area .light {
+    /* CAHAYA */
+    .light {
         position: absolute;
 
-        top: -25px;
+        top: -35px;
         left: 50%;
 
-        width: 160px;
-        height: 160px;
+        width: 170px;
+        height: 170px;
 
         transform: translateX(-50%);
         border-radius: 50%;
@@ -199,14 +197,13 @@ $this->title = 'Login - ' . Yii::$app->name;
 
         opacity: 0;
         z-index: -1;
-
         pointer-events: none;
 
         transition: opacity 0.5s ease;
     }
 
     /* BOLA LAMPU */
-    .lamp-area .bulb {
+    .bulb {
         position: relative;
 
         width: 42px;
@@ -215,20 +212,16 @@ $this->title = 'Login - ' . Yii::$app->name;
         margin: 0 auto 15px;
 
         border-radius: 50%;
-
         background: #cbd5e1;
+
         border: 3px solid #ffffff;
 
         box-shadow: 0 0 0 1px #b8c4d4;
 
-        transition:
-            background 0.4s ease,
-            box-shadow 0.4s ease,
-            transform 0.4s ease;
+        transition: all 0.4s ease;
     }
 
-    /* LEHER LAMPU */
-    .lamp-area .bulb::after {
+    .bulb::after {
         content: "";
 
         position: absolute;
@@ -247,12 +240,12 @@ $this->title = 'Login - ' . Yii::$app->name;
         transition: background 0.4s ease;
     }
 
-    /* LAMPU MENYALA */
-    #turnon:target .light {
+    /* STATUS LAMPU HIDUP */
+    .site-login.lamp-on .light {
         opacity: 1;
     }
 
-    #turnon:target .bulb {
+    .site-login.lamp-on .bulb {
         background: #FAEB83;
 
         box-shadow:
@@ -265,7 +258,7 @@ $this->title = 'Login - ' . Yii::$app->name;
         animation: bulbGlow 1.8s ease-in-out infinite;
     }
 
-    #turnon:target .bulb::after {
+    .site-login.lamp-on .bulb::after {
         background: #d9c45c;
     }
 
@@ -285,12 +278,13 @@ $this->title = 'Login - ' . Yii::$app->name;
     }
 
     /* TOMBOL LAMPU */
-    .lamp-area .lamp,
-    .lamp-area .turnoff {
+    .lamp-button {
         display: inline-block;
 
         position: relative;
         z-index: 2;
+
+        padding: 5px 12px;
 
         font-size: 13px;
         font-weight: 600;
@@ -298,52 +292,48 @@ $this->title = 'Login - ' . Yii::$app->name;
         text-decoration: none !important;
         cursor: pointer;
 
-        transition:
-            color 0.3s ease,
-            transform 0.3s ease;
+        border: none;
+        background: transparent;
+
+        transition: all 0.3s ease;
     }
 
-    .lamp-area .lamp {
+    .lamp-button:hover {
+        transform: translateY(-2px);
+    }
+
+    .lamp-on-button {
         color: #2864dc;
     }
 
-    .lamp-area .lamp:hover {
-        color: #1949b0;
-    }
-
-    .lamp-area .turnoff {
+    .lamp-off-button {
         display: none;
         color: #667085;
     }
 
-    .lamp-area .turnoff:hover {
-        color: #d97706;
-    }
-
-    /* STATUS TOMBOL ON/OFF */
-    #turnon:target .lamp {
+    .site-login.lamp-on .lamp-on-button {
         display: none;
     }
 
-    #turnon:target .turnoff {
+    .site-login.lamp-on .lamp-off-button {
         display: inline-block;
     }
 
-    /* KARTU BERCahaya */
-    #turnon:target ~ .login-card {
+    /* KARTU IKUT BERCahaya */
+    .site-login.lamp-on .login-card {
         box-shadow:
             0 18px 55px rgba(31, 56, 100, 0.14),
             0 0 30px rgba(250, 235, 131, 0.30) !important;
     }
 
-    /* FORM TERSEMBUNYI SAAT LAMPU MATI */
+    /* FORM LOGIN DEFAULT TERSEMBUNYI */
     .login-form-content {
         display: none;
         opacity: 0;
     }
 
-    /* FORM MUNCUL SAAT LAMPU HIDUP */
-    #turnon:target ~ .login-card .login-form-content {
+    /* FORM LOGIN SAAT LAMPU HIDUP */
+    .site-login.lamp-on .login-form-content {
         display: block;
         animation: showLogin 0.6s ease forwards;
     }
@@ -379,10 +369,7 @@ $this->title = 'Login - ' . Yii::$app->name;
         background: #fbfcfe;
         box-shadow: none;
 
-        transition:
-            border-color 0.3s ease,
-            box-shadow 0.3s ease,
-            background 0.3s ease;
+        transition: all 0.3s ease;
     }
 
     .site-login .form-control:hover {
@@ -428,9 +415,7 @@ $this->title = 'Login - ' . Yii::$app->name;
 
         box-shadow: 0 5px 14px rgba(40, 100, 220, 0.22);
 
-        transition:
-            transform 0.25s ease,
-            box-shadow 0.25s ease;
+        transition: all 0.25s ease;
     }
 
     .site-login .login-button:hover {
@@ -476,7 +461,7 @@ $this->title = 'Login - ' . Yii::$app->name;
         }
     }
 
-    /* AKSESIBILITAS */
+    /* REDUKSI ANIMASI */
     @media (prefers-reduced-motion: reduce) {
         .site-login,
         .site-login *,
@@ -488,9 +473,8 @@ $this->title = 'Login - ' . Yii::$app->name;
     }
 </style>
 
-<div class="site-login">
+<div class="site-login" id="loginPage">
 
-    <!-- KARTU LOGIN -->
     <div class="card login-card">
 
         <div class="card-block">
@@ -507,25 +491,33 @@ $this->title = 'Login - ' . Yii::$app->name;
                         >
                     </div>
 
-                    <!-- LAMPU ON/OFF -->
-                    <div class="lamp-area" id="turnon">
+                    <!-- KONTROL LAMPU -->
+                    <div class="lamp-area">
 
                         <div class="light"></div>
 
                         <div class="bulb"></div>
 
-                        <a href="#turnon" class="lamp">
+                        <button
+                            type="button"
+                            class="lamp-button lamp-on-button"
+                            id="lampOn"
+                        >
                             Nyalakan lampu
-                        </a>
+                        </button>
 
-                        <a href="#" class="turnoff">
+                        <button
+                            type="button"
+                            class="lamp-button lamp-off-button"
+                            id="lampOff"
+                        >
                             Matikan lampu
-                        </a>
+                        </button>
 
                     </div>
 
                     <!-- FORM LOGIN -->
-                    <div class="login-form-content">
+                    <div class="login-form-content" id="loginFormContent">
 
                         <?= Alert::widget() ?>
 
@@ -564,3 +556,50 @@ $this->title = 'Login - ' . Yii::$app->name;
     </div>
 
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    var loginPage = document.getElementById('loginPage');
+    var lampOn = document.getElementById('lampOn');
+    var lampOff = document.getElementById('lampOff');
+    var loginFormContent = document.getElementById('loginFormContent');
+
+    if (!loginPage || !lampOn || !lampOff || !loginFormContent) {
+        return;
+    }
+
+    /* KONDISI AWAL: LAMPU MATI */
+    loginPage.classList.remove('lamp-on');
+    loginFormContent.style.display = 'none';
+
+    /* NYALAKAN LAMPU DAN TAMPILKAN FORM */
+    lampOn.addEventListener('click', function () {
+
+        loginPage.classList.add('lamp-on');
+
+        loginFormContent.style.display = 'block';
+        loginFormContent.style.opacity = '0';
+
+        /* Animasi form */
+        loginFormContent.style.animation = 'none';
+
+        void loginFormContent.offsetWidth;
+
+        loginFormContent.style.animation =
+            'showLogin 0.6s ease forwards';
+
+    });
+
+    /* MATIKAN LAMPU DAN SEMBUNYIKAN FORM */
+    lampOff.addEventListener('click', function () {
+
+        loginPage.classList.remove('lamp-on');
+
+        loginFormContent.style.display = 'none';
+        loginFormContent.style.opacity = '0';
+
+    });
+
+});
+</script>
