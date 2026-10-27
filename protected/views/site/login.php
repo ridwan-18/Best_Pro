@@ -286,7 +286,7 @@ $this->title = 'Login - ' . Yii::$app->name;
 
         padding: 5px 12px;
 
-        font-size: 13px;
+        font-size: 30px;
         font-weight: 600;
 
         text-decoration: none !important;
@@ -300,6 +300,7 @@ $this->title = 'Login - ' . Yii::$app->name;
 
     .lamp-button:hover {
         transform: translateY(-2px);
+
     }
 
     .lamp-on-button {
@@ -309,6 +310,7 @@ $this->title = 'Login - ' . Yii::$app->name;
     .lamp-off-button {
         display: none;
         color: #667085;
+		font-family: "Traditional Arabic", "Amiri", "Noto Naskh Arabic", serif;
     }
 
     .site-login.lamp-on .lamp-on-button {
