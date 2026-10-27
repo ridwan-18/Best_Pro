@@ -40,13 +40,10 @@ $this->title = 'Login - ' . Yii::$app->name;
         min-height: 0 !important;
     }
 
-    /* BACKGROUND LOGIN */
+    /* BACKGROUND */
     .site-login {
         position: fixed !important;
-        top: 0 !important;
-        left: 0 !important;
-        right: 0 !important;
-        bottom: 0 !important;
+        inset: 0 !important;
 
         width: 100vw !important;
         height: 100vh !important;
@@ -116,7 +113,7 @@ $this->title = 'Login - ' . Yii::$app->name;
     @keyframes loginAppear {
         from {
             opacity: 0;
-            transform: translateY(30px) scale(0.97);
+            transform: translateY(25px) scale(0.97);
         }
 
         to {
@@ -140,12 +137,12 @@ $this->title = 'Login - ' . Yii::$app->name;
     }
 
     /* LOGO */
-    .site-login .login-logo {
+    .login-logo {
         text-align: center;
         margin-bottom: 25px;
     }
 
-    .site-login .login-logo img {
+    .login-logo img {
         height: 64px;
         max-width: 100%;
         object-fit: contain;
@@ -171,15 +168,18 @@ $this->title = 'Login - ' . Yii::$app->name;
     /* AREA LAMPU */
     .lamp-area {
         position: relative;
+        isolation: isolate;
+
         text-align: center;
+
         margin: 0 0 25px;
         padding: 12px 0 5px;
-        isolation: isolate;
     }
 
-    /* BOLA CAHAYA */
+    /* CAHAYA LAMPU */
     .lamp-area .light {
         position: absolute;
+
         top: -25px;
         left: 50%;
 
@@ -199,12 +199,13 @@ $this->title = 'Login - ' . Yii::$app->name;
 
         opacity: 0;
         z-index: -1;
+
         pointer-events: none;
 
         transition: opacity 0.5s ease;
     }
 
-    /* BENTUK BOLA LAMPU */
+    /* BOLA LAMPU */
     .lamp-area .bulb {
         position: relative;
 
@@ -214,8 +215,8 @@ $this->title = 'Login - ' . Yii::$app->name;
         margin: 0 auto 15px;
 
         border-radius: 50%;
-        background: #cbd5e1;
 
+        background: #cbd5e1;
         border: 3px solid #ffffff;
 
         box-shadow: 0 0 0 1px #b8c4d4;
@@ -226,7 +227,7 @@ $this->title = 'Login - ' . Yii::$app->name;
             transform 0.4s ease;
     }
 
-    /* LEHER BOLA LAMPU */
+    /* LEHER LAMPU */
     .lamp-area .bulb::after {
         content: "";
 
@@ -283,7 +284,7 @@ $this->title = 'Login - ' . Yii::$app->name;
         }
     }
 
-    /* TOMBOL ON/OFF */
+    /* TOMBOL LAMPU */
     .lamp-area .lamp,
     .lamp-area .turnoff {
         display: inline-block;
@@ -295,7 +296,6 @@ $this->title = 'Login - ' . Yii::$app->name;
         font-weight: 600;
 
         text-decoration: none !important;
-
         cursor: pointer;
 
         transition:
@@ -309,7 +309,6 @@ $this->title = 'Login - ' . Yii::$app->name;
 
     .lamp-area .lamp:hover {
         color: #1949b0;
-        transform: translateY(-1px);
     }
 
     .lamp-area .turnoff {
@@ -319,9 +318,9 @@ $this->title = 'Login - ' . Yii::$app->name;
 
     .lamp-area .turnoff:hover {
         color: #d97706;
-        transform: translateY(-1px);
     }
 
+    /* STATUS TOMBOL ON/OFF */
     #turnon:target .lamp {
         display: none;
     }
@@ -330,11 +329,35 @@ $this->title = 'Login - ' . Yii::$app->name;
         display: inline-block;
     }
 
-    /* KARTU IKUT BERCahaya */
+    /* KARTU BERCahaya */
     #turnon:target ~ .login-card {
         box-shadow:
             0 18px 55px rgba(31, 56, 100, 0.14),
             0 0 30px rgba(250, 235, 131, 0.30) !important;
+    }
+
+    /* FORM TERSEMBUNYI SAAT LAMPU MATI */
+    .login-form-content {
+        display: none;
+        opacity: 0;
+    }
+
+    /* FORM MUNCUL SAAT LAMPU HIDUP */
+    #turnon:target ~ .login-card .login-form-content {
+        display: block;
+        animation: showLogin 0.6s ease forwards;
+    }
+
+    @keyframes showLogin {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
 
     /* LABEL */
@@ -354,7 +377,6 @@ $this->title = 'Login - ' . Yii::$app->name;
         border-radius: 8px;
 
         background: #fbfcfe;
-
         box-shadow: none;
 
         transition:
@@ -408,8 +430,7 @@ $this->title = 'Login - ' . Yii::$app->name;
 
         transition:
             transform 0.25s ease,
-            box-shadow 0.25s ease,
-            background 0.25s ease;
+            box-shadow 0.25s ease;
     }
 
     .site-login .login-button:hover {
@@ -433,7 +454,6 @@ $this->title = 'Login - ' . Yii::$app->name;
     /* ALERT */
     .site-login .alert {
         border-radius: 8px;
-        animation: loginAppear 0.4s ease both;
     }
 
     /* RESPONSIVE */
@@ -456,7 +476,7 @@ $this->title = 'Login - ' . Yii::$app->name;
         }
     }
 
-    /* HORMATI PENGATURAN REDUKSI ANIMASI */
+    /* AKSESIBILITAS */
     @media (prefers-reduced-motion: reduce) {
         .site-login,
         .site-login *,
@@ -504,33 +524,36 @@ $this->title = 'Login - ' . Yii::$app->name;
 
                     </div>
 
-                    <!-- NOTIFIKASI -->
-                    <?= Alert::widget() ?>
-
                     <!-- FORM LOGIN -->
-                    <?php $form = ActiveForm::begin([
-                        'id' => 'login-form',
-                    ]); ?>
+                    <div class="login-form-content">
 
-                    <?= $form->field($model, 'username')->textInput([
-                        'autofocus' => true,
-                        'placeholder' => 'Enter your username',
-                    ]) ?>
+                        <?= Alert::widget() ?>
 
-                    <?= $form->field($model, 'password')->passwordInput([
-                        'placeholder' => 'Enter your password',
-                    ]) ?>
+                        <?php $form = ActiveForm::begin([
+                            'id' => 'login-form',
+                        ]); ?>
 
-                    <div class="form-group mt-4 mb-0">
-
-                        <?= Html::submitButton('Login', [
-                            'class' => 'btn btn-primary login-button',
-                            'name' => 'login-button',
+                        <?= $form->field($model, 'username')->textInput([
+                            'autofocus' => true,
+                            'placeholder' => 'Enter your username',
                         ]) ?>
 
-                    </div>
+                        <?= $form->field($model, 'password')->passwordInput([
+                            'placeholder' => 'Enter your password',
+                        ]) ?>
 
-                    <?php ActiveForm::end(); ?>
+                        <div class="form-group mt-4 mb-0">
+
+                            <?= Html::submitButton('Login', [
+                                'class' => 'btn btn-primary login-button',
+                                'name' => 'login-button',
+                            ]) ?>
+
+                        </div>
+
+                        <?php ActiveForm::end(); ?>
+
+                    </div>
 
                 </div>
 
