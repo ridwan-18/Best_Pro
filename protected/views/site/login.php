@@ -206,8 +206,8 @@ $this->title = 'Login - ' . Yii::$app->name;
     .bulb {
         position: relative;
 
-        width: 42px;
-        height: 42px;
+        width: 150px;
+        height: 150px;
 
         margin: 0 auto 15px;
 
