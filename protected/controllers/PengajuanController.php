@@ -1096,7 +1096,7 @@ class PengajuanController extends Controller
 		if (!$policybyproduk) {
 			return [
 				'Result' => [
-					'status' => '400',
+					'status_code' => 200,
 					'kode_response' => '08',
 					'message' => 'Data Pekerjaan tidak di temukan',
 				]
@@ -1292,8 +1292,8 @@ class PengajuanController extends Controller
 			if (!$quotationUwLimit) {
 				return [
 					'Result' => [
-						'status' => '400',
-						'kode_response' => '06',
+						'status_code' => 200,
+						'kode_response' => '08',
 						'message' => 'Akumulasi UP melebihi batas underwriting',
 						'nilai_akumulasi' => $nilaiAkumulasi,
 					]
@@ -1782,7 +1782,7 @@ class PengajuanController extends Controller
 
 			return [
 				'Result' => [
-					'status' => '400',
+					'status_code' => 200,
 					'kode_response' => '08',
 					'message' => 'Data Pekerjaan tidak di temukan',
 				]
@@ -1801,7 +1801,7 @@ class PengajuanController extends Controller
 
 			return [
 				'Result' => [
-					'status' => '200',
+					'status_code' => 200,
 					'kode_response' => '08',
 					'message' =>
 						'Data ketentuan usia untuk quotation tidak ditemukan.',
@@ -1853,7 +1853,7 @@ class PengajuanController extends Controller
 
 			return [
 				'Result' => [
-					'status' => '200',
+					'status_code' => 200,
 					'kode_response' => '08',
 					'message' =>
 						'Usia peserta melebihi batas usia masuk. '
@@ -1870,7 +1870,7 @@ class PengajuanController extends Controller
 
 			return [
 				'Result' => [
-					'status' => '200',
+					'status_code' => 200,
 					'kode_response' => '08',
 					'message' =>
 						'Usia pada akhir masa pertanggungan tidak boleh melebihi '
@@ -2050,7 +2050,7 @@ class PengajuanController extends Controller
 
 				return [
 					'Result' => [
-						'status' => '400',
+						'status_code' => 200,
 						'kode_response' => '06',
 						'message' =>
 							'Akumulasi UP melebihi batas underwriting',
