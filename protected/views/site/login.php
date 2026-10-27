@@ -9,13 +9,11 @@ use app\widgets\Alert;
 $this->title = 'Login - ' . Yii::$app->name;
 ?>
 
-
 <style>
     html,
     body {
         width: 100% !important;
         height: 100% !important;
-        min-height: 100% !important;
         margin: 0 !important;
         padding: 0 !important;
     }
@@ -37,18 +35,14 @@ $this->title = 'Login - ' . Yii::$app->name;
         padding: 0 !important;
         width: 100% !important;
         max-width: none !important;
-        min-height: 0 !important;
     }
 
-    /* BACKGROUND ANIMASI */
+    /* BACKGROUND LOGIN */
     .site-login {
         position: fixed !important;
         inset: 0 !important;
         width: 100vw !important;
         height: 100vh !important;
-        min-height: 100vh !important;
-
-        margin: 0 !important;
         padding: 20px !important;
         box-sizing: border-box !important;
 
@@ -57,74 +51,44 @@ $this->title = 'Login - ' . Yii::$app->name;
         align-items: center !important;
 
         background: linear-gradient(
-            -45deg,
+            135deg,
             #edf2f9,
-            #dce6f4,
-            #e6edff,
-            #f5f8ff
+            #dce6f4
         );
-        background-size: 400% 400%;
-        animation: backgroundMove 14s ease infinite;
 
         overflow-y: auto !important;
         z-index: 999999 !important;
+
+        transition: background 0.5s ease;
     }
 
-    @keyframes backgroundMove {
-        0%   { background-position: 0% 50%; }
-        50%  { background-position: 100% 50%; }
-        100% { background-position: 0% 50%; }
-    }
-
-    /* ANIMASI KARTU LOGIN */
-    .site-login .login-card {
-        display: block !important;
+    /* KARTU LOGIN */
+    .login-card {
         position: relative !important;
-
-        top: auto !important;
-        left: auto !important;
-        right: auto !important;
-        float: none !important;
-
         width: 100% !important;
         max-width: 430px !important;
-
         margin: auto !important;
         padding: 0 !important;
 
         background: #ffffff !important;
-        border: 1px solid rgba(255, 255, 255, 0.8) !important;
-        border-radius: 18px !important;
+        border: none !important;
+        border-radius: 16px !important;
 
-        box-shadow:
-            0 20px 60px rgba(31, 56, 100, 0.13),
-            0 4px 15px rgba(31, 56, 100, 0.05) !important;
-
+        box-shadow: 0 15px 45px rgba(0, 0, 0, 0.12) !important;
         overflow: hidden;
 
-        animation: loginAppear 0.8s cubic-bezier(
-            0.22, 1, 0.36, 1
-        ) both;
-
-        transition:
-            box-shadow 0.35s ease,
-            border-color 0.35s ease;
-    }
-
-    .site-login .login-card:hover {
-        box-shadow:
-            0 25px 70px rgba(31, 56, 100, 0.17),
-            0 8px 20px rgba(31, 56, 100, 0.06) !important;
+        animation: loginAppear 0.8s ease both;
     }
 
     @keyframes loginAppear {
         from {
             opacity: 0;
-            transform: translateY(35px) scale(0.97);
+            transform: translateY(30px);
         }
+
         to {
             opacity: 1;
-            transform: translateY(0) scale(1);
+            transform: translateY(0);
         }
     }
 
@@ -142,158 +106,175 @@ $this->title = 'Login - ' . Yii::$app->name;
         padding: 40px !important;
     }
 
-    /* LOGO MENGAMBANG */
-    .site-login .login-logo {
+    /* LOGO */
+    .login-logo {
         text-align: center;
         margin-bottom: 30px;
-        animation: logoAppear 1s ease 0.2s both;
     }
 
-    .site-login .login-logo img {
+    .login-logo img {
         height: 64px;
         max-width: 100%;
         object-fit: contain;
         animation: logoFloat 3s ease-in-out infinite;
-        filter: drop-shadow(0 5px 8px rgba(40, 100, 220, 0.10));
-    }
-
-    @keyframes logoAppear {
-        from {
-            opacity: 0;
-            transform: translateY(-15px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
     }
 
     @keyframes logoFloat {
         0%, 100% {
             transform: translateY(0);
         }
+
         50% {
             transform: translateY(-5px);
         }
     }
 
-    /* LABEL FORM */
+    /* LABEL DAN INPUT */
     .site-login label {
         font-weight: 600;
         color: #344054;
-        transition: color 0.25s ease;
     }
 
-    .site-login .form-group {
-        animation: fieldAppear 0.6s ease both;
-    }
-
-    .site-login .form-group:nth-of-type(1) {
-        animation-delay: 0.15s;
-    }
-
-    .site-login .form-group:nth-of-type(2) {
-        animation-delay: 0.25s;
-    }
-
-    .site-login .form-group:nth-of-type(3) {
-        animation-delay: 0.35s;
-    }
-
-    @keyframes fieldAppear {
-        from {
-            opacity: 0;
-            transform: translateY(12px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    /* INPUT ANIMASI */
     .site-login .form-control {
         width: 100%;
         height: 46px;
         border: 1px solid #dce2ea;
         border-radius: 8px;
+        background: #fbfcfe;
         box-shadow: none;
 
-        background-color: #fbfcfe;
-
-        transition:
-            border-color 0.3s ease,
-            box-shadow 0.3s ease,
-            background-color 0.3s ease,
-            transform 0.25s ease;
-    }
-
-    .site-login .form-control:hover {
-        border-color: #b6c7e4;
+        transition: all 0.3s ease;
     }
 
     .site-login .form-control:focus {
         border-color: #2864dc;
-        background-color: #ffffff;
-
-        box-shadow:
-            0 0 0 4px rgba(40, 100, 220, 0.10),
-            0 4px 12px rgba(40, 100, 220, 0.06);
-
-        outline: none;
-    }
-
-    .site-login .form-group:focus-within label {
-        color: #2864dc;
+        background: #ffffff;
+        box-shadow: 0 0 0 4px rgba(40, 100, 220, 0.12);
     }
 
     /* TOMBOL LOGIN */
-    .site-login .login-button {
-        position: relative;
-        overflow: hidden;
-
+    .login-button {
         width: 100%;
         height: 46px;
+        border: none !important;
+        border-radius: 8px !important;
 
-        border: none;
-        border-radius: 8px;
-
-        background: linear-gradient(135deg, #3478f6, #2054c7);
-        color: #ffffff;
+        background: linear-gradient(135deg, #3478f6, #2054c7) !important;
+        color: #ffffff !important;
         font-weight: 600;
-        letter-spacing: 0.3px;
 
-        box-shadow: 0 5px 14px rgba(40, 100, 220, 0.22);
-
-        transition:
-            transform 0.25s ease,
-            box-shadow 0.25s ease,
-            background 0.25s ease;
+        transition: all 0.3s ease;
     }
 
-    .site-login .login-button:hover {
-        background: linear-gradient(135deg, #2868e8, #1949b0);
-        color: #ffffff;
-
+    .login-button:hover {
         transform: translateY(-2px);
-
-        box-shadow: 0 9px 20px rgba(40, 100, 220, 0.30);
+        box-shadow: 0 8px 20px rgba(40, 100, 220, 0.28);
     }
 
-    .site-login .login-button:active {
-        transform: translateY(0) scale(0.98);
-        box-shadow: 0 3px 8px rgba(40, 100, 220, 0.20);
+    /* AREA LAMPU */
+    .lamp-area {
+        position: relative;
+        text-align: center;
+        margin-bottom: 20px;
+        padding-top: 10px;
     }
 
-    .site-login .login-button:focus {
-        outline: none;
-        box-shadow: 0 0 0 4px rgba(40, 100, 220, 0.16);
+    .lamp {
+        display: inline-block;
+        color: #2864dc;
+        font-size: 13px;
+        text-decoration: none !important;
+        cursor: pointer;
+        transition: all 0.3s ease;
     }
 
-    /* ALERT */
-    .site-login .alert {
-        border-radius: 8px;
-        animation: fieldAppear 0.4s ease both;
+    .lamp:hover {
+        color: #1949b0;
+    }
+
+    .turnoff {
+        display: none;
+        color: #667085;
+        font-size: 13px;
+        text-decoration: none !important;
+        cursor: pointer;
+    }
+
+    /* BENTUK LAMPU */
+    .bulb {
+        position: relative;
+        width: 42px;
+        height: 42px;
+        margin: 0 auto 10px;
+
+        border-radius: 50%;
+        background: #cbd5e1;
+        border: 3px solid #ffffff;
+
+        box-shadow: 0 0 0 1px #cbd5e1;
+
+        transition: all 0.5s ease;
+    }
+
+    .bulb::after {
+        content: "";
+        position: absolute;
+        width: 15px;
+        height: 8px;
+        bottom: -9px;
+        left: 50%;
+        transform: translateX(-50%);
+
+        background: #94a3b8;
+        border-radius: 0 0 4px 4px;
+    }
+
+    /* CAHAYA LAMPU */
+    .light {
+        position: absolute;
+        width: 100px;
+        height: 100px;
+        left: 50%;
+        top: -15px;
+        transform: translateX(-50%);
+
+        border-radius: 50%;
+        background: radial-gradient(
+            circle,
+            rgba(250, 235, 131, 0.65) 0%,
+            rgba(250, 235, 131, 0.25) 40%,
+            rgba(250, 235, 131, 0) 75%
+        );
+
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.5s ease;
+    }
+
+    /* EFEK SAAT LAMPU DINYALAKAN */
+    #turnon:target .light {
+        opacity: 1;
+    }
+
+    #turnon:target .bulb {
+        background: #FAEB83;
+        box-shadow:
+            0 0 15px rgba(250, 235, 131, 0.9),
+            0 0 35px rgba(250, 235, 131, 0.55);
+    }
+
+    #turnon:target .turnoff {
+        display: inline-block;
+    }
+
+    #turnon:target .lamp {
+        display: none;
+    }
+
+    #turnon:target ~ .login-card {
+        box-shadow:
+            0 15px 45px rgba(0, 0, 0, 0.12),
+            0 0 30px rgba(250, 235, 131, 0.25) !important;
     }
 
     /* RESPONSIVE */
@@ -306,40 +287,36 @@ $this->title = 'Login - ' . Yii::$app->name;
             padding: 28px 22px !important;
         }
 
-        .site-login .login-card {
-            max-width: 100% !important;
-            border-radius: 14px !important;
-        }
-
-        .site-login .login-logo img {
+        .login-logo img {
             height: 56px;
         }
     }
 
-    /* HORMATI PENGATURAN REDUKSI ANIMASI */
+    /* AKSESIBILITAS */
     @media (prefers-reduced-motion: reduce) {
-        .site-login,
+        .login-card,
+        .login-logo img,
         .site-login *,
         .site-login *::before,
         .site-login *::after {
-            animation-duration: 0.01ms !important;
-            animation-iteration-count: 1 !important;
-            transition-duration: 0.01ms !important;
+            animation: none !important;
+            transition: none !important;
         }
     }
 </style>
 
-
 <div class="site-login">
+
+    <!-- ID TARGET UNTUK ANIMASI LAMPU -->
+    <div id="turnon" style="display: none;"></div>
 
     <div class="card login-card">
 
         <div class="card-block">
-
             <div class="account-box">
-
                 <div class="card-box">
 
+                    <!-- LOGO -->
                     <div class="login-logo">
                         <img
                             src="<?= Url::base() ?>/theme/assets/images/logo.png"
@@ -347,8 +324,26 @@ $this->title = 'Login - ' . Yii::$app->name;
                         >
                     </div>
 
+                    <!-- KONTROL LAMPU -->
+                    <div class="lamp-area">
+
+                        <div class="light"></div>
+                        <div class="bulb"></div>
+
+                        <a href="#turnon" class="lamp">
+                            Nyalakan lampu
+                        </a>
+
+                        <a href="#off" class="turnoff">
+                            Matikan lampu
+                        </a>
+
+                    </div>
+
+                    <!-- ALERT -->
                     <?= Alert::widget() ?>
 
+                    <!-- FORM LOGIN YII2 -->
                     <?php $form = ActiveForm::begin([
                         'id' => 'login-form',
                     ]); ?>
@@ -372,9 +367,7 @@ $this->title = 'Login - ' . Yii::$app->name;
                     <?php ActiveForm::end(); ?>
 
                 </div>
-
             </div>
-
         </div>
 
     </div>
