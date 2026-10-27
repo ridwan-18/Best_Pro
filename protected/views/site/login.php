@@ -309,7 +309,7 @@ $this->title = 'Login - ' . Yii::$app->name;
 
     .lamp-off-button {
         display: none;
-        color: #667085;
+        color: #0d3993;
 		font-family: "Traditional Arabic", "Amiri", "Noto Naskh Arabic", serif;
     }
 
