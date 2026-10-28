@@ -1537,7 +1537,7 @@ class PengajuanController extends Controller
             'ParticipantPostalCode' => '',
             'PremiumRate' => $member->rate_premi,
             'PremiumRateType' => 'PERCENTAGE',
-            'PremiumAmount' => $member->total_premium,
+            'PremiumAmount' => $member->gross_premium,
             'ExtraPremiumPercentage' => $member->percentage_extra_premium,
             'ExtraPremiumAmount' => $member->extra_premium,
             'ExtraPremiumRemark' => '',
