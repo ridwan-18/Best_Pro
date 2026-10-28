@@ -1508,7 +1508,7 @@ class PengajuanController extends Controller
 		
 
         $data = [
-            'ProductCode' => 'BRKS',
+            'ProductCode' => 'PGA',
             'MasterPolicyNumber' => $policybyproduk->policy_no,
             'PolicyNumber' => $member->member_no,
             'StartDate' => date('m/d/Y', strtotime($member->start_date)),
