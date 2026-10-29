@@ -571,7 +571,7 @@ class ReportBilling extends \yii\db\ActiveRecord
 			->alias('m')
 			->select([
 				'bulan' => new \yii\db\Expression(
-					'MONTH(m.updated_at)'
+					'MONTH(m.start_date)'
 				),
 
 				'total_pengajuan' => new \yii\db\Expression(
@@ -615,13 +615,13 @@ class ReportBilling extends \yii\db\ActiveRecord
 		// Tahun yang dipilih
 		$query->andWhere([
 			'>=',
-			'm.updated_at',
+			'm.start_date',
 			$tahun . '-01-01 00:00:00',
 		]);
 
 		$query->andWhere([
 			'<',
-			'm.updated_at',
+			'm.start_date',
 			($tahun + 1) . '-01-01 00:00:00',
 		]);
 
@@ -697,7 +697,7 @@ class ReportBilling extends \yii\db\ActiveRecord
 
 			$query->andWhere([
 				'>=',
-				'm.updated_at',
+				'm.start_date',
 				$startDate . ' 00:00:00',
 			]);
 		}
@@ -711,7 +711,7 @@ class ReportBilling extends \yii\db\ActiveRecord
 
 			$query->andWhere([
 				'<',
-				'm.updated_at',
+				'm.start_date',
 				date(
 					'Y-m-d',
 					strtotime($endDate . ' +1 day')
@@ -720,8 +720,8 @@ class ReportBilling extends \yii\db\ActiveRecord
 		}
 
 		return $query
-			->groupBy(new \yii\db\Expression('MONTH(m.updated_at)'))
-			->orderBy(new \yii\db\Expression('MONTH(m.updated_at) ASC'))
+			->groupBy(new \yii\db\Expression('MONTH(m.start_date)'))
+			->orderBy(new \yii\db\Expression('MONTH(m.start_date) ASC'))
 			->asArray()
 			->all();
 	}
