@@ -67,7 +67,9 @@ class ReportBillingController  extends Controller
 	{
 		if (
 			Yii::$app->user->isGuest
-			|| !User::findIdentityByAccessToken(Yii::$app->user->identity->access_token)
+			|| !User::findIdentityByAccessToken(
+				Yii::$app->user->identity->access_token
+			)
 		) {
 			return $this->goHome();
 		}
@@ -81,10 +83,23 @@ class ReportBillingController  extends Controller
 			'nama_kantor' => Yii::$app->request->get('nama_kantor'),
 			'approve' => Yii::$app->request->get('approve'),
 			'nama' => Yii::$app->request->get('nama'),
-			
+			'tahun' => Yii::$app->request->get('tahun', date('Y')),
 		];
 
-		$totalModel = ReportBilling::countAllDataproduksi($paramsGetAllProduksi);
+		// Summary utama
+		$summary = ReportBilling::getSummaryProduction(
+			$paramsGetAllProduksi
+		);
+
+		// Summary per bulan
+		$monthlySummary = ReportBilling::getMonthlySummary(
+			$paramsGetAllProduksi
+		);
+
+		// Pagination data tabel
+		$totalModel = ReportBilling::countAllDataproduksi(
+			$paramsGetAllProduksi
+		);
 
 		$pagination = new Pagination([
 			'totalCount' => $totalModel,
@@ -92,30 +107,34 @@ class ReportBillingController  extends Controller
 			'pageSizeParam' => false,
 		]);
 
-		$paramsGetAllProduksi = array_merge($paramsGetAllProduksi, [
-			'offset' => $pagination->offset,
-			'limit' => $pagination->limit,
-			'sort' => SORT_DESC,
-		]);
+		$paramsGetAllProduksi = array_merge(
+			$paramsGetAllProduksi,
+			[
+				'offset' => $pagination->offset,
+				'limit' => $pagination->limit,
+				'sort' => SORT_DESC,
+			]
+		);
 
-		$models = ReportBilling::getAllProductionParticipant($paramsGetAllProduksi);
-		
-		$members = Member::getAll([
-			'policy_no' => $models->policy_no,
-			'batch_no' => $models->batch_no,
-		]);
-		
-		
-		
-		$summary =ReportBilling::getSummaryProduction($paramsGetAllProduksi);
+		$models = ReportBilling::getAllProductionParticipant(
+			$paramsGetAllProduksi
+		);
 
+		$members = [];
 
+		if (!empty($models->policy_no) && !empty($models->batch_no)) {
+			$members = Member::getAll([
+				'policy_no' => $models->policy_no,
+				'batch_no' => $models->batch_no,
+			]);
+		}
 
 		return $this->render('index', [
 			'models' => $models,
 			'pagination' => $pagination,
 			'members' => $members,
 			'summary' => $summary,
+			'monthlySummary' => $monthlySummary,
 		]);
 	}
 

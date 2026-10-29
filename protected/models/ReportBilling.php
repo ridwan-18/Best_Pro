@@ -557,6 +557,149 @@ class ReportBilling extends \yii\db\ActiveRecord
 
 		return $query->asArray()->one();
 	}
+	
+	public static function getMonthlySummary($params = [])
+	{
+		$cabangTable = \app\models\Cabang::tableName();
+		$dokumenTable = \app\models\map_member_dokumen_medis::tableName();
+
+		$tahun = !empty($params['tahun'])
+			? (int) $params['tahun']
+			: (int) date('Y');
+
+		$query = self::find()
+			->alias('m')
+			->select([
+				'bulan' => new \yii\db\Expression('MONTH(m.updated_at)'),
+				'total_pengajuan' => new \yii\db\Expression(
+					'COUNT(DISTINCT m.id)'
+				),
+				'Inforce' => new \yii\db\Expression(
+					"SUM(CASE WHEN LOWER(m.status) = 'inforce'
+					THEN 1 ELSE 0 END)"
+				),
+				'pending' => new \yii\db\Expression(
+					"SUM(CASE WHEN LOWER(m.status) = 'pending'
+					THEN 1 ELSE 0 END)"
+				),
+				'cancel' => new \yii\db\Expression(
+					"SUM(CASE WHEN LOWER(m.status) = 'cancel'
+					THEN 1 ELSE 0 END)"
+				),
+				'total_gross_premium' => new \yii\db\Expression(
+					'COALESCE(SUM(m.gross_premium), 0)'
+				),
+				'total_net_premium' => new \yii\db\Expression(
+					'COALESCE(SUM(m.nett_premium), 0)'
+				),
+				'extra_premium' => new \yii\db\Expression(
+					'COALESCE(SUM(m.extra_premium), 0)'
+				),
+			])
+			->andWhere(new \yii\db\Expression('YEAR(m.updated_at) = :tahun', [
+				':tahun' => $tahun,
+			]));
+
+		// Hak akses UW
+		if (!Yii::$app->user->isGuest) {
+			if (
+				Yii::$app->user->identity->role
+				== \app\models\User::ROLE_UW
+			) {
+				$query->andWhere([
+					'm.created_by' => Yii::$app->user->identity->id,
+				]);
+			}
+		}
+
+		// Filter nama peserta
+		if (!empty($params['nama'])) {
+			$query->andWhere([
+				'like',
+				'm.nama',
+				$params['nama'],
+			]);
+		}
+
+		// Filter status
+		if (!empty($params['status'])) {
+			$query->andWhere([
+				'm.status' => $params['status'],
+			]);
+		}
+
+		// Filter batch
+		if (!empty($params['batch_no'])) {
+			$query->andWhere([
+				'm.batch_no' => $params['batch_no'],
+			]);
+		}
+
+		// Filter cabang
+		if (!empty($params['nama_kantor'])) {
+			$query->innerJoin(
+				['c' => $cabangTable],
+				'm.kode_cabang = c.kode_kantor'
+			);
+
+			$query->andWhere([
+				'like',
+				'c.nama_kantor',
+				$params['nama_kantor'],
+			]);
+		}
+
+		// Filter persetujuan dokumen
+		if (!empty($params['approve'])) {
+			$query->andWhere([
+				'exists',
+				(new \yii\db\Query())
+					->select(new \yii\db\Expression('1'))
+					->from(['d' => $dokumenTable])
+					->where('d.id_loan = m.id_pengajuan')
+					->andWhere([
+						'd.approve' => $params['approve'],
+					]),
+			]);
+		}
+
+		// Filter tanggal awal
+		if (!empty($params['start_date'])) {
+			$startDate = date(
+				'Y-m-d',
+				strtotime($params['start_date'])
+			);
+
+			$query->andWhere([
+				'>=',
+				'm.updated_at',
+				$startDate . ' 00:00:00',
+			]);
+		}
+
+		// Filter tanggal akhir
+		if (!empty($params['end_date'])) {
+			$endDate = date(
+				'Y-m-d',
+				strtotime($params['end_date'])
+			);
+
+			$query->andWhere([
+				'<',
+				'm.updated_at',
+				date(
+					'Y-m-d',
+					strtotime($endDate . ' +1 day')
+				) . ' 00:00:00',
+			]);
+		}
+
+		return $query
+			->groupBy(new \yii\db\Expression('MONTH(m.updated_at)'))
+			->orderBy(new \yii\db\Expression('MONTH(m.updated_at) ASC'))
+			->asArray()
+			->all();
+	}
 
 
 	
