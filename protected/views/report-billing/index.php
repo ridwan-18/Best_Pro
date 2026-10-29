@@ -628,6 +628,160 @@ $filters = [
     </div>
 
 
+
+    <?php
+    // Data ini harus dikirim dari actionIndex() controller sebagai $monthlySummary.
+    // Format tiap baris: bulan, total_pengajuan, Inforce, pending, cancel,
+    // total_gross_premium, extra_premium, total_net_premium.
+    $monthlyRows = isset($monthlySummary) && is_array($monthlySummary)
+        ? $monthlySummary
+        : [];
+
+    $namaBulan = [
+        1 => 'Januari', 2 => 'Februari', 3 => 'Maret',
+        4 => 'April', 5 => 'Mei', 6 => 'Juni',
+        7 => 'Juli', 8 => 'Agustus', 9 => 'September',
+        10 => 'Oktober', 11 => 'November', 12 => 'Desember',
+    ];
+
+    $monthlyByNumber = [];
+    foreach ($monthlyRows as $row) {
+        $bulan = (int) ($row['bulan'] ?? 0);
+        if ($bulan >= 1 && $bulan <= 12) {
+            $monthlyByNumber[$bulan] = $row;
+        }
+    }
+
+    $monthlyMaxPengajuan = 1;
+    $monthlyMaxPremium = 1;
+    for ($i = 1; $i <= 12; $i++) {
+        $r = $monthlyByNumber[$i] ?? [];
+        $monthlyMaxPengajuan = max($monthlyMaxPengajuan, (int) ($r['total_pengajuan'] ?? 0));
+        $monthlyMaxPremium = max(
+            $monthlyMaxPremium,
+            (float) ($r['total_gross_premium'] ?? 0),
+            (float) ($r['extra_premium'] ?? 0),
+            (float) ($r['total_net_premium'] ?? 0)
+        );
+    }
+    $tahunDashboard = (int) $request->get('tahun', date('Y'));
+    ?>
+
+    <div class="monthly-dashboard card-box">
+        <div class="monthly-dashboard-header">
+            <div>
+                <h4 class="header-title"><i class="fa fa-calendar"></i> Dashboard Produksi Per Bulan</h4>
+                <p class="monthly-subtitle">Tren pengajuan dan premi selama satu tahun.</p>
+            </div>
+            <?= Html::beginForm(['index'], 'get', ['class' => 'monthly-year-filter no-print']) ?>
+                <?php
+                // Pertahankan filter yang sedang dipakai pada halaman.
+                foreach ($filters as $key => $value) {
+                    if ($value !== '') {
+                        echo Html::hiddenInput($key, $value);
+                    }
+                }
+                ?>
+                <label for="tahun-dashboard">Tahun</label>
+                <?= Html::dropDownList(
+                    'tahun',
+                    $tahunDashboard,
+                    array_combine(
+                        range((int) date('Y') - 5, (int) date('Y') + 1),
+                        range((int) date('Y') - 5, (int) date('Y') + 1)
+                    ),
+                    ['class' => 'form-control', 'id' => 'tahun-dashboard', 'onchange' => 'this.form.submit()']
+                ) ?>
+            <?= Html::endForm() ?>
+        </div>
+
+        <div class="monthly-chart">
+            <div class="monthly-chart-legend">
+                <span><i class="monthly-legend-dot monthly-count-dot"></i> Jumlah Pengajuan</span>
+                <span><i class="monthly-legend-dot monthly-gross-dot"></i> Gross Premium</span>
+                <span><i class="monthly-legend-dot monthly-net-dot"></i> Nett Premium</span>
+            </div>
+            <div class="monthly-bars">
+                <?php for ($i = 1; $i <= 12; $i++):
+                    $r = $monthlyByNumber[$i] ?? [];
+                    $jumlah = (int) ($r['total_pengajuan'] ?? 0);
+                    $gross = (float) ($r['total_gross_premium'] ?? 0);
+                    $net = (float) ($r['total_net_premium'] ?? 0);
+                    $countHeight = min(100, round(($jumlah / $monthlyMaxPengajuan) * 100));
+                    $grossHeight = min(100, round(($gross / $monthlyMaxPremium) * 100));
+                    $netHeight = min(100, round(($net / $monthlyMaxPremium) * 100));
+                ?>
+                    <div class="monthly-bar-column" title="<?= Html::encode($namaBulan[$i]) ?>">
+                        <div class="monthly-bar-values">
+                            <span><?= $formatNumber($jumlah) ?></span>
+                        </div>
+                        <div class="monthly-bar-area">
+                            <div class="monthly-bar monthly-count-bar" style="height: <?= $countHeight ?>%;" title="Pengajuan: <?= $formatNumber($jumlah) ?>"></div>
+                            <div class="monthly-bar monthly-gross-bar" style="height: <?= $grossHeight ?>%;" title="Gross: <?= Html::encode($formatRupiah($gross)) ?>"></div>
+                            <div class="monthly-bar monthly-net-bar" style="height: <?= $netHeight ?>%;" title="Nett: <?= Html::encode($formatRupiah($net)) ?>"></div>
+                        </div>
+                        <span class="monthly-month-label"><?= substr($namaBulan[$i], 0, 3) ?></span>
+                    </div>
+                <?php endfor; ?>
+            </div>
+            <p class="monthly-chart-footnote">Batang pengajuan memakai skala jumlah pengajuan; batang premi memakai skala nilai premi. Arahkan kursor ke batang untuk melihat nilai.</p>
+        </div>
+
+        <div class="table-responsive monthly-table-wrap">
+            <table class="table table-bordered monthly-table">
+                <thead>
+                    <tr>
+                        <th>Bulan</th>
+                        <th class="text-right">Pengajuan</th>
+                        <th class="text-right">Inforce</th>
+                        <th class="text-right">Pending</th>
+                        <th class="text-right">Cancel</th>
+                        <th class="text-right">Gross Premium</th>
+                        <th class="text-right">Extra Premium</th>
+                        <th class="text-right">Nett Premium</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php
+                    $monthlyTotals = [
+                        'total_pengajuan' => 0, 'Inforce' => 0, 'pending' => 0,
+                        'cancel' => 0, 'total_gross_premium' => 0,
+                        'extra_premium' => 0, 'total_net_premium' => 0,
+                    ];
+                    for ($i = 1; $i <= 12; $i++):
+                        $r = $monthlyByNumber[$i] ?? [];
+                        foreach ($monthlyTotals as $key => $unused) {
+                            $monthlyTotals[$key] += (float) ($r[$key] ?? 0);
+                        }
+                    ?>
+                        <tr>
+                            <td><?= Html::encode($namaBulan[$i]) ?></td>
+                            <td class="text-right"><?= $formatNumber($r['total_pengajuan'] ?? 0) ?></td>
+                            <td class="text-right"><?= $formatNumber($r['Inforce'] ?? 0) ?></td>
+                            <td class="text-right"><?= $formatNumber($r['pending'] ?? 0) ?></td>
+                            <td class="text-right"><?= $formatNumber($r['cancel'] ?? 0) ?></td>
+                            <td class="text-right"><?= $formatRupiah($r['total_gross_premium'] ?? 0) ?></td>
+                            <td class="text-right"><?= $formatRupiah($r['extra_premium'] ?? 0) ?></td>
+                            <td class="text-right"><?= $formatRupiah($r['total_net_premium'] ?? 0) ?></td>
+                        </tr>
+                    <?php endfor; ?>
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <th>TOTAL</th>
+                        <th class="text-right"><?= $formatNumber($monthlyTotals['total_pengajuan']) ?></th>
+                        <th class="text-right"><?= $formatNumber($monthlyTotals['Inforce']) ?></th>
+                        <th class="text-right"><?= $formatNumber($monthlyTotals['pending']) ?></th>
+                        <th class="text-right"><?= $formatNumber($monthlyTotals['cancel']) ?></th>
+                        <th class="text-right"><?= $formatRupiah($monthlyTotals['total_gross_premium']) ?></th>
+                        <th class="text-right"><?= $formatRupiah($monthlyTotals['extra_premium']) ?></th>
+                        <th class="text-right"><?= $formatRupiah($monthlyTotals['total_net_premium']) ?></th>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+
     <div class="row mt-3">
 
         <div class="col-12">
@@ -1638,4 +1792,156 @@ $filters = [
     .summary-produksi-index { background: #fff !important; padding: 0; }
     .summary-produksi-index > .row.mb-4.no-print { display: none !important; }
 }
+
+/* Dashboard produksi bulanan */
+.summary-produksi-index .monthly-dashboard {
+    padding: 24px;
+    margin: 8px 0 24px;
+    background: #fff !important;
+    border: 1px solid #e3eaf2 !important;
+    border-radius: 14px !important;
+    box-shadow: 0 4px 16px rgba(30, 55, 90, .055) !important;
+}
+.summary-produksi-index .monthly-dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 22px;
+}
+.summary-produksi-index .monthly-dashboard-header .header-title {
+    margin: 0 0 7px;
+    color: #1c3554 !important;
+}
+.summary-produksi-index .monthly-subtitle,
+.summary-produksi-index .monthly-chart-footnote {
+    color: #78879a !important;
+    font-size: 12px;
+    margin: 0;
+}
+.summary-produksi-index .monthly-year-filter {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.summary-produksi-index .monthly-year-filter label {
+    color: #344b66 !important;
+    margin: 0;
+}
+.summary-produksi-index .monthly-year-filter .form-control {
+    min-width: 105px;
+    border: 1px solid #d7e0ea;
+    border-radius: 8px;
+    color: #243247;
+    background: #fff;
+}
+.summary-produksi-index .monthly-chart {
+    padding: 18px 18px 14px;
+    border: 1px solid #e8edf3;
+    border-radius: 12px;
+    background: #fbfcfe;
+    margin-bottom: 22px;
+}
+.summary-produksi-index .monthly-chart-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px;
+    margin-bottom: 20px;
+    font-size: 12px;
+}
+.summary-produksi-index .monthly-chart-legend span {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+}
+.summary-produksi-index .monthly-legend-dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+}
+.summary-produksi-index .monthly-count-dot { background: #3977b9; }
+.summary-produksi-index .monthly-gross-dot { background: #a78bfa; }
+.summary-produksi-index .monthly-net-dot { background: #25b887; }
+.summary-produksi-index .monthly-bars {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(30px, 1fr));
+    gap: 10px;
+    align-items: end;
+    min-width: 540px;
+}
+.summary-produksi-index .monthly-bar-column {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.summary-produksi-index .monthly-bar-values {
+    color: #344b66;
+    font-size: 10px;
+    margin-bottom: 5px;
+    min-height: 14px;
+}
+.summary-produksi-index .monthly-bar-area {
+    height: 170px;
+    width: 100%;
+    display: flex;
+    align-items: end;
+    justify-content: center;
+    gap: 3px;
+    border-bottom: 1px solid #dfe7f0;
+    background: repeating-linear-gradient(to top, transparent 0, transparent 41px, #e9eef5 42px, transparent 43px);
+}
+.summary-produksi-index .monthly-bar {
+    width: 23%;
+    max-width: 15px;
+    min-height: 2px;
+    border-radius: 4px 4px 0 0;
+    transition: height .35s ease;
+}
+.summary-produksi-index .monthly-count-bar { background: #3977b9; }
+.summary-produksi-index .monthly-gross-bar { background: #a78bfa; }
+.summary-produksi-index .monthly-net-bar { background: #25b887; }
+.summary-produksi-index .monthly-month-label {
+    color: #52647a !important;
+    font-size: 11px;
+    margin-top: 8px;
+}
+.summary-produksi-index .monthly-chart-footnote { margin-top: 14px; }
+.summary-produksi-index .monthly-table {
+    margin-bottom: 0;
+    border: 1px solid #e0e7ef;
+}
+.summary-produksi-index .monthly-table th {
+    background: #f0f5fa !important;
+    color: #344b66 !important;
+    font-size: 11px;
+    white-space: nowrap;
+}
+.summary-produksi-index .monthly-table td {
+    color: #34445a !important;
+    font-size: 12px;
+    white-space: nowrap;
+}
+.summary-produksi-index .monthly-table th,
+.summary-produksi-index .monthly-table td {
+    border: 1px solid #e0e7ef !important;
+    padding: 10px 9px;
+}
+.summary-produksi-index .monthly-table tfoot th {
+    font-weight: 750;
+    background: #eaf1f8 !important;
+}
+@media print {
+    .summary-produksi-index .monthly-year-filter { display: none !important; }
+    .summary-produksi-index .monthly-chart,
+    .summary-produksi-index .monthly-dashboard { break-inside: avoid; }
+}
+@media screen and (max-width: 767px) {
+    .summary-produksi-index .monthly-dashboard { padding: 15px; }
+    .summary-produksi-index .monthly-chart { overflow-x: auto; }
+    .summary-produksi-index .monthly-dashboard-header { flex-direction: column; }
+}
+
 </style>
