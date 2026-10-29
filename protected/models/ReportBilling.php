@@ -570,37 +570,62 @@ class ReportBilling extends \yii\db\ActiveRecord
 		$query = self::find()
 			->alias('m')
 			->select([
-				'bulan' => new \yii\db\Expression('MONTH(m.updated_at)'),
+				'bulan' => new \yii\db\Expression(
+					'MONTH(m.updated_at)'
+				),
+
 				'total_pengajuan' => new \yii\db\Expression(
 					'COUNT(DISTINCT m.id)'
 				),
+
 				'Inforce' => new \yii\db\Expression(
-					"SUM(CASE WHEN LOWER(m.status) = 'inforce'
-					THEN 1 ELSE 0 END)"
+					"COUNT(DISTINCT CASE
+						WHEN LOWER(m.status) = 'inforce' THEN m.id
+						ELSE NULL
+					END)"
 				),
+
 				'pending' => new \yii\db\Expression(
-					"SUM(CASE WHEN LOWER(m.status) = 'pending'
-					THEN 1 ELSE 0 END)"
+					"COUNT(DISTINCT CASE
+						WHEN LOWER(m.status) = 'pending' THEN m.id
+						ELSE NULL
+					END)"
 				),
+
 				'cancel' => new \yii\db\Expression(
-					"SUM(CASE WHEN LOWER(m.status) = 'cancel'
-					THEN 1 ELSE 0 END)"
+					"COUNT(DISTINCT CASE
+						WHEN LOWER(m.status) = 'cancel' THEN m.id
+						ELSE NULL
+					END)"
 				),
+
 				'total_gross_premium' => new \yii\db\Expression(
 					'COALESCE(SUM(m.gross_premium), 0)'
 				),
+
 				'total_net_premium' => new \yii\db\Expression(
 					'COALESCE(SUM(m.nett_premium), 0)'
 				),
+
 				'extra_premium' => new \yii\db\Expression(
 					'COALESCE(SUM(m.extra_premium), 0)'
 				),
-			])
-			->andWhere(new \yii\db\Expression('YEAR(m.updated_at) = :tahun', [
-				':tahun' => $tahun,
-			]));
+			]);
 
-		// Hak akses UW
+		// Tahun yang dipilih
+		$query->andWhere([
+			'>=',
+			'm.updated_at',
+			$tahun . '-01-01 00:00:00',
+		]);
+
+		$query->andWhere([
+			'<',
+			'm.updated_at',
+			($tahun + 1) . '-01-01 00:00:00',
+		]);
+
+		// Hak akses user
 		if (!Yii::$app->user->isGuest) {
 			if (
 				Yii::$app->user->identity->role
@@ -628,7 +653,7 @@ class ReportBilling extends \yii\db\ActiveRecord
 			]);
 		}
 
-		// Filter batch
+		// Filter batch number
 		if (!empty($params['batch_no'])) {
 			$query->andWhere([
 				'm.batch_no' => $params['batch_no'],

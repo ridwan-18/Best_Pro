@@ -74,6 +74,7 @@ class ReportBillingController  extends Controller
 			return $this->goHome();
 		}
 
+		// Parameter filter
 		$paramsGetAllProduksi = [
 			'status' => Yii::$app->request->get('status'),
 			'batch_no' => Yii::$app->request->get('batch_no'),
@@ -86,17 +87,17 @@ class ReportBillingController  extends Controller
 			'tahun' => Yii::$app->request->get('tahun', date('Y')),
 		];
 
-		// Summary utama
+		// Ringkasan utama dan Komposisi Status Pengajuan
 		$summary = ReportBilling::getSummaryProduction(
 			$paramsGetAllProduksi
 		);
 
-		// Summary per bulan
+		// Dashboard bulanan
 		$monthlySummary = ReportBilling::getMonthlySummary(
 			$paramsGetAllProduksi
 		);
 
-		// Pagination data tabel
+		// Total data untuk pagination
 		$totalModel = ReportBilling::countAllDataproduksi(
 			$paramsGetAllProduksi
 		);
@@ -107,6 +108,7 @@ class ReportBillingController  extends Controller
 			'pageSizeParam' => false,
 		]);
 
+		// Parameter tabel dengan pagination
 		$paramsGetAllProduksi = array_merge(
 			$paramsGetAllProduksi,
 			[
@@ -116,13 +118,19 @@ class ReportBillingController  extends Controller
 			]
 		);
 
+		// Data tabel produksi
 		$models = ReportBilling::getAllProductionParticipant(
 			$paramsGetAllProduksi
 		);
 
+		// Data peserta
 		$members = [];
 
-		if (!empty($models->policy_no) && !empty($models->batch_no)) {
+		if (
+			!empty($models)
+			&& !empty($models->policy_no)
+			&& !empty($models->batch_no)
+		) {
 			$members = Member::getAll([
 				'policy_no' => $models->policy_no,
 				'batch_no' => $models->batch_no,
