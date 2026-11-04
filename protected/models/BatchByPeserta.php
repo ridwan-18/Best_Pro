@@ -318,9 +318,10 @@ class BatchByPeserta extends \yii\db\ActiveRecord
 		 * Filter Status
 		 */
 		if (
-			isset($paramsGetAllProduksi['status']) &&
-			$paramsGetAllProduksi['status'] !== ''
-		) {
+		isset($paramsGetAllProduksi['status']) &&
+		!empty($paramsGetAllProduksi['status'])
+		)
+		{
 			$query->andWhere([
 				$table . '.status' => $paramsGetAllProduksi['status']
 			]);

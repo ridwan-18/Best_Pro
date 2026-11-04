@@ -106,31 +106,32 @@ $filters = [
                         </div>
 						
 						
-						 <div class="col-md-6">
-                            <div class="form-group">
+						<div class="col-md-6">
+							<div class="form-group">
 
-                                <?= Html::label(
-                                    'Status Kepesertaan',
-                                    'status'
-                                ) ?>
+								<?= Html::label(
+									'Status Kepesertaan',
+									'status'
+								) ?>
 
-                                <?= Html::dropDownList(
-                                    'status',
-                                    $filters['status'],
-                                    [
-                                        '' => 'Semua Status Peserta',
-                                        'Pending' => 'Pending',
-                                        'Inforce' => 'Inforce',
-                                        'Cancel' => 'Cancel',
-                                    ],
-                                    [
-                                        'class' => 'form-control',
-                                        'id' => 'status',
-                                    ]
-                                ) ?>
+								<?= Html::checkboxList(
+									'status',
+									$filters['status'],
+									[
+										'Pending' => 'Pending',
+										'Inforce' => 'Inforce',
+										'Cancel' => 'Cancel',
+									],
+									[
+										'separator' => '&nbsp;&nbsp;&nbsp;',
+										'itemOptions' => [
+											'class' => 'status-checkbox',
+										],
+									]
+								) ?>
 
-                            </div>
-                        </div>
+							</div>
+						</div>
 
                         <div class="col-md-6">
                             <div class="form-group">

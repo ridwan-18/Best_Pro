@@ -72,7 +72,7 @@ class DataProduksiController  extends Controller
 		}
 
 		$paramsGetAllProduksi = [
-			'status' => Yii::$app->request->get('status'),
+			'status' => Yii::$app->request->get('status', []);,
 			'batch_no' => Yii::$app->request->get('batch_no'),
 			'start_date' => Yii::$app->request->get('start_date'),
 			'end_date' => Yii::$app->request->get('end_date'),
