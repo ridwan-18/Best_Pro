@@ -104,7 +104,6 @@ $filters = [
 
                             </div>
                         </div>
-
 						
 						
 						 <div class="col-md-6">
@@ -116,8 +115,8 @@ $filters = [
                                 ) ?>
 
                                 <?= Html::dropDownList(
-                                    'approve',
-                                    $filters['approve'],
+                                    'status',
+                                    $filters['status'],
                                     [
                                         '' => 'Semua Status Peserta',
                                         'Pending' => 'Pending',
