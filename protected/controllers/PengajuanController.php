@@ -1480,7 +1480,7 @@ class PengajuanController extends Controller
 				);
 			}
 			
-			// $sertifikat = $this->generateSertifikat($member,$policybyproduk,$nettPremium);
+			$sertifikat = $this->generateSertifikat($member,$policybyproduk,$nettPremium);
 
 			} catch (\Exception $e) {
 
@@ -1501,10 +1501,9 @@ class PengajuanController extends Controller
 			];
 		}
 		
-		$productcode = $policybyproduk->policy_no;
 		
-		$url = 'https://relipro-dev.asuransireliance.com:25443/api/ext/policy/ajri/submission';
-		// $url = 'https://relipro.reli.id/api/ext/policy/ajri/submission';
+		// $url = 'https://relipro-dev.asuransireliance.com:25443/api/ext/policy/ajri/submission';
+		$url = 'https://relipro.reli.id/api/ext/policy/ajri/submission';
 		
 
         $data = [
@@ -1549,8 +1548,8 @@ class PengajuanController extends Controller
 
 			$headers = [
 				'Content-Type: application/json',
-				'x-api-key: buJffMcy',
-				'x-api-secret: yAbmdhub6RW8ffHgu7NZuqmtHrZeYB8U',
+				'x-api-key: 50k9MeFH',
+				'x-api-secret: hdmFEWzWfvKFhWJjXvjKngxyXNMVG921',
 				'Accept: application/json'
 			];
 
@@ -1563,73 +1562,15 @@ class PengajuanController extends Controller
 			curl_setopt($ch, CURLOPT_TIMEOUT, 30);
 
 			$response = curl_exec($ch);
-
 			$statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-			$curlErrorNo = curl_errno($ch);
-			$curlError = curl_error($ch);
-
+			
 			curl_close($ch);
 
-			// DEBUG LANGSUNG DI WEB
-			echo '<pre>';
-
-			echo "URL REQUEST:\n";
-			echo htmlspecialchars($url, ENT_QUOTES, 'UTF-8');
-
-			echo "\n\nREQUEST DATA:\n";
-			echo htmlspecialchars(
-				json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES),
-				ENT_QUOTES,
-				'UTF-8'
-			);
-
-			echo "\n\nHTTP STATUS:\n";
-			echo $statusCode;
-
-			echo "\n\nCURL ERROR NUMBER:\n";
-			echo $curlErrorNo;
-
-			echo "\n\nCURL ERROR:\n";
-			echo htmlspecialchars($curlError, ENT_QUOTES, 'UTF-8');
-
-			echo "\n\nRAW RESPONSE:\n";
-			echo htmlspecialchars((string) $response, ENT_QUOTES, 'UTF-8');
-
-			echo "\n\nDECODE RESPONSE:\n";
-			echo htmlspecialchars(
-				json_encode(
-					json_decode((string) $response, true),
-					JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES
-				),
-				ENT_QUOTES,
-				'UTF-8'
-			);
-
-			echo '</pre>';
-
-			// Hentikan proses setelah debug
-			Yii::$app->end();
-
-		
-		 if (curl_errno($ch)) {
-            Yii::$app->response->statusCode = $statusCode;
-            return [
-                'is_success' => 0,
-                'message' => 'Error cURL: ' . curl_error($ch)
-            ];
-        }
+			
 
         $data = json_decode($response, true);
 		
-		// var_dump($data);
-		
-        if ($statusCode != 200) {
-            Yii::$app->response->statusCode = $statusCode;
-            return [
-                'is_success' => 0,
-                'message' => $data['Message']
-            ];
-        }
+	
 
 		$dokument = Dokumen_Medis::getAll([
 			'medis' => $medicalCode
