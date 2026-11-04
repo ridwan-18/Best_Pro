@@ -649,6 +649,7 @@ $this->title = 'View Member - ' . Yii::$app->name;
                             <td>Status Restitusi</td>
 							 <td>Status Bayar</td>
 							 <td>Upload Bukti  Bayar</td>
+							  <th>Download Dokumen CBC</th>
                         </tr>
                     </thead>
 
@@ -781,6 +782,44 @@ $this->title = 'View Member - ' . Yii::$app->name;
 											<?= Html::endForm() ?>
 
 										</td>
+										
+										
+								<td>
+                                    <?= Html::beginForm(
+                                        ['restitusi/download-dokumen-restitusi'],
+                                        'post',
+                                        [
+                                            'style' =>
+                                                'display:inline-block;',
+                                        ]
+                                    ); ?>
+
+                                    <?= Html::hiddenInput(
+                                        'no_ktp',
+                                        $noKtp
+                                    ); ?>
+
+                                    <?= Html::hiddenInput(
+                                        'tgl_buka',
+                                        $tanggalBuka
+                                    ); ?>
+
+                                    <?= Html::submitButton(
+                                        '<i class="fa fa-download"></i> Download Dokumen',
+                                        [
+                                            'class' =>
+                                                'btn btn-primary btn-sm',
+
+                                            'encode' => false,
+
+                                            'title' =>
+                                                'Download CBC langsung dari SFTP Bank',
+                                        ]
+                                    ); ?>
+
+                                    <?= Html::endForm(); ?>
+
+                                </td>
 								
 								
 

@@ -2306,6 +2306,315 @@ class RestitusiController  extends Controller
 
 		return $this->redirect(['index']);
 	}
+	
+	public function actionDownloadDokumenRestitusi()
+	{
+		$request = Yii::$app->request;
+
+		// Request harus POST.
+		if (!$request->isPost) {
+			throw new \yii\web\BadRequestHttpException(
+				'Request harus menggunakan POST.'
+			);
+		}
+
+		// Ambil NIK dan tanggal dari form.
+		
+		$noKtp = trim(
+			(string) $request->post('no_ktp', '')
+		);
+		
+		$norek = trim(
+			(string) $request->post('no_ktp', '')
+		);
+
+		$no_akad = trim(
+			(string) $request->post('tgl_buka', '')
+		);
+
+		
+
+		$filePrefix = $norek . '_' .
+					  $no_akad . '_003_2';
+
+		Yii::info([
+			'tanggal_buka' => $tglBuka,
+			'tanggal_file' => $tanggalFile,
+			'file_prefix' => $filePrefix,
+		], 'cbc-sftp');
+
+		// Download file dari SFTP Bank.
+		$result = $this->downloadFileFromBankSftp(
+				$filePrefix
+			);
+
+			$document = map_member_dokumen_medis::find()
+				->where([
+					'ktp' => $noKtp,
+					'jenis_dokumen' => 'restitusi',
+				])
+				->orderBy(['id' => SORT_DESC])
+				->one();
+
+			// Simpan nama file ZIP jika download berhasil.
+			if (
+				is_array($result) &&
+				!empty($result['success']) &&
+				$document !== null
+			) 
+			{
+				// Ambil nama file lengkap beserta ekstensi .zip.
+				$fileName = basename(
+					$result['file_name'] ?? ''
+				);
+
+				if ($fileName !== '') {
+					$document->files = $fileName;
+
+					if (!$document->save(false)) {
+						Yii::error([
+							'message' => 'Gagal update field files.',
+							'id' => $document->id,
+							'files' => $document->files,
+						], 'cbc-sftp');
+					}
+				}
+			}
+
+		// Jika file gagal ditemukan atau diunduh.
+		if (
+			!is_array($result) ||
+			empty($result['success'])
+		) {
+			$message = is_array($result)
+				? (
+					$result['message'] ??
+					'Dokumen CBC tidak ditemukan di SFTP Bank.'
+				)
+				: 'Respons download dari SFTP tidak valid.';
+
+			Yii::error([
+				'file_prefix' => $filePrefix,
+				'message' => $message,
+			], 'cbc-sftp');
+
+			Yii::$app->session->setFlash(
+				'error',
+				$message
+			);
+
+			return $this->redirect(
+				$request->referrer ?: ['index']
+			);
+		}
+
+		// Ambil lokasi file hasil download.
+		$localPath = $result['local_path'] ?? '';
+		$fileName = $result['file_name'] ?? '';
+
+		// Pastikan file tersedia dan dapat dibaca.
+		if (
+			empty($localPath) ||
+			empty($fileName) ||
+			!is_file($localPath) ||
+			!is_readable($localPath)
+		) {
+			Yii::error([
+				'file_prefix' => $filePrefix,
+				'message' => 'File lokal tidak tersedia atau tidak terbaca.',
+			], 'cbc-sftp');
+
+			Yii::$app->session->setFlash(
+				'error',
+				'File CBC ditemukan, tetapi tidak dapat dibaca.'
+			);
+
+			return $this->redirect(
+				$request->referrer ?: ['index']
+			);
+		}
+
+		// Kirim file ZIP ke komputer pengguna.
+		return Yii::$app->response->sendFile(
+			$localPath,
+			basename($fileName),
+			[
+				'mimeType' => 'application/zip',
+				'inline' => false,
+			]
+		);
+	}
+
+	private function downloadFileFromBankSftp($filePrefix)
+	{
+		// Production
+		$host = '10.119.1.22';
+		$port = 22;
+		$username = 'reliance';
+		$password = 'Rel!@nc3FTpBRK$';
+
+		$remoteDir = '/RLC/outgoing/';
+
+		$localDir = Yii::getAlias('@runtime/cbc');
+
+		if (!is_dir($localDir)) {
+			if (!mkdir($localDir, 0777, true)) {
+				return [
+					'success' => false,
+					'message' => 'Gagal membuat folder penyimpanan dokumen CBC'
+				];
+			}
+		}
+
+		try {
+			if (!function_exists('ssh2_connect')) {
+				return [
+					'success' => false,
+					'message' => 'Extension PHP SSH2 tidak tersedia'
+				];
+			}
+
+			$connection = \ssh2_connect($host, $port);
+
+			if (!$connection) {
+				return [
+					'success' => false,
+					'message' => 'Gagal koneksi ke SFTP Bank'
+				];
+			}
+
+			if (!\ssh2_auth_password(
+				$connection,
+				$username,
+				$password
+			)) {
+				return [
+					'success' => false,
+					'message' => 'Gagal authentication SFTP Bank'
+				];
+			}
+
+			$sftp = \ssh2_sftp($connection);
+
+			if (!$sftp) {
+				return [
+					'success' => false,
+					'message' => 'Gagal membuat koneksi SFTP'
+				];
+			}
+
+			// Buka direktori SFTP.
+			$remoteDirUrl = 'ssh2.sftp://' .
+				intval($sftp) .
+				$remoteDir;
+
+			$handle = opendir($remoteDirUrl);
+
+			if ($handle === false) {
+				return [
+					'success' => false,
+					'message' => 'Gagal membaca direktori SFTP: ' . $remoteDir
+				];
+			}
+
+			$matches = [];
+
+			// Cari file berdasarkan prefix tanpa sequence.
+			while (($file = readdir($handle)) !== false) {
+				if (preg_match(
+					'/^' . preg_quote($filePrefix, '/') . '_\d+\.zip$/i',
+					$file
+				)) {
+					$matches[] = $file;
+				}
+			}
+
+			closedir($handle);
+
+			if (empty($matches)) {
+				return [
+					'success' => false,
+					'message' => 'File tidak ditemukan dengan prefix: ' .
+						$filePrefix
+				];
+			}
+
+			// Urutkan berdasarkan sequence terbesar.
+			usort($matches, function ($a, $b) {
+				preg_match('/_(\d+)\.zip$/i', $a, $ma);
+				preg_match('/_(\d+)\.zip$/i', $b, $mb);
+
+				return (int) $mb[1] <=> (int) $ma[1];
+			});
+
+			// Ambil file dengan sequence terbesar.
+			$fileName = $matches[0];
+
+			$remotePath = $remoteDir . $fileName;
+
+			$remoteFile = 'ssh2.sftp://' .
+				intval($sftp) .
+				$remotePath;
+
+			$localPath = $localDir .
+				DIRECTORY_SEPARATOR .
+				$fileName;
+
+			// Periksa file remote.
+			if (!file_exists($remoteFile)) {
+				return [
+					'success' => false,
+					'message' => 'File tidak tersedia: ' . $remotePath
+				];
+			}
+
+			// Baca file dari SFTP.
+			$content = file_get_contents($remoteFile);
+
+			if ($content === false) {
+				return [
+					'success' => false,
+					'message' => 'Gagal membaca file dari SFTP Bank'
+				];
+			}
+
+			// Simpan hasil download ke server aplikasi.
+			$saved = file_put_contents($localPath, $content);
+
+			if ($saved === false) {
+				return [
+					'success' => false,
+					'message' => 'Gagal menyimpan file CBC ke lokal'
+				];
+			}
+
+			Yii::info(
+				'File CBC berhasil didownload: ' .
+				$remotePath . ' -> ' . $localPath,
+				'cbc-sftp'
+			);
+
+			return [
+				'success' => true,
+				'file_name' => $fileName,
+				'remote_path' => $remotePath,
+				'local_path' => $localPath,
+				'size' => $saved,
+				'matches' => $matches
+			];
+
+		} catch (\Throwable $e) {
+			Yii::error(
+				'SFTP CBC Error: ' . $e->getMessage(),
+				'cbc-sftp'
+			);
+
+			return [
+				'success' => false,
+				'message' => $e->getMessage()
+			];
+		}
+	}
 
 
 
