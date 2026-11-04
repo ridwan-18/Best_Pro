@@ -105,7 +105,9 @@ $filters = [
                             </div>
                         </div>
 
-                        <div class="col-md-6">
+						
+						
+						 <div class="col-md-6">
                             <div class="form-group">
 
                                 <?= Html::label(
@@ -113,13 +115,18 @@ $filters = [
                                     'status'
                                 ) ?>
 
-                                <?= Html::textInput(
-                                    'status',
-                                    $filters['status'],
+                                <?= Html::dropDownList(
+                                    'approve',
+                                    $filters['approve'],
+                                    [
+                                        '' => 'Semua Status Peserta',
+                                        'Pending' => 'Pending',
+                                        'Inforce' => 'Inforce',
+                                        'Cancel' => 'Cancel',
+                                    ],
                                     [
                                         'class' => 'form-control',
                                         'id' => 'status',
-                                        'placeholder' => 'Masukkan status',
                                     ]
                                 ) ?>
 
