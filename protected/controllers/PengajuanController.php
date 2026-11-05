@@ -1480,7 +1480,7 @@ class PengajuanController extends Controller
 				);
 			}
 			
-			$sertifikat = $this->generateSertifikat($member,$policybyproduk,$nettPremium);
+			// $sertifikat = $this->generateSertifikat($member,$policybyproduk,$nettPremium);
 
 			} catch (\Exception $e) {
 
@@ -1564,11 +1564,51 @@ class PengajuanController extends Controller
 			$response = curl_exec($ch);
 			$statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 			
-			curl_close($ch);
-
+			//debug 
+			$curlError = curl_error($ch);
+			$curlErrno = curl_errno($ch);
+			$curlInfo = curl_getinfo($ch);
+			//
 			
+			curl_close($ch);
+			$data = json_decode($response, true);
+			
+			$responseData = json_decode($response, true);
 
-        $data = json_decode($response, true);
+// DEBUG LANGSUNG DI BROWSER
+				echo '<pre style="background:#1e1e1e;color:#00ff00;padding:20px;font-size:14px;">';
+
+				echo "========== DEBUG API AJRI ==========\n\n";
+
+				echo "URL ENDPOINT:\n";
+				print_r($url);
+
+				echo "\n\nHTTP STATUS CODE:\n";
+				print_r($statusCode);
+
+				echo "\n\nCURL ERROR NUMBER:\n";
+				print_r($curlErrno);
+
+				echo "\n\nCURL ERROR:\n";
+				print_r($curlError);
+
+				echo "\n\nREQUEST BODY:\n";
+				print_r(json_encode($data, JSON_PRETTY_PRINT));
+
+				echo "\n\nRAW RESPONSE:\n";
+				print_r($response);
+
+				echo "\n\nDECODE RESPONSE:\n";
+				print_r($responseData);
+
+				echo "\n\nCURL INFO:\n";
+				print_r($curlInfo);
+
+				echo "\n========== END DEBUG ==========\n";
+
+				echo '</pre>';
+
+				exit;
 		
 	
 
