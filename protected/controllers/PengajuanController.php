@@ -1565,9 +1565,9 @@ class PengajuanController extends Controller
 			$statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 			
 			//debug 
-			// $curlError = curl_error($ch);
-			// $curlErrno = curl_errno($ch);
-			// $curlInfo = curl_getinfo($ch);
+			$curlError = curl_error($ch);
+			$curlErrno = curl_errno($ch);
+			$curlInfo = curl_getinfo($ch);
 			//
 			
 			curl_close($ch);
