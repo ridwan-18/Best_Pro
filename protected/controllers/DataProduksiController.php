@@ -284,6 +284,7 @@ class DataProduksiController  extends Controller
 	}
 
 	
+	
 	public function actionExport()
 	{
 		if (
@@ -315,6 +316,7 @@ class DataProduksiController  extends Controller
 				'm.tgl_lahir',
 				'm.age',
 				'm.created_at',
+				'm.description_pembayaran',
 			]);
 
 		// Filter tanggal awal
@@ -344,18 +346,19 @@ class DataProduksiController  extends Controller
 			->asArray()
 			->all();
 
-		// Group berdasarkan nomor polis
-		$groupPolicy = [];
-
-		foreach ($members as $member) {
-			$groupPolicy[$member['policy_no']][] = $member;
-		}
-
 		// Buat spreadsheet
 		$spreadsheet = new Spreadsheet();
 
-		// Hapus sheet default
-		$spreadsheet->removeSheetByIndex(0);
+		// Gunakan hanya 1 sheet
+		$sheet = $spreadsheet->getActiveSheet();
+		$sheet->setTitle('Data Member');
+
+		// Pengaturan halaman
+		$sheet->getPageSetup()
+			->setOrientation(PageSetup::ORIENTATION_LANDSCAPE);
+
+		$sheet->getPageSetup()
+			->setPaperSize(PageSetup::PAPERSIZE_FOLIO);
 
 		// Header Excel
 		$header = [
@@ -375,86 +378,84 @@ class DataProduksiController  extends Controller
 			'KETERANGAN',
 		];
 
-		// Jika tidak ada data
-		if (empty($groupPolicy)) {
-			$sheet = $spreadsheet->createSheet();
-			$sheet->setTitle('Data Kosong');
-			$sheet->setCellValue('A1', 'Tidak ada data member');
+		// Tulis header
+		$col = 'A';
+
+		foreach ($header as $value) {
+
+			$sheet->setCellValue($col . '1', $value);
+
+			$sheet->getStyle($col . '1')
+				->getFont()
+				->setBold(true);
+
+			$col++;
 		}
 
-		// Loop berdasarkan nomor polis
-		foreach ($groupPolicy as $policyNo => $data) {
+		// Data member
+		$row = 2;
+		$no = 1;
 
-			// Nama sheet maksimal 31 karakter
-			$sheetName = substr($policyNo, 0, 31);
+		foreach ($members as $member) {
 
-			// Hapus karakter ilegal Excel
-			$sheetName = preg_replace('/[\\\\\/\?\*\[\]\:]/', '', $sheetName);
+			$sheet->setCellValue('A' . $row, $no);
+			$sheet->setCellValue('B' . $row, $member['batch_no']);
+			$sheet->setCellValue('C' . $row, $member['policy_no']);
+			$sheet->setCellValue('D' . $row, $member['member_no']);
+			$sheet->setCellValue('E' . $row, $member['nama']);
+			$sheet->setCellValue('F' . $row, $member['tgl_lahir']);
+			$sheet->setCellValue('G' . $row, $member['age']);
+			$sheet->setCellValue('H' . $row, $member['start_date']);
+			$sheet->setCellValue('I' . $row, $member['end_date']);
+			$sheet->setCellValue('J' . $row, $member['sum_insured']);
+			$sheet->setCellValue('K' . $row, $member['gross_premium']);
+			$sheet->setCellValue('L' . $row, $member['em_premium']);
+			$sheet->setCellValue('M' . $row, $member['nett_premium']);
+			$sheet->setCellValue('N' . $row, $member['description_pembayaran']);
 
-			// Pastikan nama sheet tidak kosong
-			if (empty($sheetName)) {
-				$sheetName = 'Policy';
-			}
-
-			// Buat sheet
-			$sheet = $spreadsheet->createSheet();
-			$sheet->setTitle($sheetName);
-
-			// Pengaturan halaman
-			$sheet->getPageSetup()
-				->setOrientation(PageSetup::ORIENTATION_LANDSCAPE);
-
-			$sheet->getPageSetup()
-				->setPaperSize(PageSetup::PAPERSIZE_FOLIO);
-
-			// Header
-			$col = 'A';
-
-			foreach ($header as $value) {
-
-				$sheet->setCellValue($col . '1', $value);
-
-				$sheet->getStyle($col . '1')
-					->getFont()
-					->setBold(true);
-
-				$col++;
-			}
-
-			// Data member
-			$row = 2;
-			$no = 1;
-
-			foreach ($data as $member) {
-
-				$sheet->setCellValue('A' . $row, $no);
-				$sheet->setCellValue('B' . $row, $member['batch_no']);
-				$sheet->setCellValue('C' . $row, $member['policy_no']);
-				$sheet->setCellValue('D' . $row, $member['member_no']);
-				$sheet->setCellValue('E' . $row, $member['name']);
-				$sheet->setCellValue('F' . $row, $member['birth_date']);
-				$sheet->setCellValue('G' . $row, $member['age']);
-				$sheet->setCellValue('H' . $row, $member['start_date']);
-				$sheet->setCellValue('I' . $row, $member['end_date']);
-				$sheet->setCellValue('J' . $row, $member['sum_insured']);
-				$sheet->setCellValue('K' . $row, $member['gross_premium']);
-				$sheet->setCellValue('L' . $row, $member['em_premium']);
-				$sheet->setCellValue('M' . $row, $member['nett_premium']);
-				$sheet->setCellValue('N' . $row, $member['description_pembayaran']);
-
-				$row++;
-				$no++;
-			}
-
-			// Auto size kolom A sampai N
-			foreach (range('A', 'N') as $column) {
-				$sheet->getColumnDimension($column)
-					->setAutoSize(true);
-			}
+			$row++;
+			$no++;
 		}
+
+		// Styling header
+		$sheet->getStyle('A1:N1')->applyFromArray([
+			'font' => [
+				'bold' => true,
+			],
+			'alignment' => [
+				'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
+				'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
+			],
+			'borders' => [
+				'allBorders' => [
+					'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+				],
+			],
+		]);
+
+		// Border seluruh data
+		if (count($members) > 0) {
+			$lastRow = $row - 1;
+
+			$sheet->getStyle('A2:N' . $lastRow)
+				->getBorders()
+				->getAllBorders()
+				->setBorderStyle(
+					\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN
+				);
+		}
+
+		// Auto size kolom
+		foreach (range('A', 'N') as $column) {
+			$sheet->getColumnDimension($column)
+				->setAutoSize(true);
+		}
+
+		// Freeze header
+		$sheet->freezePane('A2');
 
 		// Nama file
-		$filename = 'Export-Member-By-Policy-' . date('YmdHis') . '.xlsx';
+		$filename = 'Export-Member-' . date('YmdHis') . '.xlsx';
 
 		// Bersihkan output buffer
 		while (ob_get_level()) {
@@ -477,6 +478,7 @@ class DataProduksiController  extends Controller
 
 		exit;
 	}
+
 
 
 	public function actionExportAccumulation($id)
