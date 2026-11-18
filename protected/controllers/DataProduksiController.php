@@ -301,7 +301,6 @@ class DataProduksiController  extends Controller
 		// Query data member
 		$query = Member::find()
 			->alias('m')
-			->innerJoin('personal p', 'p.personal_no = m.personal_no')
 			->select([
 				'm.member_no',
 				'm.policy_no',
@@ -312,8 +311,8 @@ class DataProduksiController  extends Controller
 				'm.gross_premium',
 				'm.em_premium',
 				'm.nett_premium',
-				'p.name',
-				'p.birth_date',
+				'm.name',
+				'm.tanggal_lahir',
 				'm.age',
 				'm.created_at',
 			]);
