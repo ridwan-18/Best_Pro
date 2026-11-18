@@ -36,6 +36,10 @@ use app\models\Cabang;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Worksheet\PageSetup;
+
+require_once(
+    dirname(__FILE__) . '/../extensions/phpspreadsheet/vendor/autoload.php'
+);
 /**
  * MemberController implements the CRUD actions for BatchByPeserta model.
  */
@@ -279,11 +283,14 @@ class DataProduksiController  extends Controller
 		]);
 	}
 
+	
 	public function actionExport()
 	{
 		if (
 			Yii::$app->user->isGuest ||
-			!User::findIdentityByAccessToken(Yii::$app->user->identity->access_token)
+			!User::findIdentityByAccessToken(
+				Yii::$app->user->identity->access_token
+			)
 		) {
 			return $this->goHome();
 		}
@@ -291,7 +298,7 @@ class DataProduksiController  extends Controller
 		$startDate = Yii::$app->request->get('start_date');
 		$endDate   = Yii::$app->request->get('end_date');
 
-
+		// Query data member
 		$query = Member::find()
 			->alias('m')
 			->innerJoin('personal p', 'p.personal_no = m.personal_no')
@@ -309,19 +316,27 @@ class DataProduksiController  extends Controller
 				'p.birth_date',
 				'm.age',
 				'm.created_at',
-				
 			]);
 
-
+		// Filter tanggal awal
 		if (!empty($startDate)) {
-			$query->andWhere(['>=', 'DATE(m.created_at)', $startDate]);
+			$query->andWhere([
+				'>=',
+				'DATE(m.created_at)',
+				$startDate
+			]);
 		}
 
+		// Filter tanggal akhir
 		if (!empty($endDate)) {
-			$query->andWhere(['<=', 'DATE(m.created_at)', $endDate]);
+			$query->andWhere([
+				'<=',
+				'DATE(m.created_at)',
+				$endDate
+			]);
 		}
 
-
+		// Ambil data
 		$members = $query
 			->orderBy([
 				'm.policy_no' => SORT_ASC,
@@ -330,7 +345,6 @@ class DataProduksiController  extends Controller
 			->asArray()
 			->all();
 
-
 		// Group berdasarkan nomor polis
 		$groupPolicy = [];
 
@@ -338,14 +352,13 @@ class DataProduksiController  extends Controller
 			$groupPolicy[$member['policy_no']][] = $member;
 		}
 
-
+		// Buat spreadsheet
 		$spreadsheet = new Spreadsheet();
 
-
-		// hapus sheet default
+		// Hapus sheet default
 		$spreadsheet->removeSheetByIndex(0);
 
-
+		// Header Excel
 		$header = [
 			'NO',
 			'BATCH',
@@ -360,37 +373,48 @@ class DataProduksiController  extends Controller
 			'PREMI',
 			'EM',
 			'TOTAL PREMI',
-		
+			'KETERANGAN',
 		];
 
+		// Jika tidak ada data
+		if (empty($groupPolicy)) {
+			$sheet = $spreadsheet->createSheet();
+			$sheet->setTitle('Data Kosong');
+			$sheet->setCellValue('A1', 'Tidak ada data member');
+		}
 
+		// Loop berdasarkan nomor polis
 		foreach ($groupPolicy as $policyNo => $data) {
 
-
-			// nama sheet max 31 karakter excel
+			// Nama sheet maksimal 31 karakter
 			$sheetName = substr($policyNo, 0, 31);
 
-			// jika ada karakter illegal di nama sheet
+			// Hapus karakter ilegal Excel
 			$sheetName = preg_replace('/[\\\\\/\?\*\[\]\:]/', '', $sheetName);
 
+			// Pastikan nama sheet tidak kosong
+			if (empty($sheetName)) {
+				$sheetName = 'Policy';
+			}
 
+			// Buat sheet
 			$sheet = $spreadsheet->createSheet();
 			$sheet->setTitle($sheetName);
 
-
+			// Pengaturan halaman
 			$sheet->getPageSetup()
 				->setOrientation(PageSetup::ORIENTATION_LANDSCAPE);
 
 			$sheet->getPageSetup()
 				->setPaperSize(PageSetup::PAPERSIZE_FOLIO);
 
-
-
 			// Header
 			$col = 'A';
 
 			foreach ($header as $value) {
+
 				$sheet->setCellValue($col . '1', $value);
+
 				$sheet->getStyle($col . '1')
 					->getFont()
 					->setBold(true);
@@ -398,61 +422,63 @@ class DataProduksiController  extends Controller
 				$col++;
 			}
 
-
-			// Data
+			// Data member
 			$row = 2;
 			$no = 1;
 
-
 			foreach ($data as $member) {
 
-				$sheet->setCellValue('A'.$row, $no);
-				$sheet->setCellValue('B'.$row, $member['batch_no']);
-				$sheet->setCellValue('C'.$row, $member['policy_no']);
-				$sheet->setCellValue('D'.$row, $member['member_no']);
-				$sheet->setCellValue('E'.$row, $member['name']);
-				$sheet->setCellValue('F'.$row, $member['birth_date']);
-				$sheet->setCellValue('G'.$row, $member['age']);
-				$sheet->setCellValue('H'.$row, $member['start_date']);
-				$sheet->setCellValue('I'.$row, $member['end_date']);
-				$sheet->setCellValue('J'.$row, $member['sum_insured']);
-				$sheet->setCellValue('K'.$row, $member['gross_premium']);
-				$sheet->setCellValue('L'.$row, $member['em_premium']);
-				$sheet->setCellValue('M'.$row, $member['nett_premium']);
-				$sheet->setCellValue('N'.$row, $member['description_pembayaran']);
+				$sheet->setCellValue('A' . $row, $no);
+				$sheet->setCellValue('B' . $row, $member['batch_no']);
+				$sheet->setCellValue('C' . $row, $member['policy_no']);
+				$sheet->setCellValue('D' . $row, $member['member_no']);
+				$sheet->setCellValue('E' . $row, $member['name']);
+				$sheet->setCellValue('F' . $row, $member['birth_date']);
+				$sheet->setCellValue('G' . $row, $member['age']);
+				$sheet->setCellValue('H' . $row, $member['start_date']);
+				$sheet->setCellValue('I' . $row, $member['end_date']);
+				$sheet->setCellValue('J' . $row, $member['sum_insured']);
+				$sheet->setCellValue('K' . $row, $member['gross_premium']);
+				$sheet->setCellValue('L' . $row, $member['em_premium']);
+				$sheet->setCellValue('M' . $row, $member['nett_premium']);
+				$sheet->setCellValue('N' . $row, $member['description_pembayaran']);
 
 				$row++;
 				$no++;
 			}
 
-
+			// Auto size kolom A sampai N
 			foreach (range('A', 'N') as $column) {
 				$sheet->getColumnDimension($column)
 					->setAutoSize(true);
 			}
 		}
 
-
+		// Nama file
 		$filename = 'Export-Member-By-Policy-' . date('YmdHis') . '.xlsx';
 
-
+		// Bersihkan output buffer
 		while (ob_get_level()) {
 			ob_end_clean();
 		}
 
-
+		// Header download Excel
 		header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+
 		header(
 			'Content-Disposition: attachment; filename="' . $filename . '"'
 		);
+
 		header('Cache-Control: max-age=0');
 
-
+		// Generate Excel
 		$writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
+
 		$writer->save('php://output');
 
 		exit;
 	}
+
 
 	public function actionExportAccumulation($id)
 	{
