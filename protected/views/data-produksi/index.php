@@ -109,16 +109,41 @@ $this->title = 'Data Produksi - ' . Yii::$app->name;
             </div>
         </div>
     </div>
-    <div class="row mb-4">
+  <div class="row mb-4">
         <div class="col-md-6">
             <h2 class="p-0 m-0">Data Produksi</h2>
         </div>
         <div class="col-md-6 text-right">
+		<?php
+		$exportParams = ['export'];
+            foreach (['start_date', 'end_date', 'page'] as $key) {
+                if (Yii::$app->request->get($key))
+				$exportParams[$key] = Yii::$app->request->get($key);
+            }
+            ?>
+
             <?= Html::a('<i class="fa fa-search"></i> Search', 'javascript:void(0)', [
                 'class' => 'btn btn-info waves-effect waves-light',
                 'data-toggle' => 'modal',
                 'data-target' => '#search-modal',
             ]); ?>
+			
+			   <?= Html::a('<i class="fa fa-calendar"></i> Filter Tanggal', 'javascript:void(0)', [
+                'class' => 'btn btn-info waves-effect waves-light',
+                'data-toggle' => 'modal',
+                'data-target' => '#search-modal-filter',
+            ]); ?>
+			
+			
+			
+		<?= Html::a(
+        '<i class="fa fa-download"></i> Export',
+        $exportParams,
+        [
+            'class' => 'btn btn-warning waves-effect waves-light mr-1',
+        ]
+    ) ?>
+			
         </div>
     </div>
     <?= Alert::widget() ?>
