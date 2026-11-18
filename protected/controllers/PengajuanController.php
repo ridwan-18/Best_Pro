@@ -1351,7 +1351,8 @@ class PengajuanController extends Controller
 			
 			$member = member::findOne([
 				'no_ktp' => $ktp,
-				'term' => $tenorPertanggungan
+				'term' => $tenorPertanggungan,
+				'sum_insured' => $plafonPertanggungan
 			]);
 
 			if (empty($member)) {
