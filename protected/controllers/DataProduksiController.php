@@ -276,65 +276,178 @@ class DataProduksiController  extends Controller
 		]);
 	}
 
-	public function actionExport($id)
+	public function actionExport()
 	{
 		if (
-			Yii::$app->user->isGuest
-			|| !User::findIdentityByAccessToken(Yii::$app->user->identity->access_token)
+			Yii::$app->user->isGuest ||
+			!User::findIdentityByAccessToken(Yii::$app->user->identity->access_token)
 		) {
 			return $this->goHome();
 		}
 
-		$memberStatus = Yii::$app->request->get('member_status');
+		$startDate = Yii::$app->request->get('start_date');
+		$endDate   = Yii::$app->request->get('end_date');
 
-		$batch = Batch::findOne(['id' => $id]);
 
-		$members = Member::getAll([
-			'policy_no' => $batch->policy_no,
-			'batch_no' => $batch->batch_no,
-			'member_status' => $memberStatus,
-		]);
+		$query = Member::find()
+			->alias('m')
+			->innerJoin('personal p', 'p.personal_no = m.personal_no')
+			->select([
+				'm.member_no',
+				'm.policy_no',
+				'm.batch_no',
+				'm.start_date',
+				'm.end_date',
+				'm.sum_insured',
+				'm.gross_premium',
+				'm.em_premium',
+				'm.nett_premium',
+				'p.name',
+				'p.birth_date',
+				'm.age',
+				'm.created_at',
+				
+			]);
 
-		$objPHPExcel = new \PHPExcel();
-		$objPHPExcel->getActiveSheet()->getPageSetup()->setOrientation(\PHPExcel_Worksheet_PageSetup::ORIENTATION_LANDSCAPE);
-		$objPHPExcel->getActiveSheet()->getPageSetup()->setPaperSize(\PHPExcel_Worksheet_PageSetup::PAPERSIZE_FOLIO);
 
-		$objPHPExcel->getActiveSheet()->setCellValue('A1', 'NO');
-		$objPHPExcel->getActiveSheet()->setCellValue('B1', 'NO PESERTA');
-		$objPHPExcel->getActiveSheet()->setCellValue('C1', 'NAMA PESERTA');
-		$objPHPExcel->getActiveSheet()->setCellValue('D1', 'TGL LAHIR');
-		$objPHPExcel->getActiveSheet()->setCellValue('E1', 'USIA');
-		$objPHPExcel->getActiveSheet()->setCellValue('F1', 'TGL MULAI');
-		$objPHPExcel->getActiveSheet()->setCellValue('G1', 'TGL AKHIR');
-		$objPHPExcel->getActiveSheet()->setCellValue('H1', 'UP AS POKOK');
-		$objPHPExcel->getActiveSheet()->setCellValue('I1', 'PREMI');
-		$objPHPExcel->getActiveSheet()->setCellValue('J1', 'EM');
-		$objPHPExcel->getActiveSheet()->setCellValue('K1', 'TOTAL PREMI');
-
-		$baseRow = 2;
-		$i = 1;
-		foreach ($members as $member) {
-			$objPHPExcel->getActiveSheet()->setCellValue('A' . $baseRow, $i);
-			$objPHPExcel->getActiveSheet()->setCellValue('B' . $baseRow, $member['member_no']);
-			$objPHPExcel->getActiveSheet()->setCellValue('C' . $baseRow, $member['name']);
-			$objPHPExcel->getActiveSheet()->setCellValue('D' . $baseRow, $member['birth_date']);
-			$objPHPExcel->getActiveSheet()->setCellValue('E' . $baseRow, $member['age']);
-			$objPHPExcel->getActiveSheet()->setCellValue('F' . $baseRow, $member['start_date']);
-			$objPHPExcel->getActiveSheet()->setCellValue('G' . $baseRow, $member['end_date']);
-			$objPHPExcel->getActiveSheet()->setCellValue('H' . $baseRow, $member['sum_insured']);
-			$objPHPExcel->getActiveSheet()->setCellValue('I' . $baseRow, $member['gross_premium']);
-			$objPHPExcel->getActiveSheet()->setCellValue('J' . $baseRow, $member['em_premium']);
-			$objPHPExcel->getActiveSheet()->setCellValue('K' . $baseRow, $member['nett_premium']);
-
-			$baseRow++;
-			$i++;
+		if (!empty($startDate)) {
+			$query->andWhere(['>=', 'DATE(m.created_at)', $startDate]);
 		}
 
+		if (!empty($endDate)) {
+			$query->andWhere(['<=', 'DATE(m.created_at)', $endDate]);
+		}
+
+
+		$members = $query
+			->orderBy([
+				'm.policy_no' => SORT_ASC,
+				'm.created_at' => SORT_DESC
+			])
+			->asArray()
+			->all();
+
+
+		// Group berdasarkan nomor polis
+		$groupPolicy = [];
+
+		foreach ($members as $member) {
+			$groupPolicy[$member['policy_no']][] = $member;
+		}
+
+
+		$spreadsheet = new Spreadsheet();
+
+
+		// hapus sheet default
+		$spreadsheet->removeSheetByIndex(0);
+
+
+		$header = [
+			'NO',
+			'BATCH',
+			'POLICY',
+			'NO PESERTA',
+			'NAMA PESERTA',
+			'TGL LAHIR',
+			'USIA',
+			'TGL MULAI',
+			'TGL AKHIR',
+			'UP',
+			'PREMI',
+			'EM',
+			'TOTAL PREMI',
+		
+		];
+
+
+		foreach ($groupPolicy as $policyNo => $data) {
+
+
+			// nama sheet max 31 karakter excel
+			$sheetName = substr($policyNo, 0, 31);
+
+			// jika ada karakter illegal di nama sheet
+			$sheetName = preg_replace('/[\\\\\/\?\*\[\]\:]/', '', $sheetName);
+
+
+			$sheet = $spreadsheet->createSheet();
+			$sheet->setTitle($sheetName);
+
+
+			$sheet->getPageSetup()
+				->setOrientation(PageSetup::ORIENTATION_LANDSCAPE);
+
+			$sheet->getPageSetup()
+				->setPaperSize(PageSetup::PAPERSIZE_FOLIO);
+
+
+
+			// Header
+			$col = 'A';
+
+			foreach ($header as $value) {
+				$sheet->setCellValue($col . '1', $value);
+				$sheet->getStyle($col . '1')
+					->getFont()
+					->setBold(true);
+
+				$col++;
+			}
+
+
+			// Data
+			$row = 2;
+			$no = 1;
+
+
+			foreach ($data as $member) {
+
+				$sheet->setCellValue('A'.$row, $no);
+				$sheet->setCellValue('B'.$row, $member['batch_no']);
+				$sheet->setCellValue('C'.$row, $member['policy_no']);
+				$sheet->setCellValue('D'.$row, $member['member_no']);
+				$sheet->setCellValue('E'.$row, $member['name']);
+				$sheet->setCellValue('F'.$row, $member['birth_date']);
+				$sheet->setCellValue('G'.$row, $member['age']);
+				$sheet->setCellValue('H'.$row, $member['start_date']);
+				$sheet->setCellValue('I'.$row, $member['end_date']);
+				$sheet->setCellValue('J'.$row, $member['sum_insured']);
+				$sheet->setCellValue('K'.$row, $member['gross_premium']);
+				$sheet->setCellValue('L'.$row, $member['em_premium']);
+				$sheet->setCellValue('M'.$row, $member['nett_premium']);
+				$sheet->setCellValue('N'.$row, $member['description_pembayaran']);
+
+				$row++;
+				$no++;
+			}
+
+
+			foreach (range('A', 'N') as $column) {
+				$sheet->getColumnDimension($column)
+					->setAutoSize(true);
+			}
+		}
+
+
+		$filename = 'Export-Member-By-Policy-' . date('YmdHis') . '.xlsx';
+
+
+		while (ob_get_level()) {
+			ob_end_clean();
+		}
+
+
 		header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-		header('Content-Disposition: attachment;filename="member-export.xlsx"');
+		header(
+			'Content-Disposition: attachment; filename="' . $filename . '"'
+		);
 		header('Cache-Control: max-age=0');
-		$objWriter = \PHPExcel_IOFactory::createWriter($objPHPExcel, "Excel2007");
-		$objWriter->save('php://output');
+
+
+		$writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
+		$writer->save('php://output');
+
 		exit;
 	}
 
