@@ -285,6 +285,7 @@ class DataProduksiController  extends Controller
 
 	
 	
+	
 	public function actionExport()
 	{
 		if (
@@ -299,7 +300,10 @@ class DataProduksiController  extends Controller
 		$startDate = Yii::$app->request->get('start_date');
 		$endDate   = Yii::$app->request->get('end_date');
 
-		// Query data member
+		// ==========================================
+		// 1. QUERY DATA MEMBER
+		// ==========================================
+
 		$query = Member::find()
 			->alias('m')
 			->select([
@@ -316,10 +320,9 @@ class DataProduksiController  extends Controller
 				'm.tgl_lahir',
 				'm.age',
 				'm.created_at',
-				
+	
 			]);
 
-		// Filter tanggal awal
 		if (!empty($startDate)) {
 			$query->andWhere([
 				'>=',
@@ -328,7 +331,6 @@ class DataProduksiController  extends Controller
 			]);
 		}
 
-		// Filter tanggal akhir
 		if (!empty($endDate)) {
 			$query->andWhere([
 				'<=',
@@ -337,7 +339,7 @@ class DataProduksiController  extends Controller
 			]);
 		}
 
-		// Ambil data
+		// Ambil data satu kali
 		$members = $query
 			->orderBy([
 				'm.policy_no' => SORT_ASC,
@@ -346,21 +348,35 @@ class DataProduksiController  extends Controller
 			->asArray()
 			->all();
 
-		// Buat spreadsheet
+		$totalMember = count($members);
+
+		// Log hasil query
+		Yii::error([
+			'TOTAL_QUERY' => $totalMember,
+			'START_DATE' => $startDate,
+			'END_DATE' => $endDate,
+			'SQL' => $query->createCommand()->getRawSql(),
+		], 'export-member');
+
+		// ==========================================
+		// 2. BUAT SPREADSHEET BARU
+		// ==========================================
+
 		$spreadsheet = new Spreadsheet();
 
-		// Gunakan hanya 1 sheet
 		$sheet = $spreadsheet->getActiveSheet();
 		$sheet->setTitle('Data Member');
 
-		// Pengaturan halaman
 		$sheet->getPageSetup()
 			->setOrientation(PageSetup::ORIENTATION_LANDSCAPE);
 
 		$sheet->getPageSetup()
 			->setPaperSize(PageSetup::PAPERSIZE_FOLIO);
 
-		// Header Excel
+		// ==========================================
+		// 3. HEADER EXCEL
+		// ==========================================
+
 		$header = [
 			'NO',
 			'BATCH',
@@ -378,21 +394,17 @@ class DataProduksiController  extends Controller
 			'KETERANGAN',
 		];
 
-		// Tulis header
 		$col = 'A';
 
 		foreach ($header as $value) {
-
 			$sheet->setCellValue($col . '1', $value);
-
-			$sheet->getStyle($col . '1')
-				->getFont()
-				->setBold(true);
-
 			$col++;
 		}
 
-		// Data member
+		// ==========================================
+		// 4. TULIS DATA MEMBER
+		// ==========================================
+
 		$row = 2;
 		$no = 1;
 
@@ -417,25 +429,46 @@ class DataProduksiController  extends Controller
 			$no++;
 		}
 
-		// Styling header
+		// ==========================================
+		// 5. VALIDASI JUMLAH BARIS
+		// ==========================================
+
+		$expectedRows = $totalMember + 1;
+		$actualRows = $sheet->getHighestDataRow();
+
+		Yii::error([
+			'TOTAL_MEMBER' => $totalMember,
+			'EXPECTED_ROWS' => $expectedRows,
+			'ACTUAL_ROWS' => $actualRows,
+			'LAST_ROW_LOOP' => $row - 1,
+			'TOTAL_SHEET' => $spreadsheet->getSheetCount(),
+		], 'export-member');
+
+		// ==========================================
+		// 6. STYLING EXCEL
+		// ==========================================
+
 		$sheet->getStyle('A1:N1')->applyFromArray([
 			'font' => [
 				'bold' => true,
 			],
 			'alignment' => [
-				'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
-				'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
+				'horizontal' =>
+					\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
+				'vertical' =>
+					\PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
 			],
 			'borders' => [
 				'allBorders' => [
-					'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+					'borderStyle' =>
+						\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
 				],
 			],
 		]);
 
-		// Border seluruh data
-		if (count($members) > 0) {
-			$lastRow = $row - 1;
+		if ($totalMember > 0) {
+
+			$lastRow = $totalMember + 1;
 
 			$sheet->getStyle('A2:N' . $lastRow)
 				->getBorders()
@@ -445,39 +478,61 @@ class DataProduksiController  extends Controller
 				);
 		}
 
-		// Auto size kolom
 		foreach (range('A', 'N') as $column) {
 			$sheet->getColumnDimension($column)
 				->setAutoSize(true);
 		}
 
-		// Freeze header
 		$sheet->freezePane('A2');
 
-		// Nama file
-		$filename = 'Export-Member-' . date('YmdHis') . '.xlsx';
+		// ==========================================
+		// 7. SIMPAN EXCEL KE TEMPORARY FILE
+		// ==========================================
 
-		// Bersihkan output buffer
-		while (ob_get_level()) {
+		$filename = 'Export-Member-' . date('YmdHis') . '-' .
+			uniqid() . '.xlsx';
+
+		$tempFile = tempnam(sys_get_temp_dir(), 'export_member_');
+
+		if ($tempFile === false) {
+			throw new \RuntimeException('Gagal membuat temporary file Excel');
+		}
+
+		$writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
+
+		$writer->save($tempFile);
+
+		// ==========================================
+		// 8. DOWNLOAD FILE
+		// ==========================================
+
+		while (ob_get_level() > 0) {
 			ob_end_clean();
 		}
 
-		// Header download Excel
-		header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+		header(
+			'Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+		);
 
 		header(
 			'Content-Disposition: attachment; filename="' . $filename . '"'
 		);
 
+		header('Content-Length: ' . filesize($tempFile));
 		header('Cache-Control: max-age=0');
 
-		// Generate Excel
-		$writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
+		readfile($tempFile);
 
-		$writer->save('php://output');
+		// Hapus temporary file
+		unlink($tempFile);
+
+		// Bersihkan memory
+		$spreadsheet->disconnectWorksheets();
+		unset($spreadsheet);
 
 		exit;
 	}
+
 
 
 
