@@ -109,6 +109,49 @@ $this->title = 'Data Produksi - ' . Yii::$app->name;
             </div>
         </div>
     </div>
+	
+	
+	<div class="modal fade" id="search-modal-filter" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true" style="display: none;">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                    <h4 class="modal-title" id="myLargeModalLabel">Filter Tanggal</h4>
+                </div>
+                <div class="modal-body">
+                    <?= Html::beginForm(['data-produksi/index'], 'get', ['id' => 'search-form']) ?>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="start_date">Start Date</label>
+                                <?= Html::input('text', 'start_date', Yii::$app->request->get('start_date'), [
+                                    'class' => 'form-control dtpckr',
+                                    'id' => 'start_date',
+                                ]) ?>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="end_date">End Date</label>
+                                <?= Html::input('text', 'end_date', Yii::$app->request->get('end_date'), [
+                                    'class' => 'form-control dtpckr',
+                                    'id' => 'end_date',
+                                ]) ?>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mt-4">
+                        <div class="col-md-12">
+                            <?= Html::submitButton('<i class="fa fa-search"></i> Cari', ['class' => 'btn btn-primary waves-effect waves-light']) ?>
+                        </div>
+                    </div>
+                    <?= Html::endForm() ?>
+                </div>
+            </div>
+        </div>
+    </div>
+	
+	
   <div class="row mb-4">
         <div class="col-md-6">
             <h2 class="p-0 m-0">Data Produksi</h2>
@@ -146,6 +189,11 @@ $this->title = 'Data Produksi - ' . Yii::$app->name;
 			
         </div>
     </div>
+	
+	
+	
+	
+	
     <?= Alert::widget() ?>
     <div class="row mt-4">
         <div class="col-12">
@@ -240,3 +288,16 @@ $this->title = 'Data Produksi - ' . Yii::$app->name;
         </div>
     </div>
 </div>
+
+<?php
+$script = <<< JS
+$(document).on('click', '.dtpckr', function () {
+    $(this).datepicker({
+        format: "yyyy-mm-dd",
+        autoclose: true,
+        todayHighlight: true
+    });
+});
+JS;
+$this->registerJs($script, \yii\web\View::POS_END);
+?>
