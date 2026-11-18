@@ -312,7 +312,7 @@ class DataProduksiController  extends Controller
 				'm.em_premium',
 				'm.nett_premium',
 				'm.nama',
-				'm.tanggal_lahir',
+				'm.tgl_lahir',
 				'm.age',
 				'm.created_at',
 			]);
