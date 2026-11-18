@@ -311,7 +311,7 @@ class DataProduksiController  extends Controller
 				'm.gross_premium',
 				'm.em_premium',
 				'm.nett_premium',
-				'm.name',
+				'm.nama',
 				'm.tanggal_lahir',
 				'm.age',
 				'm.created_at',
