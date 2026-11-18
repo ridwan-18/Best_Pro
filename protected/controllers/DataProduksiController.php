@@ -316,7 +316,7 @@ class DataProduksiController  extends Controller
 				'm.tgl_lahir',
 				'm.age',
 				'm.created_at',
-				'm.description_pembayaran',
+				
 			]);
 
 		// Filter tanggal awal
@@ -411,7 +411,7 @@ class DataProduksiController  extends Controller
 			$sheet->setCellValue('K' . $row, $member['gross_premium']);
 			$sheet->setCellValue('L' . $row, $member['em_premium']);
 			$sheet->setCellValue('M' . $row, $member['nett_premium']);
-			$sheet->setCellValue('N' . $row, $member['description_pembayaran']);
+		
 
 			$row++;
 			$no++;
