@@ -379,7 +379,7 @@ class BatchByPeserta extends \yii\db\ActiveRecord
 		) {
 			$query->andWhere([
 				'between',
-				$table . '.updated_at',
+				$table . '.created_at',
 				$paramsGetAllProduksi['start_date'],
 				$paramsGetAllProduksi['end_date']
 			]);
