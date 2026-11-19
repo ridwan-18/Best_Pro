@@ -255,6 +255,7 @@ class BatchByPeserta extends \yii\db\ActiveRecord
 				$cabangTable . '.nama_kantor AS nama_kantor',
 				$dokument . '.approve',
 				$dokument . '.keterangan',
+				$dokument . '.created_at',
 			 ])
 			->leftJoin(
 				$cabangTable,

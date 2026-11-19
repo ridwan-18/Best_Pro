@@ -214,6 +214,7 @@ $this->title = 'Data Produksi - ' . Yii::$app->name;
 								<th>Uang Pertanggungan</th>
 								<th>Status Peserta</th>
 								<th>Status Dokument</th>
+								<th>Tanggal Pengajuan</th>
 								<th>User</th>
 								<th width="1">Action</th>
                             </tr>
@@ -237,6 +238,7 @@ $this->title = 'Data Produksi - ' . Yii::$app->name;
 										 <td><?= number_format($model['sum_insured']); ?></td>
 										<td><?= $model['status']; ?></td>
 										<td><?= $model['approve']; ?></td>
+										<td><?= $model['created_at']; ?></td>
 										<td><?= $model['nama_kantor']; ?></td>
 										 <td>
                                             <div class="btn-group mb-2">
