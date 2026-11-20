@@ -323,7 +323,7 @@ class DataProduksiController  extends Controller
 			'm.age',
 			'm.created_at',
 			'm.status',
-			'm.approve',
+		
 		]);
 
 		if (!empty($startDate)) {
