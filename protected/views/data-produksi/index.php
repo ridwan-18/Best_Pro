@@ -158,24 +158,29 @@ $this->title = 'Data Produksi - ' . Yii::$app->name;
         </div>
         <div class="col-md-6 text-right">
 		<?php
-			$exportParams = ['export'];
 
-			foreach ([
-				'nama',
-				'status',
-				'approve',
-				'batch_no',
-				'start_date',
-				'end_date'
-			] as $key) {
+		$exportParams = ['export'];
 
-				$value = Yii::$app->request->get($key);
+		foreach ([
+			'status',
+			'batch_no',
+			'start_date',
+			'end_date',
+			'id_loan',
+			'nama_kantor',
+			'approve',
+			'nama'
+		] as $key) {
 
-				if ($value !== null && $value !== '') {
-					$exportParams[$key] = $value;
-				}
+			$value = Yii::$app->request->get($key);
+
+			if ($value !== null && $value !== '' && $value !== []) {
+				$exportParams[$key] = $value;
 			}
-			?>
+		}
+
+		?>
+		
 
             <?= Html::a('<i class="fa fa-search"></i> Search', 'javascript:void(0)', [
                 'class' => 'btn btn-info waves-effect waves-light',
@@ -190,14 +195,13 @@ $this->title = 'Data Produksi - ' . Yii::$app->name;
             ]); ?>
 			
 			
-			
-		<?= Html::a(
-        '<i class="fa fa-download"></i> Export',
-        $exportParams,
-        [
-            'class' => 'btn btn-warning waves-effect waves-light mr-1',
-        ]
-    ) ?>
+	<?= Html::a(
+				'<i class="fa fa-download"></i> Export Excel',
+				$exportParams,
+				[
+					'class' => 'btn btn-warning waves-effect waves-light mr-1',
+				]
+			) ?>
 			
         </div>
     </div>

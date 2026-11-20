@@ -286,6 +286,7 @@ class DataProduksiController  extends Controller
 	
 	
 	
+	
 	public function actionExport()
 	{
 		if (
@@ -297,169 +298,146 @@ class DataProduksiController  extends Controller
 			return $this->goHome();
 		}
 
-		$nama       = Yii::$app->request->get('nama');
-		$status     = Yii::$app->request->get('status');
-		$approve    = Yii::$app->request->get('approve');
-		$batchNo    = Yii::$app->request->get('batch_no');
-		$startDate  = Yii::$app->request->get('start_date');
-		$endDate    = Yii::$app->request->get('end_date');
+		// ==========================================
+		// 1. PARAMETER FILTER
+		// ==========================================
 
+		$params = [
+			'status'      => Yii::$app->request->get('status', []),
+			'batch_no'    => Yii::$app->request->get('batch_no'),
+			'start_date'  => Yii::$app->request->get('start_date'),
+			'end_date'    => Yii::$app->request->get('end_date'),
+			'id_loan'     => Yii::$app->request->get('id_loan'),
+			'nama_kantor' => Yii::$app->request->get('nama_kantor'),
+			'approve'     => Yii::$app->request->get('approve'),
+			'nama'        => Yii::$app->request->get('nama'),
+		];
 
-		$query = Member::find()
-		->alias('m')
-		->select([
-			'm.id',
-			'm.member_no',
-			'm.policy_no',
-			'm.batch_no',
-			'm.start_date',
-			'm.end_date',
-			'm.sum_insured',
-			'm.gross_premium',
-			'm.em_premium',
-			'm.nett_premium',
-			'm.nama',
-			'm.tgl_lahir',
-			'm.age',
-			'm.created_at',
-			'm.status',
-		
-		]);
+		// ==========================================
+		// 2. AMBIL DATA TANPA PAGINATION
+		// ==========================================
 
-		if (!empty($startDate)) {
-				$query->andWhere([
-					'>=',
-					'DATE(m.created_at)',
-					$startDate
-				]);
-			}
+		$members = BatchByPeserta::getAllProductionParticipant($params);
 
-		if (!empty($endDate)) {
-			$query->andWhere([
-				'<=',
-				'DATE(m.created_at)',
-				$endDate
+		if (empty($members)) {
+			Yii::$app->session->setFlash(
+				'warning',
+				'Tidak ada data produksi yang dapat diexport.'
+			);
+
+			return $this->redirect(['index', 'status' => $params['status'],
+				'batch_no' => $params['batch_no'],
+				'start_date' => $params['start_date'],
+				'end_date' => $params['end_date'],
+				'id_loan' => $params['id_loan'],
+				'nama_kantor' => $params['nama_kantor'],
+				'approve' => $params['approve'],
+				'nama' => $params['nama'],
 			]);
 		}
 
-		// Ambil data satu kali
-		$members = $query
-			->orderBy([
-				'm.policy_no' => SORT_ASC,
-				'm.created_at' => SORT_DESC
-			])
-			->asArray()
-			->all();
-
 		$totalMember = count($members);
 
-		// Log hasil query
-		Yii::error([
-			'TOTAL_QUERY' => $totalMember,
-			'START_DATE' => $startDate,
-			'END_DATE' => $endDate,
-			'SQL' => $query->createCommand()->getRawSql(),
-		], 'export-member');
-
 		// ==========================================
-		// 2. BUAT SPREADSHEET BARU
+		// 3. BUAT SPREADSHEET
 		// ==========================================
 
-		$spreadsheet = new Spreadsheet();
+		$spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
 
 		$sheet = $spreadsheet->getActiveSheet();
-		$sheet->setTitle('Data Member');
+
+		$sheet->setTitle('Data Produksi');
 
 		$sheet->getPageSetup()
-			->setOrientation(PageSetup::ORIENTATION_LANDSCAPE);
+			->setOrientation(
+				\PhpOffice\PhpSpreadsheet\Worksheet\PageSetup::ORIENTATION_LANDSCAPE
+			);
 
 		$sheet->getPageSetup()
-			->setPaperSize(PageSetup::PAPERSIZE_FOLIO);
+			->setPaperSize(
+				\PhpOffice\PhpSpreadsheet\Worksheet\PageSetup::PAPERSIZE_FOLIO
+			);
 
 		// ==========================================
-		// 3. HEADER EXCEL
+		// 4. JUDUL REPORT
 		// ==========================================
 
-		$header = [
-			'NO',
-			'BATCH',
-			'POLICY',
-			'NO PESERTA',
-			'NAMA PESERTA',
-			'TGL LAHIR',
-			'USIA',
-			'TGL MULAI',
-			'TGL AKHIR',
-			'UP',
-			'PREMI',
-			'EM',
-			'TOTAL PREMI',
-			'KETERANGAN',
-		];
+		$sheet->setCellValue('A1', 'LAPORAN DATA PRODUKSI');
 
-		$col = 'A';
+		$sheet->mergeCells('A1:O1');
 
-		foreach ($header as $value) {
-			$sheet->setCellValue($col . '1', $value);
-			$col++;
-		}
-
-		// ==========================================
-		// 4. TULIS DATA MEMBER
-		// ==========================================
-
-		$row = 2;
-		$no = 1;
-
-		foreach ($members as $member) {
-
-			$sheet->setCellValue('A' . $row, $no);
-			$sheet->setCellValue('B' . $row, $member['batch_no']);
-			$sheet->setCellValue('C' . $row, $member['policy_no']);
-			$sheet->setCellValue('D' . $row, $member['member_no']);
-			$sheet->setCellValue('E' . $row, $member['nama']);
-			$sheet->setCellValue('F' . $row, $member['tgl_lahir']);
-			$sheet->setCellValue('G' . $row, $member['age']);
-			$sheet->setCellValue('H' . $row, $member['start_date']);
-			$sheet->setCellValue('I' . $row, $member['end_date']);
-			$sheet->setCellValue('J' . $row, $member['sum_insured']);
-			$sheet->setCellValue('K' . $row, $member['gross_premium']);
-			$sheet->setCellValue('L' . $row, $member['em_premium']);
-			$sheet->setCellValue('M' . $row, $member['nett_premium']);
-		
-
-			$row++;
-			$no++;
-		}
-
-		// ==========================================
-		// 5. VALIDASI JUMLAH BARIS
-		// ==========================================
-
-		$expectedRows = $totalMember + 1;
-		$actualRows = $sheet->getHighestDataRow();
-
-		Yii::error([
-			'TOTAL_MEMBER' => $totalMember,
-			'EXPECTED_ROWS' => $expectedRows,
-			'ACTUAL_ROWS' => $actualRows,
-			'LAST_ROW_LOOP' => $row - 1,
-			'TOTAL_SHEET' => $spreadsheet->getSheetCount(),
-		], 'export-member');
-
-		// ==========================================
-		// 6. STYLING EXCEL
-		// ==========================================
-
-		$sheet->getStyle('A1:N1')->applyFromArray([
+		$sheet->getStyle('A1:O1')->applyFromArray([
 			'font' => [
 				'bold' => true,
+				'size' => 16,
 			],
 			'alignment' => [
 				'horizontal' =>
 					\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
 				'vertical' =>
 					\PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
+			],
+		]);
+
+		$sheet->getRowDimension(1)->setRowHeight(30);
+
+		$sheet->setCellValue('A2', 'Tanggal Export : ' . date('d-m-Y H:i:s'));
+
+		$sheet->mergeCells('A2:O2');
+
+		// ==========================================
+		// 5. HEADER EXCEL
+		// ==========================================
+
+		$header = [
+			'NO',
+			'PRODUK',
+			'BATCH NO',
+			'NAMA PESERTA',
+			'TANGGAL LAHIR',
+			'NOMOR PESERTA',
+			'START DATE',
+			'END DATE',
+			'PREMI',
+			'UANG PERTANGGUNGAN',
+			'STATUS PESERTA',
+			'STATUS DOKUMEN',
+			'TANGGAL PENGAJUAN',
+			'CABANG',
+			'POLICY NO',
+		];
+
+		$col = 'A';
+
+		foreach ($header as $value) {
+			$sheet->setCellValue($col . '4', $value);
+			$col++;
+		}
+
+		// ==========================================
+		// 6. STYLE HEADER
+		// ==========================================
+
+		$sheet->getStyle('A4:O4')->applyFromArray([
+			'font' => [
+				'bold' => true,
+				'color' => [
+					'rgb' => 'FFFFFF',
+				],
+			],
+			'fill' => [
+				'fillType' =>
+					\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+				'startColor' => [
+					'rgb' => '1F4E78',
+				],
+			],
+			'alignment' => [
+				'horizontal' =>
+					\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
+				'vertical' =>
+					\PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
+				'wrapText' => true,
 			],
 			'borders' => [
 				'allBorders' => [
@@ -469,72 +447,180 @@ class DataProduksiController  extends Controller
 			],
 		]);
 
-		if ($totalMember > 0) {
+		$sheet->getRowDimension(4)->setRowHeight(30);
 
-			$lastRow = $totalMember + 1;
+		// ==========================================
+		// 7. ISI DATA
+		// ==========================================
 
-			$sheet->getStyle('A2:N' . $lastRow)
-				->getBorders()
-				->getAllBorders()
-				->setBorderStyle(
-					\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN
+		$row = 5;
+		$no = 1;
+
+		foreach ($members as $member) {
+
+			$sheet->setCellValue('A' . $row, $no);
+			$sheet->setCellValue('B' . $row, isset($member['produk']) ? $member['produk'] : '');
+			$sheet->setCellValue('C' . $row, isset($member['batch_no']) ? $member['batch_no'] : '');
+			$sheet->setCellValue('D' . $row, isset($member['nama']) ? $member['nama'] : '');
+			$sheet->setCellValue('E' . $row, isset($member['tgl_lahir']) ? $member['tgl_lahir'] : '');
+			$sheet->setCellValue('F' . $row, isset($member['member_no']) ? $member['member_no'] : '');
+			$sheet->setCellValue('G' . $row, isset($member['start_date']) ? $member['start_date'] : '');
+			$sheet->setCellValue('H' . $row, isset($member['end_date']) ? $member['end_date'] : '');
+
+			$sheet->setCellValue('I' . $row, isset($member['gross_premium']) ? (float) $member['gross_premium'] : 0);
+			$sheet->setCellValue('J' . $row, isset($member['sum_insured']) ? (float) $member['sum_insured'] : 0);
+
+			$sheet->setCellValue('K' . $row, isset($member['status']) ? $member['status'] : '');
+			$sheet->setCellValue('L' . $row, isset($member['approve']) ? $member['approve'] : '');
+			$sheet->setCellValue('M' . $row, isset($member['created_at']) ? $member['created_at'] : '');
+			$sheet->setCellValue('N' . $row, isset($member['nama_kantor']) ? $member['nama_kantor'] : '');
+			$sheet->setCellValue('O' . $row, isset($member['policy_no']) ? $member['policy_no'] : '');
+
+			$row++;
+			$no++;
+		}
+
+		// ==========================================
+		// 8. FORMAT ANGKA
+		// ==========================================
+
+		$lastRow = $row - 1;
+
+		if ($lastRow >= 5) {
+
+			$sheet->getStyle('I5:J' . $lastRow)
+				->getNumberFormat()
+				->setFormatCode('#,##0');
+
+			$sheet->getStyle('A5:O' . $lastRow)->applyFromArray([
+				'borders' => [
+					'allBorders' => [
+						'borderStyle' =>
+							\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+					],
+				],
+				'alignment' => [
+					'vertical' =>
+						\PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
+				],
+			]);
+
+			$sheet->getStyle('A5:A' . $lastRow)
+				->getAlignment()
+				->setHorizontal(
+					\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER
 				);
 		}
 
-		foreach (range('A', 'N') as $column) {
-			$sheet->getColumnDimension($column)
-				->setAutoSize(true);
+		// ==========================================
+		// 9. AUTO WIDTH
+		// ==========================================
+
+		foreach (range('A', 'O') as $column) {
+			$sheet->getColumnDimension($column)->setAutoSize(true);
 		}
 
-		$sheet->freezePane('A2');
+		$sheet->getColumnDimension('D')->setWidth(30);
+		$sheet->getColumnDimension('N')->setWidth(25);
 
 		// ==========================================
-		// 7. SIMPAN EXCEL KE TEMPORARY FILE
+		// 10. FREEZE HEADER
 		// ==========================================
 
-		$filename = 'Export-Member-' . date('YmdHis') . '-' .
-			uniqid() . '.xlsx';
+		$sheet->freezePane('A5');
 
-		$tempFile = tempnam(sys_get_temp_dir(), 'export_member_');
+		$sheet->setAutoFilter('A4:O' . max(4, $lastRow));
+
+		// ==========================================
+		// 11. TOTAL DATA
+		// ==========================================
+
+		$totalRow = $lastRow + 1;
+
+		$sheet->setCellValue('A' . $totalRow, 'TOTAL DATA');
+
+		$sheet->mergeCells('A' . $totalRow . ':H' . $totalRow);
+
+		$sheet->setCellValue('I' . $totalRow, '=SUM(I5:I' . $lastRow . ')');
+		$sheet->setCellValue('J' . $totalRow, '=SUM(J5:J' . $lastRow . ')');
+
+		$sheet->getStyle('A' . $totalRow . ':O' . $totalRow)
+			->applyFromArray([
+				'font' => [
+					'bold' => true,
+				],
+				'fill' => [
+					'fillType' =>
+						\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+					'startColor' => [
+						'rgb' => 'D9EAF7',
+					],
+				],
+				'borders' => [
+					'allBorders' => [
+						'borderStyle' =>
+							\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+					],
+				],
+			]);
+
+		$sheet->getStyle('I' . $totalRow . ':J' . $totalRow)
+			->getNumberFormat()
+			->setFormatCode('#,##0');
+
+		// ==========================================
+		// 12. SIMPAN FILE
+		// ==========================================
+
+		$filename = 'Data-Produksi-' . date('YmdHis') . '.xlsx';
+
+		$tempFile = tempnam(sys_get_temp_dir(), 'export_produksi_');
 
 		if ($tempFile === false) {
 			throw new \RuntimeException('Gagal membuat temporary file Excel');
 		}
 
-		$writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
+		try {
 
-		$writer->save($tempFile);
+			$writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter(
+				$spreadsheet,
+				'Xlsx'
+			);
 
-		// ==========================================
-		// 8. DOWNLOAD FILE
-		// ==========================================
+			$writer->save($tempFile);
 
-		while (ob_get_level() > 0) {
-			ob_end_clean();
+			Yii::$app->response->sendFile(
+				$tempFile,
+				$filename,
+				[
+					'mimeType' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+					'inline' => false,
+				]
+			)->on(
+				\yii\web\Response::EVENT_AFTER_SEND,
+				function ($event) use ($tempFile, $spreadsheet) {
+					if (file_exists($tempFile)) {
+						unlink($tempFile);
+					}
+
+					$spreadsheet->disconnectWorksheets();
+				}
+			);
+
+			return Yii::$app->response;
+
+		} catch (\Exception $e) {
+
+			if (file_exists($tempFile)) {
+				unlink($tempFile);
+			}
+
+			$spreadsheet->disconnectWorksheets();
+
+			throw $e;
 		}
-
-		header(
-			'Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-		);
-
-		header(
-			'Content-Disposition: attachment; filename="' . $filename . '"'
-		);
-
-		header('Content-Length: ' . filesize($tempFile));
-		header('Cache-Control: max-age=0');
-
-		readfile($tempFile);
-
-		// Hapus temporary file
-		unlink($tempFile);
-
-		// Bersihkan memory
-		$spreadsheet->disconnectWorksheets();
-		unset($spreadsheet);
-
-		exit;
 	}
+
 
 
 
