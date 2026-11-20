@@ -297,39 +297,42 @@ class DataProduksiController  extends Controller
 			return $this->goHome();
 		}
 
-		$startDate = Yii::$app->request->get('start_date');
-		$endDate   = Yii::$app->request->get('end_date');
+		$nama       = Yii::$app->request->get('nama');
+		$status     = Yii::$app->request->get('status');
+		$approve    = Yii::$app->request->get('approve');
+		$batchNo    = Yii::$app->request->get('batch_no');
+		$startDate  = Yii::$app->request->get('start_date');
+		$endDate    = Yii::$app->request->get('end_date');
 
-		// ==========================================
-		// 1. QUERY DATA MEMBER
-		// ==========================================
 
 		$query = Member::find()
-			->alias('m')
-			->select([
-				'm.member_no',
-				'm.policy_no',
-				'm.batch_no',
-				'm.start_date',
-				'm.end_date',
-				'm.sum_insured',
-				'm.gross_premium',
-				'm.em_premium',
-				'm.nett_premium',
-				'm.nama',
-				'm.tgl_lahir',
-				'm.age',
-				'm.created_at',
-	
-			]);
+		->alias('m')
+		->select([
+			'm.id',
+			'm.member_no',
+			'm.policy_no',
+			'm.batch_no',
+			'm.start_date',
+			'm.end_date',
+			'm.sum_insured',
+			'm.gross_premium',
+			'm.em_premium',
+			'm.nett_premium',
+			'm.nama',
+			'm.tgl_lahir',
+			'm.age',
+			'm.created_at',
+			'm.status',
+			'm.approve',
+		]);
 
 		if (!empty($startDate)) {
-			$query->andWhere([
-				'>=',
-				'DATE(m.created_at)',
-				$startDate
-			]);
-		}
+				$query->andWhere([
+					'>=',
+					'DATE(m.created_at)',
+					$startDate
+				]);
+			}
 
 		if (!empty($endDate)) {
 			$query->andWhere([

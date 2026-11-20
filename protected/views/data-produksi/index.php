@@ -158,12 +158,24 @@ $this->title = 'Data Produksi - ' . Yii::$app->name;
         </div>
         <div class="col-md-6 text-right">
 		<?php
-		$exportParams = ['export'];
-            foreach (['created_at', 'created_at', 'page'] as $key) {
-                if (Yii::$app->request->get($key))
-				$exportParams[$key] = Yii::$app->request->get($key);
-            }
-            ?>
+			$exportParams = ['export'];
+
+			foreach ([
+				'nama',
+				'status',
+				'approve',
+				'batch_no',
+				'start_date',
+				'end_date'
+			] as $key) {
+
+				$value = Yii::$app->request->get($key);
+
+				if ($value !== null && $value !== '') {
+					$exportParams[$key] = $value;
+				}
+			}
+			?>
 
             <?= Html::a('<i class="fa fa-search"></i> Search', 'javascript:void(0)', [
                 'class' => 'btn btn-info waves-effect waves-light',
