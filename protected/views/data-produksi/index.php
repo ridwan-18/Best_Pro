@@ -123,19 +123,19 @@ $this->title = 'Data Produksi - ' . Yii::$app->name;
                     <div class="row">
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label for="start_date">Start Date</label>
-                                <?= Html::input('text', 'start_date', Yii::$app->request->get('start_date'), [
+                                <label for="created_at">Start Date</label>
+                                <?= Html::input('text', 'created_at', Yii::$app->request->get('created_at'), [
                                     'class' => 'form-control dtpckr',
-                                    'id' => 'start_date',
+                                    'id' => 'created_at',
                                 ]) ?>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label for="end_date">End Date</label>
-                                <?= Html::input('text', 'end_date', Yii::$app->request->get('end_date'), [
+                                <label for="created_at">End Date</label>
+                                <?= Html::input('text', 'created_at', Yii::$app->request->get('created_at'), [
                                     'class' => 'form-control dtpckr',
-                                    'id' => 'end_date',
+                                    'id' => 'created_at',
                                 ]) ?>
                             </div>
                         </div>
