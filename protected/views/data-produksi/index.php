@@ -159,7 +159,7 @@ $this->title = 'Data Produksi - ' . Yii::$app->name;
         <div class="col-md-6 text-right">
 		<?php
 		$exportParams = ['export'];
-            foreach (['start_date', 'end_date', 'page'] as $key) {
+            foreach (['created_at', 'created_at', 'page'] as $key) {
                 if (Yii::$app->request->get($key))
 				$exportParams[$key] = Yii::$app->request->get($key);
             }
