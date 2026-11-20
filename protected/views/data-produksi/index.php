@@ -126,7 +126,7 @@ $this->title = 'Data Produksi - ' . Yii::$app->name;
                                 <label for="created_at">Start Date</label>
                                 <?= Html::input('text', 'created_at', Yii::$app->request->get('created_at'), [
                                     'class' => 'form-control dtpckr',
-                                    'id' => 'created_at',
+                                    'id' => 'start_date',
                                 ]) ?>
                             </div>
                         </div>
@@ -135,7 +135,7 @@ $this->title = 'Data Produksi - ' . Yii::$app->name;
                                 <label for="created_at">End Date</label>
                                 <?= Html::input('text', 'created_at', Yii::$app->request->get('created_at'), [
                                     'class' => 'form-control dtpckr',
-                                    'id' => 'created_at',
+                                    'id' => 'end_date',
                                 ]) ?>
                             </div>
                         </div>
