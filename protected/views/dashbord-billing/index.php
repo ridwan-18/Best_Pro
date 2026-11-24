@@ -13,7 +13,7 @@ $request = Yii::$app->request;
 $totalPengajuan = (int) ($summary['total_pengajuan'] ?? 0);
 $disetujui = (int) ($summary['Inforce'] ?? 0);
 $pending = (int) ($summary['pending'] ?? 0);
-$draft = (int) ($summary['draft'] ?? 0);
+$Maturity = (int) ($summary['Maturity'] ?? 0);
 $ditolak = (int) ($summary['cancel'] ?? 0);
 
 $totalGrossPremium = (float) ($summary['total_gross_premium'] ?? 0);
@@ -120,7 +120,7 @@ $filters = [
 										'Pending' => 'Pending',
 										'Inforce' => 'Inforce',
 										'Cancel' => 'Cancel',
-										'Draft' => 'Draft',
+										'Maturity' => 'Maturity',
 									],
 									[
 										'separator' => '&nbsp;&nbsp;&nbsp;',
@@ -444,11 +444,11 @@ $filters = [
                     <div class="col-8">
 
                         <p class="summary-label">
-                            Draft
+                            Maturity
                         </p>
 
                         <h3 class="summary-value">
-                            <?= $formatNumber($draft) ?>
+                            <?= $formatNumber($Maturity) ?>
                         </h3>
 
                     </div>
@@ -535,7 +535,7 @@ $filters = [
     $persenInforce = min(100, round(($disetujui / $statusTotal) * 100, 1));
     $persenPending = min(100, round(($pending / $statusTotal) * 100, 1));
     $persenCancel = min(100, round(($ditolak / $statusTotal) * 100, 1));
-	$persenDraft = min(100, round(($draft / $statusTotal) * 100, 1));
+	$persenMaturity = min(100, round(($Maturity / $statusTotal) * 100, 1));
 
     $premiumMax = max(1, $totalGrossPremium, $extra_premium, $totalNetPremium);
     $grossWidth = min(100, round(($totalGrossPremium / $premiumMax) * 100, 1));
@@ -556,7 +556,7 @@ $filters = [
                 <div class="status-chart-layout">
                      <div class="status-donut"
 						 style="--inforce: <?= $persenInforce ?>;
-								--draft: <?= $persenDraft ?>;
+								--maturity: <?= $persenMaturity ?>;
 								--pending: <?= $persenPending ?>;
 								--cancel: <?= $persenCancel ?>;">
 
@@ -576,10 +576,10 @@ $filters = [
 						</div>
 
 						<div class="legend-item">
-							<span class="legend-dot dot-draft"></span>
-							<span>Draft</span>
-							<strong><?= $formatNumber($draft) ?></strong>
-							<small><?= $persenDraft ?>%</small>
+							<span class="legend-dot dot-maturity"></span>
+							<span>Maturity</span>
+							<strong><?= $formatNumber($Maturity) ?></strong>
+							<small><?= $persenMaturity ?>%</small>
 						</div>
 
 						<div class="legend-item">
@@ -981,7 +981,7 @@ $filters = [
                         <th>Bulan</th>
                         <th class="text-right">Pengajuan</th>
                         <th class="text-right">Inforce</th>
-						<th class="text-right">Draft</th>
+						<th class="text-right">Maturity</th>
                         <th class="text-right">Pending</th>
                         <th class="text-right">Cancel</th>
                         <th class="text-right">Gross Premium</th>
@@ -992,7 +992,7 @@ $filters = [
                 <tbody>
                     <?php
                     $monthlyTotals = [
-                        'total_pengajuan' => 0, 'Inforce' => 0, 'pending' => 0, 'draft' => 0,
+                        'total_pengajuan' => 0, 'Inforce' => 0, 'pending' => 0, 'Maturity' => 0,
                         'cancel' => 0, 'total_gross_premium' => 0,
                         'extra_premium' => 0, 'total_net_premium' => 0,
                     ];
@@ -1006,7 +1006,7 @@ $filters = [
                             <td><?= Html::encode($namaBulan[$i]) ?></td>
                             <td class="text-right"><?= $formatNumber($r['total_pengajuan'] ?? 0) ?></td>
                             <td class="text-right"><?= $formatNumber($r['Inforce'] ?? 0) ?></td>
-							 <td class="text-right"><?= $formatNumber($r['draft'] ?? 0) ?></td>
+							 <td class="text-right"><?= $formatNumber($r['Maturity'] ?? 0) ?></td>
                             <td class="text-right"><?= $formatNumber($r['pending'] ?? 0) ?></td>
                             <td class="text-right"><?= $formatNumber($r['cancel'] ?? 0) ?></td>
                             <td class="text-right"><?= $formatRupiah($r['total_gross_premium'] ?? 0) ?></td>
@@ -1020,7 +1020,7 @@ $filters = [
                         <th>TOTAL</th>
                         <th class="text-right"><?= $formatNumber($monthlyTotals['total_pengajuan']) ?></th>
                         <th class="text-right"><?= $formatNumber($monthlyTotals['Inforce']) ?></th>
-						 <th class="text-right"><?= $formatNumber($monthlyTotals['draft']) ?></th>
+						 <th class="text-right"><?= $formatNumber($monthlyTotals['Maturity']) ?></th>
                         <th class="text-right"><?= $formatNumber($monthlyTotals['pending']) ?></th>
                         <th class="text-right"><?= $formatNumber($monthlyTotals['cancel']) ?></th>
                         <th class="text-right"><?= $formatRupiah($monthlyTotals['total_gross_premium']) ?></th>
@@ -1072,7 +1072,7 @@ $filters = [
                                 <th class="text-center">No</th>
                                 <th class="text-right">Total Pengajuan</th>
                                 <th class="text-right">Disetujui</th>
-								 <th class="text-right">Draft</th>
+								 <th class="text-right">Maturity</th>
                                 <th class="text-right">Pending</th>
                                 <th class="text-right">Cancel</th>
                                 <th class="text-right">Total Gross Premium</th>
@@ -1099,7 +1099,7 @@ $filters = [
                                 </td>
 								
 								<td class="text-right">
-                                    <?= $formatNumber($draft) ?>
+                                    <?= $formatNumber($Maturity) ?>
                                 </td>
 
                                 <td class="text-right">
@@ -2199,7 +2199,7 @@ $filters = [
     .summary-produksi-index .monthly-dashboard-header { flex-direction: column; }
 }
 
-.dot-draft {
+.dot-maturity {
     background: #6c757d;
 }
 
@@ -2207,9 +2207,9 @@ $filters = [
 .status-donut {
     background: conic-gradient(
         #28a745 0 calc(var(--inforce) * 1%),
-        #6c757d calc(var(--inforce) * 1%) calc((var(--inforce) + var(--draft)) * 1%),
-        #f0ad4e calc((var(--inforce) + var(--draft)) * 1%) calc((var(--inforce) + var(--draft) + var(--pending)) * 1%),
-        #dc3545 calc((var(--inforce) + var(--draft) + var(--pending)) * 1%) 100%
+        #6c757d calc(var(--inforce) * 1%) calc((var(--inforce) + var(--maturity)) * 1%),
+        #f0ad4e calc((var(--inforce) + var(--maturity)) * 1%) calc((var(--inforce) + var(--maturity) + var(--pending)) * 1%),
+        #dc3545 calc((var(--inforce) + var(--maturity) + var(--pending)) * 1%) 100%
     );
 }
 
@@ -2549,7 +2549,7 @@ $dashboardAnimationJs = <<<'JS'
 
         var statusVariables = [
             '--inforce',
-            '--draft',
+            '--maturity',
             '--pending',
             '--cancel'
         ];

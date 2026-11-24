@@ -434,8 +434,8 @@ class DashbordBilling extends \yii\db\ActiveRecord
 					"SUM(CASE WHEN LOWER(m.status) = 'pending'
 					THEN 1 ELSE 0 END)"
 				),
-				'cancel' => new \yii\db\Expression(
-					"SUM(CASE WHEN LOWER(m.status) = 'cancel'
+				'Maturity' => new \yii\db\Expression(
+					"SUM(CASE WHEN LOWER(m.status) = 'Maturity'
 					THEN 1 ELSE 0 END)"
 				),
 				'draft' => new \yii\db\Expression(
