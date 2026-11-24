@@ -433,7 +433,7 @@ class BatchByPeserta extends \yii\db\ActiveRecord
 		return $query->count();
 	}	
 
-public static function countAll($params = [])
+	public static function countAll($params = [])
     {
         $query = self::find();
 

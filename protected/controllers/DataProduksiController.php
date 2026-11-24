@@ -37,9 +37,9 @@ use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Worksheet\PageSetup;
 
-require_once(
-    dirname(__FILE__) . '/../extensions/phpspreadsheet/vendor/autoload.php'
-);
+// require_once(
+    // dirname(__FILE__) . '/../extensions/phpspreadsheet/vendor/autoload.php'
+// );
 /**
  * MemberController implements the CRUD actions for BatchByPeserta model.
  */
@@ -298,9 +298,6 @@ class DataProduksiController  extends Controller
 			return $this->goHome();
 		}
 
-		// ==========================================
-		// 1. PARAMETER FILTER
-		// ==========================================
 
 		$params = [
 			'status'      => Yii::$app->request->get('status', []),
@@ -313,9 +310,6 @@ class DataProduksiController  extends Controller
 			'nama'        => Yii::$app->request->get('nama'),
 		];
 
-		// ==========================================
-		// 2. AMBIL DATA TANPA PAGINATION
-		// ==========================================
 
 		$members = BatchByPeserta::getAllProductionParticipant($params);
 
@@ -338,9 +332,6 @@ class DataProduksiController  extends Controller
 
 		$totalMember = count($members);
 
-		// ==========================================
-		// 3. BUAT SPREADSHEET
-		// ==========================================
 
 		$spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
 
@@ -358,9 +349,6 @@ class DataProduksiController  extends Controller
 				\PhpOffice\PhpSpreadsheet\Worksheet\PageSetup::PAPERSIZE_FOLIO
 			);
 
-		// ==========================================
-		// 4. JUDUL REPORT
-		// ==========================================
 
 		$sheet->setCellValue('A1', 'LAPORAN DATA PRODUKSI');
 
@@ -385,9 +373,7 @@ class DataProduksiController  extends Controller
 
 		$sheet->mergeCells('A2:O2');
 
-		// ==========================================
-		// 5. HEADER EXCEL
-		// ==========================================
+
 
 		$header = [
 			'NO',
@@ -414,9 +400,6 @@ class DataProduksiController  extends Controller
 			$col++;
 		}
 
-		// ==========================================
-		// 6. STYLE HEADER
-		// ==========================================
 
 		$sheet->getStyle('A4:O4')->applyFromArray([
 			'font' => [
@@ -449,9 +432,6 @@ class DataProduksiController  extends Controller
 
 		$sheet->getRowDimension(4)->setRowHeight(30);
 
-		// ==========================================
-		// 7. ISI DATA
-		// ==========================================
 
 		$row = 5;
 		$no = 1;
@@ -479,10 +459,6 @@ class DataProduksiController  extends Controller
 			$row++;
 			$no++;
 		}
-
-		// ==========================================
-		// 8. FORMAT ANGKA
-		// ==========================================
 
 		$lastRow = $row - 1;
 
@@ -512,9 +488,6 @@ class DataProduksiController  extends Controller
 				);
 		}
 
-		// ==========================================
-		// 9. AUTO WIDTH
-		// ==========================================
 
 		foreach (range('A', 'O') as $column) {
 			$sheet->getColumnDimension($column)->setAutoSize(true);
@@ -523,17 +496,13 @@ class DataProduksiController  extends Controller
 		$sheet->getColumnDimension('D')->setWidth(30);
 		$sheet->getColumnDimension('N')->setWidth(25);
 
-		// ==========================================
-		// 10. FREEZE HEADER
-		// ==========================================
+
 
 		$sheet->freezePane('A5');
 
 		$sheet->setAutoFilter('A4:O' . max(4, $lastRow));
 
-		// ==========================================
-		// 11. TOTAL DATA
-		// ==========================================
+
 
 		$totalRow = $lastRow + 1;
 
@@ -568,9 +537,6 @@ class DataProduksiController  extends Controller
 			->getNumberFormat()
 			->setFormatCode('#,##0');
 
-		// ==========================================
-		// 12. SIMPAN FILE
-		// ==========================================
 
 		$filename = 'Data-Produksi-' . date('YmdHis') . '.xlsx';
 
@@ -620,10 +586,6 @@ class DataProduksiController  extends Controller
 			throw $e;
 		}
 	}
-
-
-
-
 
 	public function actionExportAccumulation($id)
 	{

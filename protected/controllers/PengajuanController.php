@@ -1349,11 +1349,20 @@ class PengajuanController extends Controller
 			// $member = new Member();
 			
 			
-			$member = member::findOne([
+			// $member = member::findOne([
+				// 'no_ktp' => $ktp,
+				// 'term' => $tenorPertanggungan,
+				// 'sum_insured' => $plafonPertanggungan
+			// ]);
+			
+			$member = member::find()
+			->where([
 				'no_ktp' => $ktp,
 				'term' => $tenorPertanggungan,
 				'sum_insured' => $plafonPertanggungan
-			]);
+			])
+			->andWhere(['<>', 'status', 'Cancel'])
+			->one();
 
 			if (empty($member)) {
 
