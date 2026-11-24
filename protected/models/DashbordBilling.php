@@ -229,7 +229,7 @@ class DashbordBilling extends \yii\db\ActiveRecord
 				$table . '.batch_no',
 				$table . '.status',
 				$table . '.id_loan',
-				$table . '.refund_premi',
+				// $table . '.refund_premi',
 				$table . '.no_ktp',
 				$table . '.start_date',
 				$table . '.end_date',
