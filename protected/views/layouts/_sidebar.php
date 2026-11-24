@@ -92,6 +92,15 @@ use app\models\User;
 							<li><a href="<?= Url::base() . '/member-claim'; ?>">Member claim</a></li>
                         </ul>
                     </li>
+					
+					 <li>
+                        <a href="javascript: void(0);"><i class="fa fa-book"></i> <span> Dahsbord </span> <span class="menu-arrow"></span></a>
+                        <ul class="nav-second-level" aria-expanded="false">
+                            <li><a href="<?= Url::base() . '/dashbord-billing'; ?>">Produksi Konven</a></li>
+							<li><a href="<?= Url::base() . '/dashbord-billing-syariah'; ?>">Produksi Syariah</a></li>
+                    
+                        </ul>
+                    </li>
                 <?php
                 endif;
 				
