@@ -392,17 +392,27 @@ $filters = [
     </div>
 
     <!-- SUMMARY TOTAL PENGAJUAN -->
-    <div class="application-label">
-			TOTAL PENGAJUAN HARI INI
-		</div>
+    <div class="col-lg-6 col-md-6 col-sm-12">
+        <div class="total-application-card">
 
-		<div class="application-value">
-			<?= number_format((int) ($totalPengajuanHariIni ?? 0), 0, ',', '.') ?>
-		</div>
+            <div class="application-icon">
+                <i class="fa fa-file-text-o"></i>
+            </div>
 
-		<div class="application-description">
-			Pengajuan tanggal <?= date('d-m-Y') ?>
-		</div>
+            <div class="application-label">
+                TOTAL PENGAJUAN
+            </div>
+
+            <div class="application-value">
+                <?= number_format((int) $totalPengajuanHariIni, 0, ',', '.') ?>
+            </div>
+
+            <div class="application-description">
+                Total seluruh pengajuan berdasarkan filter
+            </div>
+
+        </div>
+    </div>
 
 </div>
 
