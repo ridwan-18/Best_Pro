@@ -34,6 +34,7 @@ use app\models\BatchByPeserta;
 use app\models\map_member_dokumen_medis;
 use app\models\Cabang;
 use app\models\ReportBilling;
+use yii\db\Expression;
 /**
  * MemberController implements the CRUD actions for BatchByPeserta model.
  */
