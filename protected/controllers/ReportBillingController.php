@@ -122,6 +122,14 @@ class ReportBillingController  extends Controller
 		$models = ReportBilling::getAllProductionParticipant(
 			$paramsGetAllProduksi
 		);
+		
+		$today = date('Y-m-d');
+
+		$totalPengajuanHariIni = Member::find()
+		->where(new Expression('DATE(created_at) = :today', [
+			':today' => $today
+		]))
+		->count();
 
 		// Data peserta
 		$members = [];
@@ -143,6 +151,7 @@ class ReportBillingController  extends Controller
 			'members' => $members,
 			'summary' => $summary,
 			'monthlySummary' => $monthlySummary,
+			'totalPengajuanHariIni' => $totalPengajuanHariIni,
 		]);
 	}
 
