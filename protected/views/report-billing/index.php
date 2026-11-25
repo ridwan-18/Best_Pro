@@ -369,6 +369,52 @@ $filters = [
         <hr>
 
     </div>
+	
+	<div class="row digital-summary-section">
+
+    <!-- JAM DIGITAL -->
+    <div class="col-lg-6 col-md-6 col-sm-12">
+        <div class="digital-clock-card">
+            <div class="clock-icon">
+                <i class="fa fa-clock-o"></i>
+            </div>
+
+            <div class="clock-label">WAKTU SEKARANG</div>
+
+            <div id="digital-clock" class="digital-clock">
+                00:00:00
+            </div>
+
+            <div id="digital-date" class="digital-date">
+                Memuat tanggal...
+            </div>
+        </div>
+    </div>
+
+    <!-- SUMMARY TOTAL PENGAJUAN -->
+    <div class="col-lg-6 col-md-6 col-sm-12">
+        <div class="total-application-card">
+
+            <div class="application-icon">
+                <i class="fa fa-file-text-o"></i>
+            </div>
+
+            <div class="application-label">
+                TOTAL PENGAJUAN
+            </div>
+
+            <div class="application-value">
+                <?= number_format((int) $totalPengajuan, 0, ',', '.') ?>
+            </div>
+
+            <div class="application-description">
+                Total seluruh pengajuan berdasarkan filter
+            </div>
+
+        </div>
+    </div>
+
+</div>
 
     <div class="row summary-cards">
 
@@ -1951,4 +1997,106 @@ $filters = [
     .summary-produksi-index .monthly-dashboard-header { flex-direction: column; }
 }
 
+.digital-clock-card,
+.total-application-card {
+    min-height: 190px;
+    border-radius: 14px;
+    padding: 25px;
+    margin-bottom: 20px;
+    color: #fff;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 8px 25px rgba(0,0,0,.18);
+}
+
+.digital-clock-card {
+    background: linear-gradient(135deg, #172554, #2563eb);
+    text-align: center;
+}
+
+.total-application-card {
+    background: linear-gradient(135deg, #064e3b, #059669);
+    text-align: center;
+}
+
+.clock-icon,
+.application-icon {
+    font-size: 25px;
+    margin-bottom: 8px;
+}
+
+.clock-label,
+.application-label {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    opacity: .9;
+}
+
+.digital-clock {
+    font-family: 'Courier New', monospace;
+    font-size: 48px;
+    font-weight: bold;
+    letter-spacing: 4px;
+    margin: 8px 0;
+    text-shadow: 0 0 15px rgba(255,255,255,.35);
+}
+
+.digital-date {
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.application-value {
+    font-size: 45px;
+    font-weight: 800;
+    margin: 8px 0;
+}
+
+.application-description {
+    font-size: 13px;
+    opacity: .85;
+}
+
+@media(max-width: 576px) {
+    .digital-clock {
+        font-size: 34px;
+    }
+
+    .application-value {
+        font-size: 36px;
+    }
+}
+
 </style>
+
+
+<script>
+(function () {
+    function updateDigitalClock() {
+        var now = new Date();
+
+        var time = now.toLocaleTimeString('id-ID', {
+            timeZone: 'Asia/Jakarta',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: false
+        });
+
+        var date = now.toLocaleDateString('id-ID', {
+            timeZone: 'Asia/Jakarta',
+            weekday: 'long',
+            day: '2-digit',
+            month: 'long',
+            year: 'numeric'
+        });
+
+        document.getElementById('digital-clock').textContent = time;
+        document.getElementById('digital-date').textContent = date;
+    }
+
+    updateDigitalClock();
+    setInterval(updateDigitalClock, 1000);
+})();
+</script>
