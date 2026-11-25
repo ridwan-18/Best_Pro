@@ -400,7 +400,7 @@ $filters = [
             </div>
 
             <div class="application-label">
-                TOTAL PENGAJUAN
+                TOTAL PENGAJUAN HARI INI
             </div>
 
             <div class="application-value">
@@ -408,8 +408,8 @@ $filters = [
             </div>
 
             <div class="application-description">
-                Total seluruh pengajuan berdasarkan filter
-            </div>
+				Pengajuan tanggal <?= date('d-m-Y') ?>
+			</div>
 
         </div>
     </div>
