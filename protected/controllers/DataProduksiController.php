@@ -36,6 +36,7 @@ use app\models\Cabang;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Worksheet\PageSetup;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 require_once(
      dirname(__FILE__) . '/../extensions/phpspreadsheet/vendor/autoload.php'
