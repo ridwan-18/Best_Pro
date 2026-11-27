@@ -129,7 +129,7 @@ class ReportBillingController  extends Controller
 		$startDate = $today . ' 00:00:00';
 		$endDate   = date('Y-m-d', strtotime('+1 day')) . ' 00:00:00';
 
-		$totalPengajuanHariIni = Member::find()
+		$totalPengajuanHariIni = map_member_dokumen_medis::find()
 			->where(['>=', 'created_at', $startDate])
 			->andWhere(['<', 'created_at', $endDate])
 			->count();
