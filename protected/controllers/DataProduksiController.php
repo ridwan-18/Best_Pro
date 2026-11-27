@@ -37,9 +37,9 @@ use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Worksheet\PageSetup;
 
-// require_once(
-    // dirname(__FILE__) . '/../extensions/phpspreadsheet/vendor/autoload.php'
-// );
+require_once(
+     dirname(__FILE__) . '/../extensions/phpspreadsheet/vendor/autoload.php'
+);
 /**
  * MemberController implements the CRUD actions for BatchByPeserta model.
  */
